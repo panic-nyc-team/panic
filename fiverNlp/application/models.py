@@ -159,13 +159,31 @@ class ReportModel(db.Model):
             return False
 
 
+
+class SentenceTextModel(db.Model):
+    __tablename__ = 'sentencetexts'
+    id = db.Column(db.Integer, primary_key=True)
+    f_id = db.Column(db.Integer)
+    sentence = db.Column(db.Text)
+
+    @classmethod
+    def delete(cls, f_id):
+        try:
+            cls.query.filter_by(f_id=f_id).delete()
+            db.session.commit()
+            return True
+        except:
+            return False
+
+
+
 class SentenceModel(db.Model):
     __tablename__ = 'sentences'
     id = db.Column(db.Integer, primary_key=True)
     f_id = db.Column(db.Integer)
-    sentence1 = db.Column(db.Text)
+    sentence1 = db.Column(db.Integer)
     similarity = db.Column(db.Integer)
-    sentence2 = db.Column(db.Text)
+    sentence2 = db.Column(db.Integer)
     title = db.Column(db.String(255))
     type = db.Column(db.String(50))
     dimension = db.Column(db.String(30))

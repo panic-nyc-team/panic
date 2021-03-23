@@ -39,6 +39,12 @@ from sentence_transformers import SentenceTransformer, util
 
 import webhoseio
 
+import pandas as pd
+from collections import Counter
+from nltk.corpus import stopwords
+import csv, pickle
+from tqdm import tqdm
+
 webhoseio.config(token="8018e387-9258-4fd4-9ec5-9f9366a779a8")
 
 app = Flask(__name__)
@@ -226,17 +232,26 @@ def train_model(retrain):
         #One hot encoding Labels
         labels = onehot_encode_labels(labels)
 
-        #Tokenizing the data
-        tokenizer.fit_on_texts(features)
 
-        # saving the tokenizer
-        save_tokenizer(tokenizer)
 
-        feature_sequences = tokenizer.texts_to_sequences(features)
-        feature_padded = pad_sequences(feature_sequences, maxlen=maxlen, padding='post', truncating='post')
+        tok_features=tokenize(features,tokenizer)
+        print("tok_features ------> ",tok_features)
+
+        input_ids_in=(tok_features[0])
+        input_masks_in=(tok_features[1])
+        print("input_ids_in.shape ---> ",input_ids_in.shape)
+        print("input_masks_in.shape --> ",input_masks_in.shape)
+
+        #Getting Embeddings
+        cls_token=embeddings(input_ids_in,input_masks_in)
+        print("cls_token.shape ---> ",cls_token.shape)
+        total_samples = len(cls_token)
+
+        embedding_features = np.asarray(cls_token)
+
 
         #Training the Model
-        model.fit(feature_padded, labels, epochs=20)
+        model.fit(embedding_features, labels, epochs=50)
 
         #overwriting the model
         model.save('static/Models/model_under_use.h5')
@@ -296,11 +311,21 @@ def results():
 
     sentences   = nltk.sent_tokenize(TEST_STRING)
 
-    text_seq        = tokenizer.texts_to_sequences(sentences)
-    text_seq_padded = pad_sequences(text_seq, maxlen=maxlen, padding='post', truncating='post')
 
-    predictions = model.predict(text_seq_padded)
-        
+    tok_test_features = tokenize(sentences, tokenizer)
+
+    test_input_ids_in = tf.convert_to_tensor(tok_test_features[0])
+    print("test_input_ids_in ----->", test_input_ids_in)
+    test_input_masks_in = tf.convert_to_tensor(tok_test_features[1])
+    print("test_input_ids_in --->", test_input_ids_in)
+
+    # Getting Embeddings
+    test_cls_token = embeddings(test_input_ids_in, test_input_masks_in)
+    embedding_features = np.asarray(test_cls_token)
+
+    predictions = model.predict(embedding_features)
+
+
     class_num = tfmath.argmax(predictions, axis= 1)
     class_num = tfbackend.eval(class_num)
     labels    = decode_onehot_labels(class_num)
@@ -361,10 +386,19 @@ def classified():
     text=request.json
     text=text['mytext']
     global model, tokenizer , maxlen
-    sentences   = nltk.sent_tokenize(text) 
-    text_seq        = tokenizer.texts_to_sequences(sentences)
-    text_seq_padded = pad_sequences(text_seq, maxlen=maxlen,padding='post', truncating='post')
-    predictions = model.predict(text_seq_padded)
+
+    sentences = nltk.sent_tokenize(text)
+    tok_test_features = tokenize(sentences, tokenizer)
+
+    test_input_ids_in = (tok_test_features[0])
+    test_input_masks_in = (tok_test_features[1])
+
+    # Getting Embeddings
+    test_cls_token = embeddings(test_input_ids_in, test_input_masks_in)
+    embedding_features = np.asarray(test_cls_token)
+
+    predictions = model.predict(embedding_features)
+
     class_num = tfmath.argmax(predictions, axis= 1) #Returns the index with the largest value across axes of a tensor.
     class_num = tfbackend.eval(class_num) 
     labels    = decode_onehot_labels(class_num)
@@ -1352,6 +1386,7 @@ def savecompany():
                 if(report):
                     ReportModel.query.filter_by(title = 'default: '+title).delete()
                     SentenceModel.delete(f_id=report.id)
+                    SentenceTextModel.delete(f_id=report.id)
                 db.session.commit()
             except:
                 print('no delete',file=sys.stderr)
@@ -1493,8 +1528,11 @@ def search_query_documents_background(searchquery):
                 temp_clean_text = re.sub(r'[\n]', ' ', temp_clean_text)
                 temp_clean_text = re.sub(r"([^0-9]\.)", r"\1 ", temp_clean_text)
                 searchquerydocument.clean_text = re.sub(r'[^a-zA-Z0-9. ]', '', temp_clean_text)
-                res = requests.post('http://13.82.225.206:5000/predict',
+                # res = requests.post('http://13.82.225.206:5000/predict',
+                #                     json={"mytext": searchquerydocument.clean_text})
+                res = requests.post(url_for('classified', _external=True),
                                     json={"mytext": searchquerydocument.clean_text})
+
                 print(3333, file=sys.stderr)
                 if res.ok:
                     searchquerydocument.classified_sentences = str(res.json())
@@ -1610,6 +1648,7 @@ def delete_report():
             return 'error'
         if(ReportModel.delete(id=id)):
                 SentenceModel.delete(f_id=id)
+                SentenceTextModel.delete(f_id=id)
                 return redirect(url_for('reports'))
         else:
             return 'error'
@@ -1854,6 +1893,12 @@ def report_company_test():
                             both.append(i)
             else:
                 'error'
+            s = {}
+            for i in SentenceTextModel.query.filter_by(f_id=report.id).all():
+                s[i.id] = i.sentence
+            for i in sentences[:20]:
+                i.sentence1 = s.get(i.sentence1)
+                i.sentence2 = s.get(i.sentence2)
             return render_template(page_url,companydocuments=companydocuments,report=report,dimensions=dimensions,sentences=sentences[:20],searchqueries=searchqueries,tags=tags,score1=score1,score2=score2,providers=providers,tagdata=both,chartdimension=chartdimension)
 
         except Exception as e:
@@ -1938,7 +1983,7 @@ def report_background(id,type,first,second,range_from,range_to,default=False):
         first = CompanyDocumentModel.query.filter_by(title=first).first()
         dict_company_A = eval(first.classified_sentences)
         if(SentenceModel.query.filter_by(f_id=id).first() is not None):
-            if(SentenceModel.delete(f_id=id)):
+            if(SentenceModel.delete(f_id=id) and SentenceTextModel.delete(f_id=id)):
                 pass
             else:
                 print('delete error',file=sys.stderr)
@@ -2041,6 +2086,15 @@ def report_background(id,type,first,second,range_from,range_to,default=False):
 
 def get_scores(sentence1,sentence2,dimension,range_from,range_to,id,sen_pro_author):
     print('get scores')
+    for s in sentence1:
+        if(SentenceTextModel.query.filter_by(f_id=id,sentence=s[0]).first() is None):
+            s = SentenceTextModel(f_id=id, sentence=s[0])
+            db.session.add(s)
+    for s in sentence2:
+        if(SentenceTextModel.query.filter_by(f_id=id,sentence=s[0]).first() is None):
+            s = SentenceTextModel(f_id=id, sentence=s[0])
+            db.session.add(s)
+    db.session.commit()
     #res = requests.post(url_for('sentenceSimliarity',_external=True), json={"sentence1":sentence1,"sentence2":sentence2})
     #print(res.text,file=sys.stderr)
     res_dict = getSimlarity(sentence1,sentence2)
@@ -2050,13 +2104,17 @@ def get_scores(sentence1,sentence2,dimension,range_from,range_to,id,sen_pro_auth
     #else:
         #return 'error'
     t=[]
+    st = SentenceTextModel.query.filter_by(f_id=id).all()
+    s = {}
+    for i in st:
+        s[i.sentence] = i.id
     for i in res_dict:
         for j in res_dict[i]:
             score = abs(float(res_dict[i][j]['similarity'])*100)
             if(sen_pro_author=={}):
-                t.append(SentenceModel(sentence1=i,sentence2=j,similarity=int(score),f_id=id,dimension=dimension,title=res_dict[i][j]['title'],type=res_dict[i][j]['type']))
+                t.append(SentenceModel(sentence1=s.get(i),sentence2=s.get(j),similarity=int(score),f_id=id,dimension=dimension,title=res_dict[i][j]['title'],type=res_dict[i][j]['type']))
             else:
-                t.append(SentenceModel(sentence1=i,sentence2=j,similarity=int(score),f_id=id,dimension=dimension,title=res_dict[i][j]['title'],type=res_dict[i][j]['type'],provider=sen_pro_author.get(j).get('provider'),author=sen_pro_author.get(j).get('author')))
+                t.append(SentenceModel(sentence1=s.get(i),sentence2=s.get(j),similarity=int(score),f_id=id,dimension=dimension,title=res_dict[i][j]['title'],type=res_dict[i][j]['type'],provider=sen_pro_author.get(j).get('provider'),author=sen_pro_author.get(j).get('author')))
     try:
         db.session.add_all(list(dict.fromkeys(t)))
         db.session.commit()
