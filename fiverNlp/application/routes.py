@@ -1981,6 +1981,7 @@ def report_background(id,type,first,second,range_from,range_to,default=False):
         dimensions = {'aesthetic':0,'craftsmanship':0,'purpose':0,'narrative':0}
         first = CompanyDocumentModel.query.filter_by(title=first).first()
         dict_company_A = eval(first.classified_sentences)
+        print(dict_company_A)
         if(SentenceModel.query.filter_by(f_id=id).first() is not None):
             if(SentenceModel.delete(f_id=id) and SentenceTextModel.delete(f_id=id)):
                 pass
@@ -1999,6 +2000,7 @@ def report_background(id,type,first,second,range_from,range_to,default=False):
                 if(dict_company_A[i]==dimension):
                     ##sentence1.append(i)
                     if(len(re.findall(r'\w+',i))>3):
+                        print(i)
                         sentence1.append(i)
                 if (len(re.findall(r'\w+', i)) > 3):
                     all_sentence1s.append(i)
