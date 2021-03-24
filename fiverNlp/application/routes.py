@@ -1898,7 +1898,7 @@ def report_company_test():
                 print(i.sentence1,i.sentence2)
                 i.sentence1 = s.get(int(i.sentence1))
                 i.sentence2 = s.get(int(i.sentence2))
-                print(s.get(int(i.sentence1)),s.get(int(i.sentence2)))
+                print(i.sentence1,i.sentence2)
 
             return render_template(page_url,companydocuments=companydocuments,report=report,dimensions=dimensions,sentences=sentences[:20],searchqueries=searchqueries,tags=tags,score1=score1,score2=score2,providers=providers,tagdata=both,chartdimension=chartdimension)
 
