@@ -2087,7 +2087,7 @@ def get_scores(sentence1,sentence2,dimension,range_from,range_to,id,sen_pro_auth
     print('get scores')
     for s in sentence1:
         f = SentenceTextModel.query.filter_by(f_id=id,sentence=s[0]).first()
-        print(f)
+        print(s[0])
         if(f is None):
             s = SentenceTextModel(f_id=id, sentence=s[0])
             db.session.add(s)
