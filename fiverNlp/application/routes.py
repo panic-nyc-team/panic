@@ -1897,7 +1897,7 @@ def report_company_test():
             for i in sentences[:20]:
                 i.sentence1 = s.get(i.sentence1)
                 i.sentence2 = s.get(i.sentence2)
-            print(sentences[:20])
+                print(i.sentence1,i.sentence2)
             return render_template(page_url,companydocuments=companydocuments,report=report,dimensions=dimensions,sentences=sentences[:20],searchqueries=searchqueries,tags=tags,score1=score1,score2=score2,providers=providers,tagdata=both,chartdimension=chartdimension)
 
         except Exception as e:
