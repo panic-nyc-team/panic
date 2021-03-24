@@ -1981,7 +1981,6 @@ def report_background(id,type,first,second,range_from,range_to,default=False):
         dimensions = {'aesthetic':0,'craftsmanship':0,'purpose':0,'narrative':0}
         first = CompanyDocumentModel.query.filter_by(title=first).first()
         dict_company_A = eval(first.classified_sentences)
-        print(dict_company_A)
         if(SentenceModel.query.filter_by(f_id=id).first() is not None):
             if(SentenceModel.delete(f_id=id) and SentenceTextModel.delete(f_id=id)):
                 pass
@@ -2000,7 +1999,6 @@ def report_background(id,type,first,second,range_from,range_to,default=False):
                 if(dict_company_A[i]==dimension):
                     ##sentence1.append(i)
                     if(len(re.findall(r'\w+',i))>3):
-                        print(i)
                         sentence1.append(i)
                 if (len(re.findall(r'\w+', i)) > 3):
                     all_sentence1s.append(i)
@@ -2063,7 +2061,7 @@ def report_background(id,type,first,second,range_from,range_to,default=False):
                 return 'error'
             if(len(sentence1)==0 or len(sentence2)==0):
                 continue
-            #print(dimension,sentence1,sentence2,file=sys.stderr)
+            print(dimension,sentence1,sentence2,file=sys.stderr)
             dimensions[dimension] = get_scores(sentence1,sentence2,dimension,range_from,range_to,id,sen_pro_author)
 
         # scoring for comparing all sentences
@@ -2089,7 +2087,7 @@ def get_scores(sentence1,sentence2,dimension,range_from,range_to,id,sen_pro_auth
     print('get scores')
     for s in sentence1:
         f = SentenceTextModel.query.filter_by(f_id=id,sentence=s[0]).first()
-        print(s[0])
+        # print(s[0])
         if(f is None):
             s = SentenceTextModel(f_id=id, sentence=s[0])
             db.session.add(s)
