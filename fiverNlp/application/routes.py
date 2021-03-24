@@ -237,8 +237,10 @@ def train_model(retrain):
         tok_features=tokenize(features,tokenizer)
         print("tok_features ------> ",tok_features)
 
-        input_ids_in=(tok_features[0])
-        input_masks_in=(tok_features[1])
+        input_ids_in = tf.convert_to_tensor(tok_features[0])
+        input_masks_in = tf.convert_to_tensor(tok_features[1])
+
+
         print("input_ids_in.shape ---> ",input_ids_in.shape)
         print("input_masks_in.shape --> ",input_masks_in.shape)
 
@@ -390,9 +392,11 @@ def classified():
     sentences = nltk.sent_tokenize(text)
     tok_test_features = tokenize(sentences, tokenizer)
 
-    test_input_ids_in = (tok_test_features[0])
-    test_input_masks_in = (tok_test_features[1])
 
+    test_input_ids_in = tf.convert_to_tensor(tok_test_features[0])
+    print("test_input_ids_in ----->", test_input_ids_in)
+    test_input_masks_in = tf.convert_to_tensor(tok_test_features[1])
+    print("test_input_ids_in --->", test_input_ids_in)
     # Getting Embeddings
     test_cls_token = embeddings(test_input_ids_in, test_input_masks_in)
     embedding_features = np.asarray(test_cls_token)
