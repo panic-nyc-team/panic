@@ -2089,11 +2089,12 @@ def get_scores(sentence1,sentence2,dimension,range_from,range_to,id,sen_pro_auth
         if(SentenceTextModel.query.filter_by(f_id=id,sentence=s[0]).first() is None):
             s = SentenceTextModel(f_id=id, sentence=s[0])
             db.session.add(s)
+            db.session.commit()
     for s in sentence2:
         if(SentenceTextModel.query.filter_by(f_id=id,sentence=s[0]).first() is None):
             s = SentenceTextModel(f_id=id, sentence=s[0])
             db.session.add(s)
-    db.session.commit()
+            db.session.commit()
     #res = requests.post(url_for('sentenceSimliarity',_external=True), json={"sentence1":sentence1,"sentence2":sentence2})
     #print(res.text,file=sys.stderr)
     res_dict = getSimlarity(sentence1,sentence2)
@@ -2107,8 +2108,9 @@ def get_scores(sentence1,sentence2,dimension,range_from,range_to,id,sen_pro_auth
     s = {}
     for i in st:
         s[i.sentence] = i.id
+    print(s)
     for i in res_dict:
-        print(i,s.get(i))
+        # print(i,s.get(i))
         for j in res_dict[i]:
             score = abs(float(res_dict[i][j]['similarity'])*100)
             if(sen_pro_author=={}):
