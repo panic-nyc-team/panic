@@ -2108,6 +2108,7 @@ def get_scores(sentence1,sentence2,dimension,range_from,range_to,id,sen_pro_auth
     for i in st:
         s[i.sentence] = i.id
     for i in res_dict:
+        print(i,s.get(i))
         for j in res_dict[i]:
             score = abs(float(res_dict[i][j]['similarity'])*100)
             if(sen_pro_author=={}):
