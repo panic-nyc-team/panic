@@ -444,7 +444,7 @@ def getSimlarity(sentence1,sentence2):
         # print(sentence1[i],sentence2[j])
         # s.append("{:.2f}".format(cosine_scores[i][j]))
         dd[sentence2[j][0]] = {'similarity':"{:.2f}".format(cosine_scores[i][j]),'title':sentence2[j][1],'type':sentence2[j][2]}
-      print(dd)
+      #print(dd)
       d[sentence1[i]] = dd
     return d
 
@@ -1783,20 +1783,14 @@ def report_company_test():
             report = ReportModel.query.filter_by(id=id).first()
             if(report is None):
                 return 'report not found'
-            print(1)
             companydocuments = CompanyDocumentModel.query.all()
-            print(11)
             searchqueries = SearchQueryModel.query.all()
-            print(111)
             tags = IndustryTags.query.all()
-            print(1111)
             all_sentences = SentenceModel.query.filter(SentenceModel.f_id==id).all()
-            print(11111)
             sentences = []
             for i in all_sentences:
                 if(i.dimension==report.dimension and i.similarity>=report.range_from and i.similarity<=report.range_to):
                     sentences.append(i)
-            print(11) 
             if(len(sentences)>0):
                 sentences = sorted(sentences, key=lambda x: x.similarity,reverse=report.descending)
             type = report.type
@@ -1903,6 +1897,7 @@ def report_company_test():
             for i in sentences[:20]:
                 i.sentence1 = s.get(i.sentence1)
                 i.sentence2 = s.get(i.sentence2)
+            print(sentences[:20])
             return render_template(page_url,companydocuments=companydocuments,report=report,dimensions=dimensions,sentences=sentences[:20],searchqueries=searchqueries,tags=tags,score1=score1,score2=score2,providers=providers,tagdata=both,chartdimension=chartdimension)
 
         except Exception as e:
