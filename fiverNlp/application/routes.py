@@ -1894,12 +1894,11 @@ def report_company_test():
             s = {}
             for i in SentenceTextModel.query.filter_by(f_id=report.id).all():
                 s[i.id] = i.sentence
-            print(s,s.get(1085))
             for i in sentences[:20]:
                 print(i.sentence1,i.sentence2)
-                i.sentence1 = s.get(i.sentence1)
-                i.sentence2 = s.get(i.sentence2)
-                print(i.sentence1,i.sentence2)
+                i.sentence1 = s.get(int(i.sentence1))
+                i.sentence2 = s.get(int(i.sentence2))
+                print(s.get(int(i.sentence1)),s.get(int(i.sentence2)))
 
             return render_template(page_url,companydocuments=companydocuments,report=report,dimensions=dimensions,sentences=sentences[:20],searchqueries=searchqueries,tags=tags,score1=score1,score2=score2,providers=providers,tagdata=both,chartdimension=chartdimension)
 
