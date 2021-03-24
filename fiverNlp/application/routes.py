@@ -2086,7 +2086,9 @@ def report_background(id,type,first,second,range_from,range_to,default=False):
 def get_scores(sentence1,sentence2,dimension,range_from,range_to,id,sen_pro_author):
     print('get scores')
     for s in sentence1:
-        if(SentenceTextModel.query.filter_by(f_id=id,sentence=s[0]).first() is None):
+        f = SentenceTextModel.query.filter_by(f_id=id,sentence=s[0]).first()
+        print(f)
+        if(f is None):
             s = SentenceTextModel(f_id=id, sentence=s[0])
             db.session.add(s)
             db.session.commit()
@@ -2108,7 +2110,7 @@ def get_scores(sentence1,sentence2,dimension,range_from,range_to,id,sen_pro_auth
     s = {}
     for i in st:
         s[i.sentence] = i.id
-    print(s)
+    # print(s)
     for i in res_dict:
         # print(i,s.get(i))
         for j in res_dict[i]:
