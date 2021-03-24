@@ -427,7 +427,7 @@ def getSimlarity(sentence1,sentence2):
     s1 = []
     s2 = []
     for i in sentence1:
-        s1.append(i[0])
+        s1.append(i)
     for i in sentence2:
         s2.append(i[0])
     embeddings1 = sentence_model.encode(s1, convert_to_tensor=True)
@@ -2086,10 +2086,9 @@ def report_background(id,type,first,second,range_from,range_to,default=False):
 def get_scores(sentence1,sentence2,dimension,range_from,range_to,id,sen_pro_author):
     print('get scores')
     for s in sentence1:
-        f = SentenceTextModel.query.filter_by(f_id=id,sentence=s[0]).first()
-        # print(s[0])
+        f = SentenceTextModel.query.filter_by(f_id=id,sentence=s).first()
         if(f is None):
-            s = SentenceTextModel(f_id=id, sentence=s[0])
+            s = SentenceTextModel(f_id=id, sentence=s)
             db.session.add(s)
             db.session.commit()
     for s in sentence2:
