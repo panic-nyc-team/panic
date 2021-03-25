@@ -40,22 +40,26 @@ class CompanyDocumentModel(db.Model):
 
 class SearchQueryDocumentModel(db.Model):
     __tablename__ = 'searchquerydocument'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    __table_args__ = (
+        db.UniqueConstraint('url', 'f_title'),
+    )
     title = db.Column(db.String(255))
     clean_text = db.Column(db.Text)
     classified_sentences = db.Column(db.Text)
     author = db.Column(db.String(255))
     provider = db.Column(db.String(255))
-    url = db.Column(db.String(255), primary_key=True)
+    url = db.Column(db.String(255))
     image_url = db.Column(db.Text)
     date = db.Column(db.String(255))
-    f_title = db.Column(db.String(255), primary_key=True)
+    f_title = db.Column(db.String(255))
     # new
     date_created = db.Column(db.DateTime(), index=True, default=datetime.datetime.now(tz))
 
     @classmethod
-    def deleteall(cls, title):
+    def deleteall(cls, f_title):
         try:
-            cls.query.filter_by(f_title=title).delete()
+            cls.query.filter_by(f_title=f_title).delete()
             db.session.commit()
             return True
         except:
@@ -219,6 +223,8 @@ class Threshold(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     value = db.Column(db.Integer)
 
+
+
 class NewDocumentModel(db.Model):
     __tablename__ = 'newdocument'
     id = db.Column(db.Integer, primary_key=True,autoincrement=True)
@@ -227,6 +233,7 @@ class NewDocumentModel(db.Model):
     url = db.Column(db.Text)
     site = db.Column(db.String(250))
     title = db.Column(db.String(255))
+    f_title = db.Column(db.String(255))
     title_full = db.Column(db.String(255))
     published = db.Column(db.String(255))
     replies_count = db.Column(db.Integer)
@@ -250,12 +257,40 @@ class NewDocumentModel(db.Model):
     stumbledupon_shares = db.Column(db.Integer)
     vk_shares = db.Column(db.Integer)
 
+    @classmethod
+    def delete(cls, id):
+        try:
+            cls.query.filter_by(id=id).delete()
+            db.session.commit()
+            return True
+        except:
+            return False
+    @classmethod
+    def deleteall(cls, f_title):
+        try:
+            cls.query.filter_by(f_title=f_title).delete()
+            db.session.commit()
+            return True
+        except:
+            return False
+
+
+
 class NewDocumentPersonsModel(db.Model):
     __tablename__ = 'newdocumentpersons'
     id = db.Column(db.Integer, primary_key=True)
     f_id = db.Column(db.Integer)
     name = db.Column(db.String(100))
     sentiment = db.Column(db.String(100))
+
+    @classmethod
+    def delete(cls, f_id):
+        try:
+            cls.query.filter_by(f_id=f_id).delete()
+            db.session.commit()
+            return True
+        except:
+            return False
 
 
 class NewDocumentOrganizationsModel(db.Model):
@@ -265,6 +300,15 @@ class NewDocumentOrganizationsModel(db.Model):
     name = db.Column(db.String(100))
     sentiment = db.Column(db.String(100))
 
+    @classmethod
+    def delete(cls, f_id):
+        try:
+            cls.query.filter_by(f_id=f_id).delete()
+            db.session.commit()
+            return True
+        except:
+            return False
+
 
 class NewDocumentLocationsModel(db.Model):
     __tablename__ = 'newdocumentlocations'
@@ -272,3 +316,12 @@ class NewDocumentLocationsModel(db.Model):
     f_id = db.Column(db.Integer)
     name = db.Column(db.String(100))
     sentiment = db.Column(db.String(100))
+
+    @classmethod
+    def delete(cls, f_id):
+        try:
+            cls.query.filter_by(f_id=f_id).delete()
+            db.session.commit()
+            return True
+        except:
+            return False

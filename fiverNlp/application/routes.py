@@ -544,6 +544,9 @@ def set_threshold():
     else:
         threshold.value = t
         db.session.commit()
+    reports = ReportModel.query.all()
+    for report in reports:
+        update_score(report.id)
     return redirect(url_for('seeBin'))
 
 @app.route('/<type>/savetobin',methods=['POST'])
@@ -885,6 +888,11 @@ def delete_search_query_document():
     try:
         f_title = SearchQueryDocumentModel.query.filter_by(title = title).first().f_title
         if(SearchQueryDocumentModel.delete(title=title)):
+            doc = NewDocumentModel.query.filter_by(title=title).first()
+            NewDocumentModel.delete(id=doc.id)
+            NewDocumentOrganizationsModel.delete(f_id=doc.id)
+            NewDocumentPersonsModel.delete(f_id=doc.id)
+            NewDocumentLocationsModel.delete(f_id=doc.id)
             return redirect(url_for('search_query_documents',title=f_title))
         else:
             return 'error'
@@ -962,12 +970,12 @@ def search_query_change_status():
     return 'done'
 
 
-@app.route('/searchqueries/editsearchquerydocument',methods=["POST"])
+@app.route('/searchqueries/editsearchquerydocument')
 def edit_search_query_document():
-    title = request.form.get('title')
-    if(title=='' or title is None):
+    id = request.args.get('id')
+    if(id=='' or id is None):
         return 'no search query document found'
-    searchquerydocument = SearchQueryDocumentModel.query.filter_by(title = title).first()
+    searchquerydocument = SearchQueryDocumentModel.query.filter_by(id = id).first()
     if(searchquerydocument is not None):
         return render_template('editsearchquerydocument.html',searchquerydocument=searchquerydocument)
     else:
@@ -1103,7 +1111,13 @@ def delete_search_query():
     if(title=='' or title is None):
         return 'no search query found'
     try:
-        if(SearchQueryModel.delete(title=title) and SearchQueryDocumentModel.deleteall(title=title)):
+        if(SearchQueryModel.delete(title=title) and SearchQueryDocumentModel.deleteall(f_title=title)):
+            doc_list = NewDocumentModel.query.filter_by(f_title=title).all()
+            NewDocumentModel.deleteall(f_title=title)
+            for doc in doc_list:
+                NewDocumentOrganizationsModel.delete(f_id=doc.id)
+                NewDocumentPersonsModel.delete(f_id=doc.id)
+                NewDocumentLocationsModel.delete(f_id=doc.id)
             return redirect(url_for('search_queries'))
         else:
             return 'error'
@@ -1380,7 +1394,7 @@ def savecompany():
         if(reference_to_search_query is not None):
             if(run_query_score):
                 if(report is None):
-                    report = ReportModel(first=title,second=reference_to_search_query,frequency='Weekly',type='vssearchquery',status='running',title='default: '+title,up_to_date=True,range_from=0,range_to=100,dimension='aesthetic',descending=True)
+                    report = ReportModel(first=title,second=reference_to_search_query,frequency='Weekly',type='vssearchquery',status='running',title='default: '+title,up_to_date=True,range_from=0,range_to=100,dimension='all',descending=True)
                     db.session.add(report)
                     db.session.commit()
                     executor.submit(report_background,report.id,'vssearchquery',title,reference_to_search_query,0,100,True)
@@ -1404,7 +1418,7 @@ def savecompany():
 
 
 
-def newdocumentadd(i):
+def newdocumentadd(i,f_title):
     thread = i.get('thread')
     reach = thread.get('reach')
     social = thread.get('social')
@@ -1418,7 +1432,7 @@ def newdocumentadd(i):
         locations = entities.get('locations')
 
     newdocument = NewDocumentModel(author=i.get('author'),text=i.get('text'),url=i.get('url'),site=thread.get('site')
-                                   ,title=thread.get('title'),title_full=thread.get('title_full')
+                                   ,title=thread.get('title'),f_title=f_title,title_full=thread.get('title_full')
                                    ,published=thread.get('published'),replies_count=thread.get('replies_count')
                                    ,participants_count=thread.get('participants_count'),site_type=thread.get('site_type')
                                    ,country=thread.get('country'),spam_score=thread.get('spam_score')
@@ -1518,7 +1532,7 @@ def search_query_documents_background(searchquery):
                     image = i.get('thread').get('main_image')
                 except:
                     image = 'unavailable'
-                newdocumentadd(i)
+                newdocumentadd(i,searchquery.title)
                 if i.get('thread'):
                     site = i.get('thread').get('site')
                 else:
@@ -1636,6 +1650,7 @@ def update_report():
         # if('default: ' in report.title):
         #     default_company.query_score = str(dimensions)
         db.session.commit()
+        # update_score(id)
         return 'done'
         # d = eval(companydocument.classified_sentences)
         # return render_template('reports.html',reports=reports)
@@ -1701,7 +1716,7 @@ def new_report():
                 up_to_date = False
             else:
                 up_to_date = True
-            report = ReportModel(first=first,second=second,frequency=frequency,type=type,status='running',title=title,up_to_date=up_to_date,range_from=0,range_to=100,dimension='aesthetic',descending=True)
+            report = ReportModel(first=first,second=second,frequency=frequency,type=type,status='running',title=title,up_to_date=up_to_date,range_from=0,range_to=100,dimension='all',descending=True)
             db.session.add(report)
             db.session.commit()
             executor.submit(report_background,report.id,type,first,second,0,100)
@@ -2084,6 +2099,36 @@ def report_background(id,type,first,second,range_from,range_to,default=False):
         db.session.commit()
 
 
+def update_score(update_id):
+    dimensions = {'aesthetic': 0, 'craftsmanship': 0, 'purpose': 0, 'narrative': 0}
+    report = ReportModel.query.filter_by(id=update_id).first()
+    first = CompanyDocumentModel.query.filter_by(title=report.first).first()
+    thresh = Threshold.query.filter_by(id=1).first()
+    sentences = SentenceModel.query.filter_by(f_id=update_id).all()
+    for dimension in dimensions:
+        num = 0
+        total = 0
+        for sentence in sentences:
+            if sentence.dimension!=dimension:
+                continue
+            total += 1
+            if thresh:
+                value = thresh.value
+            else:
+                value = 100
+            if sentence.similarity >= value:
+                num += 1
+        if total > 0:
+            dimensions[dimension] = (num / total) * 100
+        else:
+            dimensions[dimension] = 0
+    dimensions['overall'] = (dimensions['aesthetic'] + dimensions['craftsmanship'] + dimensions['purpose'] + dimensions[
+        'narrative']) / 4
+    report.score = str(dimensions)
+    db.session.commit()
+    if ('default: ' in ReportModel.query.filter_by(id=update_id).first().title):
+        first.query_score = str(dimensions)
+        db.session.commit()
 
 
 def get_scores(sentence1,sentence2,dimension,range_from,range_to,id,sen_pro_author):
@@ -2142,6 +2187,7 @@ def get_scores(sentence1,sentence2,dimension,range_from,range_to,id,sen_pro_auth
                 num+=1
             # if(score>=range_from and score<=range_to):
             #     num+=1
+
     if(total>0):
         return (num/total)*100
     else:

@@ -73,10 +73,14 @@
               <tr>
 
                 <td >
-                  <form action="/searchqueries/editsearchquerydocument" id="{{i.title}}" method="POST">
-                  <a href="#" type onclick="this.parentElement.submit()" name="title" value="{{i.title}}">{{i.title}}</a>
+<!--                  <form action="/searchqueries/editsearchquerydocument" id="{{i.title}}" method="POST">-->
+                  {%if i.title|length < 5:%}
+                      <a href="#" onclick="opendoc(this.id)" id="{{i.id}}">NO TITLE FOUND</a>
+                  {%else%}
+                      <a href="#" onclick="opendoc(this.id)" id="{{i.id}}">{{i.title}}</a>
+                  {%endif%}
                 </td>
-                <input hidden name="title" value="{{i.title}}">
+<!--                <input hidden name="title" value="{{i.title}}">-->
                 <td>{{i.provider}}</td>
                 <td><a href="{{i.url}}" > Link </a></td>
                 <td>{{"{:%d, %b %Y : %I:%M %p} EST".format(i.date_created) }}</td>
@@ -89,7 +93,7 @@
                     <td><button style="color: green;" id="checkmark"><i class="fa fa-check-circle"></i></button></td>
                   {%endif%}
                 {%endif%}
-              </form>
+<!--              </form>-->
 
               </tr>
 
@@ -109,6 +113,9 @@ function link(url) {
 
 function sortit(url) {
   window.location.href = "/searchqueries/searchquerydocuments?title={{title}}"+"&sort="+url;
+}
+function opendoc(id) {
+  window.location.href = "/searchqueries/editsearchquerydocument?id="+id;
 }
 
 </script>
