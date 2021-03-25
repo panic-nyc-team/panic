@@ -443,7 +443,7 @@ def getSimlarity(sentence1,sentence2):
       for j in range(len(sentence2)):
         # print(sentence1[i],sentence2[j])
         # s.append("{:.2f}".format(cosine_scores[i][j]))
-        dd[sentence2[j][0]] = {'similarity':"{:.2f}".format(cosine_scores[i][j]),'title':sentence2[j][1],'type':sentence2[j][2]}
+        dd[sentence2[j][0]] = {'similarity':"{:.2f}".format(cosine_scores[i][j]),'id':sentence2[j][1],'type':sentence2[j][2],'title':sentence2[j][3]}
       #print(dd)
       d[sentence1[i]] = dd
     return d
@@ -629,15 +629,14 @@ def save_classifier(type):
 def classifier(type):
     sentences = None
     title = request.form.get('title')
-    query_document_title = request.form.get('query_document_title')
+    query_document_id = request.form.get('query_document_id')
     highlight_sentence = request.form.get('sentence')
-    if(query_document_title is None):
+    if(query_document_id is None):
         if(title is None or title==''):
-            return 'title is empty'
+            return 'query_document_id is empty'
     else:
-        if(query_document_title is None or query_document_title==''):
-            return 'query_document_title is empty'
-        title = query_document_title
+        if(query_document_id is None or query_document_id==''):
+            return 'query_document_id is empty'
     if(type=='companies'):
         temp = CompanyDocumentModel.query.filter_by(title=title).first()
         if(temp and temp.classified_sentences):
@@ -645,9 +644,9 @@ def classifier(type):
         else:
             return 'cannot find company'
     elif(type=='searchquerydocuments'):
-        print(query_document_title,title,highlight_sentence)
-        if(query_document_title):
-            temp = SearchQueryDocumentModel.query.filter_by(title=query_document_title).first()
+        print(query_document_id,title,highlight_sentence)
+        if(query_document_id):
+            temp = SearchQueryDocumentModel.query.filter_by(id=query_document_id).first()
         else:
             temp = SearchQueryDocumentModel.query.filter(SearchQueryDocumentModel.f_title==title).filter(SearchQueryDocumentModel.classified_sentences.contains(highlight_sentence)).first()
         print(temp)
@@ -1782,10 +1781,10 @@ def load_more():
             s[i.id] = i.sentence
         for i in sentences[offset:offset+20]:
             print(i.sentence1, file=sys.stderr)
-            d.append({'sentence1':s.get(int(i.sentence1)),'similarity':i.similarity,'sentence2':s.get(int(i.sentence2)),'title':i.title})
+            d.append({'sentence1':s.get(int(i.sentence1)),'similarity':i.similarity,'sentence2':s.get(int(i.sentence2)),'title':i.title2,'id':i.id2})
         return {'data':d}
     except Exception as e:
-        return 'error'
+        return str(e)
 
 @app.route('/reporttest',methods=['GET','POST'])
 def report_company_test():
@@ -2032,9 +2031,9 @@ def report_background(id,type,first,second,range_from,range_to,default=False):
                     if(dict_company[i]==dimension):
                         ##sentence2.append(i)
                         if(len(re.findall(r'\w+',i))>3):
-                            sentence2.append([i,second_company.title,'company'])
+                            sentence2.append([i,second_company.id,'company',second_company.title])
                     if (len(re.findall(r'\w+', i)) > 3):
-                        all_sentence2s.append([i,second_company.title,'company'])
+                        all_sentence2s.append([i,second_company.id,'company',second_company.title])
             elif(type=='vssearchquery'):
                 print('entered search query')
                 second_searchquery = SearchQueryDocumentModel.query.filter_by(f_title=second).all()
@@ -2046,10 +2045,10 @@ def report_background(id,type,first,second,range_from,range_to,default=False):
                             ##sentence2.append(i)
                             ##sen_pro_author[i] = {'provider':querydocument.provider,'author':querydocument.author}
                             if(len(re.findall(r'\w+',i))>3):
-                                sentence2.append([i,querydocument.title,'searchquery'])
+                                sentence2.append([i,querydocument.id,'searchquery',querydocument.title])
                                 sen_pro_author[i] = {'provider':querydocument.provider,'author':querydocument.author}
                         if (len(re.findall(r'\w+', i)) > 3):
-                            all_sentence2s.append([i,querydocument.title,'searchquery'])
+                            all_sentence2s.append([i,querydocument.id,'searchquery',querydocument.title])
                             all_sen_pro_authors[i] = {'provider': querydocument.provider, 'author': querydocument.author}
             elif(type=='vstag'):
                 companies_tagged = CompanyDocumentModel.query.all()
@@ -2072,9 +2071,9 @@ def report_background(id,type,first,second,range_from,range_to,default=False):
                         if(d[i]==dimension):
                             ##sentence2.append(i)
                             if(len(re.findall(r'\w+',i))>3):
-                                sentence2.append([i,querydocument.title,'tag'])
+                                sentence2.append([i,querydocument.id,'tag',querydocument.title])
                         if (len(re.findall(r'\w+', i)) > 3):
-                            all_sentence2s.append([i,querydocument.title,'tag'])
+                            all_sentence2s.append([i,querydocument.id,'tag',querydocument.title])
             else:
                 return 'error'
             if(len(sentence1)==0 or len(sentence2)==0):
@@ -2164,9 +2163,9 @@ def get_scores(sentence1,sentence2,dimension,range_from,range_to,id,sen_pro_auth
         for j in res_dict[i]:
             score = abs(float(res_dict[i][j]['similarity'])*100)
             if(sen_pro_author=={}):
-                t.append(SentenceModel(sentence1=s.get(i),sentence2=s.get(j),similarity=int(score),f_id=id,dimension=dimension,title=res_dict[i][j]['title'],type=res_dict[i][j]['type']))
+                t.append(SentenceModel(sentence1=s.get(i),sentence2=s.get(j),similarity=int(score),f_id=id,dimension=dimension,title2=res_dict[i][j]['title'],id2=res_dict[i][j]['id'],type=res_dict[i][j]['type']))
             else:
-                t.append(SentenceModel(sentence1=s.get(i),sentence2=s.get(j),similarity=int(score),f_id=id,dimension=dimension,title=res_dict[i][j]['title'],type=res_dict[i][j]['type'],provider=sen_pro_author.get(j).get('provider'),author=sen_pro_author.get(j).get('author')))
+                t.append(SentenceModel(sentence1=s.get(i),sentence2=s.get(j),similarity=int(score),f_id=id,dimension=dimension,title2=res_dict[i][j]['title'],id2=res_dict[i][j]['id'],type=res_dict[i][j]['type'],provider=sen_pro_author.get(j).get('provider'),author=sen_pro_author.get(j).get('author')))
     try:
         db.session.add_all(list(dict.fromkeys(t)))
         db.session.commit()

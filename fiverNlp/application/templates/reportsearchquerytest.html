@@ -324,12 +324,16 @@
        </div>
 
        <div class="section-3-3">
-         <form target="_blank" action="/searchqueries/editsearchquerydocument" method="POST">
-           <input type="hidden" name="title" value="{{i.title}}">
-           <a type="button" onclick="this.parentElement.submit()" ><h3>{{i.title}}</h3></a><br>
-         </form>
+
+           <input type="hidden" name="id" value="{{i.id2}}">
+          {%if i.title2|length < 5:%}
+              <a type="button" onclick="opendoc(this.id)" id="{{i.id2}}"><h3>NO TITLE FOUND</h3></a><br>
+          {%else%}
+              <a type="button" onclick="opendoc(this.id)" id="{{i.id2}}"><h3>{{i.title2}}</h3></a><br>
+          {%endif%}
+
          <form target="_blank" action="/searchquerydocuments/classifier" method="POST">
-           <input type="hidden" name="query_document_title" value="{{i.title}}">
+           <input type="hidden" name="query_document_id" value="{{i.id2}}">
            <input type="hidden" name="sentence" value="{{i.sentence2}}">
            <a type="button" onclick="this.parentElement.submit()" >{{i.sentence2}}</a><br>
          </form>
@@ -407,8 +411,8 @@ function loadMore(){
 
             var title = document.createElement("input");
             title.setAttribute("type", "hidden");
-            title.setAttribute("name", "query_document_title");
-            title.setAttribute("value", s[i]["title"]);
+            title.setAttribute("name", "query_document_id");
+            title.setAttribute("value", s[i]["id"]);
             var sentence = document.createElement("input");
             sentence.setAttribute("type", "hidden");
             sentence.setAttribute("name", "sentence");
@@ -418,9 +422,16 @@ function loadMore(){
 
             var doc_open = document.createElement("a");
             doc_open.setAttribute("type", "button");
-            doc_open.setAttribute("onclick", "this.parentElement.submit()");
+            doc_open.setAttribute("id", s[i]["id"]);
+            doc_open.setAttribute("onclick", "opendoc(this.id)");
+
             var h2 = document.createElement("H3");
-            h2.appendChild(document.createTextNode(s[i]["title"]));
+            if(s[i]["title"].length<5){
+                h2.appendChild(document.createTextNode("TITLE NOT FOUND"));
+            }
+            else{
+                h2.appendChild(document.createTextNode(s[i]["title"]));
+            }
             doc_open.appendChild(h2);
 
 
@@ -431,21 +442,22 @@ function loadMore(){
             form2.setAttribute("action", "/searchquerydocuments/classifier");
 
 
-            var form3 = document.createElement("form");
-            form3.setAttribute("method", "post");
-            form3.setAttribute("target", "_blank");
-            form3.setAttribute("action", "/searchqueries/editsearchquerydocument");
-            var title3 = document.createElement("input");
-            title3.setAttribute("type", "hidden");
-            title3.setAttribute("name", "title");
-            title3.setAttribute("value", s[i]["title"]);
-            form3.appendChild(title3);
-            form3.appendChild(doc_open);
+
+<!--            var form3 = document.createElement("form");-->
+<!--            form3.setAttribute("method", "get");-->
+<!--            form3.setAttribute("target", "_blank");-->
+<!--            form3.setAttribute("action", "/searchqueries/editsearchquerydocument");-->
+<!--            var title3 = document.createElement("input");-->
+<!--            title3.setAttribute("type", "hidden");-->
+<!--            title3.setAttribute("name", "id");-->
+<!--            title3.setAttribute("value", s[i]["id"]);-->
+<!--            form3.appendChild(title3);-->
+<!--            form3.appendChild(doc_open);-->
 
             
             form2.appendChild(title);
             form2.appendChild(sentence);
-            form2.appendChild(form3);
+            form2.appendChild(doc_open);
             form2.appendChild(a2);
 
             section31.appendChild(form1);
@@ -490,7 +502,9 @@ function updateClick(){
   function deleteClick(id) {
     window.location.href = "/deletereport?id="+id;
   }
-
+function opendoc(id) {
+  window.location.href = "/searchqueries/editsearchquerydocument?id="+id;
+}
 </script>
 
 

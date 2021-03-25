@@ -10,7 +10,8 @@ tz = timezone('EST')
 class CompanyDocumentModel(db.Model):
     __tablename__ = 'companydocument'
 
-    title = db.Column(db.String(200), primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), unique=True)
     clean_text = db.Column(db.Text)
     classified_sentences = db.Column(db.Text)
     reference_to_search_query = db.Column(db.String(200))
@@ -78,7 +79,8 @@ class SearchQueryDocumentModel(db.Model):
 class ArbitraryDocumentModel(db.Model):
     __tablename__ = 'arbitrarydocument'
 
-    title = db.Column(db.String(200), primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), unique=True)
     clean_text = db.Column(db.Text)
     classified_sentences = db.Column(db.Text)
     author = db.Column(db.String(200))
@@ -188,7 +190,8 @@ class SentenceModel(db.Model):
     sentence1 = db.Column(db.Integer)
     similarity = db.Column(db.Integer)
     sentence2 = db.Column(db.Integer)
-    title = db.Column(db.String(255))
+    title2 = db.Column(db.String(255))
+    id2 = db.Column(db.Integer)
     type = db.Column(db.String(50))
     dimension = db.Column(db.String(30))
     provider = db.Column(db.String(250))
