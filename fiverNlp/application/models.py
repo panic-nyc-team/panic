@@ -67,9 +67,9 @@ class SearchQueryDocumentModel(db.Model):
             return False
 
     @classmethod
-    def delete(cls, title):
+    def delete(cls, id):
         try:
-            cls.query.filter_by(title=title).delete()
+            cls.query.filter_by(id=id).delete()
             db.session.commit()
             return True
         except:
@@ -104,7 +104,8 @@ class ArbitraryDocumentModel(db.Model):
 
 class SearchQueryModel(db.Model):
     __tablename__ = 'searchquery'
-    title = db.Column(db.String(200), primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), unique=True)
     query_string = db.Column(db.String(200))
     market_language_code = db.Column(db.String(20))
     country_code = db.Column(db.String(20))
@@ -231,11 +232,23 @@ class Threshold(db.Model):
 class NewDocumentModel(db.Model):
     __tablename__ = 'newdocument'
     id = db.Column(db.Integer, primary_key=True,autoincrement=True)
+    f_id = db.Column(db.Integer, unique=True)
+    uuid = db.Column(db.String(255))
+    thread_uuid = db.Column(db.String(255))
+    ord_in_thread = db.Column(db.Integer)
+    parent_url = db.Column(db.String(255))
+    highlight_text = db.Column(db.Text)
+    highlight_title = db.Column(db.Text)
+    highlight_thread_title = db.Column(db.Text)
+    site_full = db.Column(db.String(255))
+    site_section = db.Column(db.String(255))
+    section_title = db.Column(db.String(255))
+    language = db.Column(db.String(50))
     author = db.Column(db.String(250))
     text = db.Column(db.Text)
     url = db.Column(db.Text)
-    site = db.Column(db.String(250))
-    title = db.Column(db.String(255))
+    site = db.Column(db.String(255))
+    title = db.Column(db.Text)
     f_title = db.Column(db.String(255))
     title_full = db.Column(db.String(255))
     published = db.Column(db.String(255))
@@ -259,7 +272,9 @@ class NewDocumentModel(db.Model):
     linkedin_shares = db.Column(db.Integer)
     stumbledupon_shares = db.Column(db.Integer)
     vk_shares = db.Column(db.Integer)
-
+    crawled = db.Column(db.String(50))
+    updated = db.Column(db.String(50))
+    rating = db.Column(db.Float)
     @classmethod
     def delete(cls, id):
         try:
@@ -319,6 +334,48 @@ class NewDocumentLocationsModel(db.Model):
     f_id = db.Column(db.Integer)
     name = db.Column(db.String(100))
     sentiment = db.Column(db.String(100))
+
+    @classmethod
+    def delete(cls, f_id):
+        try:
+            cls.query.filter_by(f_id=f_id).delete()
+            db.session.commit()
+            return True
+        except:
+            return False
+class NewDocumentSiteCategoriesModel(db.Model):
+    __tablename__ = 'newdocumentsitecategories'
+    id = db.Column(db.Integer, primary_key=True)
+    f_id = db.Column(db.Integer)
+    category = db.Column(db.String(255))
+
+    @classmethod
+    def delete(cls, f_id):
+        try:
+            cls.query.filter_by(f_id=f_id).delete()
+            db.session.commit()
+            return True
+        except:
+            return False
+class NewDocumentExternalLinksModel(db.Model):
+    __tablename__ = 'newdocumentexternallinks'
+    id = db.Column(db.Integer, primary_key=True)
+    f_id = db.Column(db.Integer)
+    url = db.Column(db.String(255))
+
+    @classmethod
+    def delete(cls, f_id):
+        try:
+            cls.query.filter_by(f_id=f_id).delete()
+            db.session.commit()
+            return True
+        except:
+            return False
+class NewDocumentExternalImagesModel(db.Model):
+    __tablename__ = 'newdocumentexternalimages'
+    id = db.Column(db.Integer, primary_key=True)
+    f_id = db.Column(db.Integer)
+    url = db.Column(db.String(255))
 
     @classmethod
     def delete(cls, f_id):

@@ -108,13 +108,13 @@ ul{
 
 <script>
 function save(sentence,dimension){
-  $.post( "saveclassifier", { title: "{{title}}",sentence: sentence,dimension:dimension})
+  $.post( "saveclassifier", { id: "{{id}}",title:"{{title}}",sentence: sentence,dimension:dimension})
   .done(function( data ) {
 
   });
 }
 function savetobin(){
-  $.post( "savetobin", { title: "{{title}}",sentence:"{{highlight_sentence}}" })
+  $.post( "savetobin", { id: "{{id}}",title:"{{title}}",sentence:"{{highlight_sentence}}" })
   .done(function( data ) {
     if(data==='done'){
       alert('added to bin successfully')

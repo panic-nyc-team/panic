@@ -327,9 +327,17 @@
 
            <input type="hidden" name="id" value="{{i.id2}}">
           {%if i.title2|length < 5:%}
-              <a type="button" onclick="opendoc(this.id)" id="{{i.id2}}"><h3>NO TITLE FOUND</h3></a><br>
+              {%if 'default:' in report.title%}
+                    <a type="button" onclick="opendoc(this.id)" id="{{i.id2}}"><h5>NO TITLE FOUND ({{i.provider}})</h5></a><br>
+                {%else%}
+                    <a type="button" onclick="opendoc(this.id)" id="{{i.id2}}"><h3>NO TITLE FOUND</h3></a><br>
+                {%endif%}
           {%else%}
-              <a type="button" onclick="opendoc(this.id)" id="{{i.id2}}"><h3>{{i.title2}}</h3></a><br>
+                {%if 'default:' in report.title%}
+                  <a type="button" onclick="opendoc(this.id)" id="{{i.id2}}"><h5>{{i.title2}} ({{i.provider}})</h5></a><br>
+                {%else%}
+                  <a type="button" onclick="opendoc(this.id)" id="{{i.id2}}"><h3>{{i.title2}}</h3></a><br>
+                {%endif%}
           {%endif%}
 
          <form target="_blank" action="/searchquerydocuments/classifier" method="POST">

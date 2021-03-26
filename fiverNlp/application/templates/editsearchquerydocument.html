@@ -82,8 +82,8 @@
     <input type="hidden" name="query_document_id" value="{{searchquerydocument.id}}">
   </form>
 
-  <form action = "/searchqueries/deletesearchquerydocument" method = "POST">
-    <input type="hidden" name="title" value="{{searchquerydocument.title}}">
+  <form action = "/searchqueries/deletesearchquerydocument" method = "GET">
+    <input type="hidden" name="id" value="{{searchquerydocument.id}}">
     <button class="mybutton" type="submit">Delete</button><br><br>
   </form>
 </div>

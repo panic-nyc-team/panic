@@ -553,6 +553,7 @@ def set_threshold():
 def save_to_bin(type):
     dimensions = ["aesthetic","narrative","craftsmanship","purpose"]
     title = request.form.get('title')
+    id = request.form.get('id')
     sentence = request.form.get('sentence')
     if(title is None or title=='' or title=='None'):
         return 'error'
@@ -560,7 +561,7 @@ def save_to_bin(type):
     if(type=='companies'):
         temp = CompanyDocumentModel.query.filter_by(title=title).first()
     elif(type=='searchquerydocuments'):
-        temp = SearchQueryDocumentModel.query.filter_by(title=title).first()
+        temp = SearchQueryDocumentModel.query.filter_by(id=id).first()
         if(temp is None):
             temp = SearchQueryDocumentModel.query.filter(SearchQueryDocumentModel.f_title==title).filter(SearchQueryDocumentModel.classified_sentences.contains(sentence)).first()
     elif(type=='arbitrarydocuments'):
@@ -596,6 +597,7 @@ def save_to_bin(type):
 def save_classifier(type):
     dimensions = ["aesthetic","narrative","craftsmanship","purpose"]
     title = request.form.get('title')
+    id = request.form.get('id')
     dimension = request.form.get('dimension')
     sentence = request.form.get('sentence')
     if(title is None or title=='' or sentence is None or sentence=='' or dimension is None or dimension not in dimensions):
@@ -604,7 +606,7 @@ def save_classifier(type):
     if(type=='companies'):
         temp = CompanyDocumentModel.query.filter_by(title=title).first()
     elif(type=='searchquerydocuments'):
-        temp = SearchQueryDocumentModel.query.filter_by(title=title).first()
+        temp = SearchQueryDocumentModel.query.filter_by(id=id).first()
         if(temp is None):
             temp = SearchQueryDocumentModel.query.filter(SearchQueryDocumentModel.f_title==title).filter(SearchQueryDocumentModel.classified_sentences.contains(sentence)).first()
     elif(type=='arbitrarydocuments'):
@@ -629,13 +631,13 @@ def save_classifier(type):
 def classifier(type):
     sentences = None
     title = request.form.get('title')
-    query_document_id = request.form.get('query_document_id')
+    id = request.form.get('query_document_id')
     highlight_sentence = request.form.get('sentence')
-    if(query_document_id is None):
+    if(id is None):
         if(title is None or title==''):
             return 'query_document_id is empty'
     else:
-        if(query_document_id is None or query_document_id==''):
+        if(id is None or id==''):
             return 'query_document_id is empty'
     if(type=='companies'):
         temp = CompanyDocumentModel.query.filter_by(title=title).first()
@@ -644,9 +646,9 @@ def classifier(type):
         else:
             return 'cannot find company'
     elif(type=='searchquerydocuments'):
-        print(query_document_id,title,highlight_sentence)
-        if(query_document_id):
-            temp = SearchQueryDocumentModel.query.filter_by(id=query_document_id).first()
+        print(id,title,highlight_sentence)
+        if(id):
+            temp = SearchQueryDocumentModel.query.filter_by(id=id).first()
         else:
             temp = SearchQueryDocumentModel.query.filter(SearchQueryDocumentModel.f_title==title).filter(SearchQueryDocumentModel.classified_sentences.contains(highlight_sentence)).first()
         print(temp)
@@ -679,7 +681,7 @@ def classifier(type):
         return 'error 1'
     dimensions = ["aesthetic","narrative","craftsmanship","purpose"]
     #print(highlight_sentence,file=sys.stderr)
-    return render_template('classifier.html',sentences=sentences,dimensions=dimensions,title=title,highlight_sentence=highlight_sentence,class_colors=class_colors)
+    return render_template('classifier.html',sentences=sentences,dimensions=dimensions,title=title,highlight_sentence=highlight_sentence,class_colors=class_colors,id=id)
 
 
 
@@ -877,21 +879,22 @@ def industry_tags_delete():
 
 
 
-@app.route('/searchqueries/deletesearchquerydocument',methods=['POST'])
+@app.route('/searchqueries/deletesearchquerydocument')
 def delete_search_query_document():
-    result = request.form
-    title = result.get('title')
-    print(title,file=sys.stderr)
-    if(title=='' or title is None):
+    id = request.args.get('id')
+    if(id=='' or id is None):
         return 'no search query document found'
     try:
-        f_title = SearchQueryDocumentModel.query.filter_by(title = title).first().f_title
-        if(SearchQueryDocumentModel.delete(title=title)):
-            doc = NewDocumentModel.query.filter_by(title=title).first()
+        f_title = SearchQueryDocumentModel.query.filter_by(id = id).first().f_title
+        if(SearchQueryDocumentModel.delete(id=id)):
+            doc = NewDocumentModel.query.filter_by(f_id=id).first()
             NewDocumentModel.delete(id=doc.id)
             NewDocumentOrganizationsModel.delete(f_id=doc.id)
             NewDocumentPersonsModel.delete(f_id=doc.id)
             NewDocumentLocationsModel.delete(f_id=doc.id)
+            NewDocumentSiteCategoriesModel.delete(f_id=doc.id)
+            NewDocumentExternalLinksModel.delete(f_id=doc.id)
+            NewDocumentExternalImagesModel.delete(f_id=doc.id)
             return redirect(url_for('search_query_documents',title=f_title))
         else:
             return 'error'
@@ -1117,6 +1120,10 @@ def delete_search_query():
                 NewDocumentOrganizationsModel.delete(f_id=doc.id)
                 NewDocumentPersonsModel.delete(f_id=doc.id)
                 NewDocumentLocationsModel.delete(f_id=doc.id)
+                NewDocumentSiteCategoriesModel.delete(f_id=doc.id)
+                NewDocumentExternalLinksModel.delete(f_id=doc.id)
+                NewDocumentExternalImagesModel.delete(f_id=doc.id)
+
             return redirect(url_for('search_queries'))
         else:
             return 'error'
@@ -1417,20 +1424,32 @@ def savecompany():
 
 
 
-def newdocumentadd(i,f_title):
+def newdocumentadd(i,f_title,f_id):
     thread = i.get('thread')
     reach = thread.get('reach')
     social = thread.get('social')
     entities = i.get('entities')
+    site_categories = thread.get('site_categories')
+    external_links = i.get('external_links')
+    external_images = i.get('external_images')
     persons = None
     organizations = None
     locations = None
+
     if(entities):
         persons = entities.get('persons')
         organizations = entities.get('organizations')
         locations = entities.get('locations')
 
-    newdocument = NewDocumentModel(author=i.get('author'),text=i.get('text'),url=i.get('url'),site=thread.get('site')
+
+
+    newdocument =  NewDocumentModel(f_id=f_id,thread_uuid=thread.get('uuid'),uuid=i.get('uuid'),ord_in_thread=i.get('ord_in_thread'),parent_url=i.get('parent_url')
+                                   ,highlight_text=i.get('highlightText'),highlight_title=i.get('highlightTitle')
+                                   ,highlight_thread_title=i.get('highlightThreadTitle'),rating=i.get('rating')
+                                   ,crawled=i.get('crawled'),updated=i.get('updated'),site_full=thread.get('site_full')
+                                   ,site_section=thread.get('site_section'),section_title=thread.get('section_title')
+                                   ,language=i.get('language')
+                                   ,author=i.get('author'),text=i.get('text'),url=i.get('url'),site=thread.get('site')
                                    ,title=thread.get('title'),f_title=f_title,title_full=thread.get('title_full')
                                    ,published=thread.get('published'),replies_count=thread.get('replies_count')
                                    ,participants_count=thread.get('participants_count'),site_type=thread.get('site_type')
@@ -1483,16 +1502,27 @@ def newdocumentadd(i,f_title):
         for l in locations:
             temp_l = NewDocumentLocationsModel(f_id=newdocument.id,name=l.get('name'),sentiment=l.get('sentiment'))
             database.append(temp_l)
+    if(site_categories):
+        for category in site_categories:
+            temp_c = NewDocumentSiteCategoriesModel(f_id=newdocument.id,category=category)
+            database.append(temp_c)
+    if(external_links):
+        for links in external_links:
+            temp_links = NewDocumentExternalLinksModel(f_id=newdocument.id,url=links)
+            database.append(temp_links)
+    if(external_images):
+        for image in external_images:
+            temp_images = NewDocumentExternalImagesModel(f_id=newdocument.id,url=image)
+            database.append(temp_images)
 
     try:
-        db.session.add(newdocument)
+        # db.session.add(newdocument)
         for i in database:
             db.session.add(i)
     except:
         db.session.rollback()
     finally:
         db.session.commit()
-        db.session.close()
 
 def search_query_documents_background(searchquery):
     try:
@@ -1531,7 +1561,6 @@ def search_query_documents_background(searchquery):
                     image = i.get('thread').get('main_image')
                 except:
                     image = 'unavailable'
-                newdocumentadd(i,searchquery.title)
                 if i.get('thread'):
                     site = i.get('thread').get('site')
                 else:
@@ -1541,6 +1570,15 @@ def search_query_documents_background(searchquery):
                                                                provider=str(site),
                                                                url=i.get('url'), image_url=image,
                                                                date=i.get('published'))
+                if (SearchQueryDocumentModel.query.filter_by(f_title=searchquery.title,url=searchquerydocument.url).first() is None):
+                    db.session.add(searchquerydocument)
+                else:
+                    print('Already in database', file=sys.stderr)
+                    db.session.close()
+                    continue
+                db.session.flush()
+                newdocumentadd(i,searchquery.title,searchquerydocument.id)
+
                 temp_clean_text = i.get('text')
                 temp_clean_text = re.sub(r'[\n]', ' ', temp_clean_text)
                 temp_clean_text = re.sub(r"([^0-9]\.)", r"\1 ", temp_clean_text)
@@ -1555,11 +1593,8 @@ def search_query_documents_background(searchquery):
                     searchquerydocument.classified_sentences = str(res.json())
                 else:
                     searchquerydocument.classified_sentences = None
-                if (SearchQueryDocumentModel.query.filter_by(f_title=searchquery.title,url=searchquerydocument.url).first() is None):
-                    db.session.add(searchquerydocument)
-                    db.session.commit()
-                else:
-                    print('Already in database', file=sys.stderr)
+                db.session.commit()
+                db.session.close()
             except Exception as e:
                 print(e, 123, 123, file=sys.stderr)
                 db.session.rollback()
