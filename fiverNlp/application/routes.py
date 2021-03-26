@@ -555,7 +555,7 @@ def save_to_bin(type):
     title = request.form.get('title')
     id = request.form.get('id')
     sentence = request.form.get('sentence')
-    if(title is None or title=='' or title=='None'):
+    if (title is None or title=='' or title=='None') and (id is None or id==''):
         return 'error'
     temp = None
     if(type=='companies'):
