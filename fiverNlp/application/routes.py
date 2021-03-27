@@ -523,6 +523,215 @@ def seeBin():
 
 
 
+
+@app.route('/seewebhose')
+def see_webhose():
+    id = request.args.get('id')
+    if(not id):
+        return 'id error'
+    newdocument = NewDocumentModel.query.filter_by(id=id).first()
+    if(newdocument is None):
+        return 'no document found'
+    d_categories = NewDocumentSiteCategoriesModel.query.filter_by(f_id=id).all()
+    d_links = NewDocumentExternalLinksModel.query.filter_by(f_id=id).all()
+    d_images = NewDocumentExternalImagesModel.query.filter_by(f_id=id).all()
+    d_persons = NewDocumentPersonsModel.query.filter_by(f_id=id).all()
+    d_locations = NewDocumentLocationsModel.query.filter_by(f_id=id).all()
+    d_organizations = NewDocumentOrganizationsModel.query.filter_by(f_id=id).all()
+    site_categories = []
+    external_links = []
+    external_images = []
+    persons = []
+    locations = []
+    organizations = []
+
+    for i in d_categories:
+        site_categories.append(i.category)
+    for i in d_links:
+        external_links.append(i.url)
+    for i in d_images:
+        external_images.append(i.url)
+    for i in d_persons:
+        persons.append('{{ name: "{name}",  sentiment: "{sentiment}" }}'.format(name=i.name,sentiment=i.sentiment))
+    for i in d_locations:
+        locations.append('{{ name: "{name}",  sentiment: "{sentiment}" }}'.format(name=i.name,sentiment=i.sentiment))
+    for i in d_organizations:
+        organizations.append('{{ name: "{name}",  sentiment: "{sentiment}" }}'.format(name=i.name,sentiment=i.sentiment))
+
+
+    data = '''
+{{ \n
+    thread: {{
+
+        uuid: "{thread_uuid}" ,
+        
+        url: "{url}" ,
+        
+        site_full: "{site_full}" ,
+        
+        site: "{site}" ,
+        
+        site_section: "{site_section}" ,
+        
+        site_categories: {site_categories} ,
+        
+        section_title: "{section_title}" ,
+        
+        title: "{title}" ,
+        
+        title_full: "{title_full}" ,
+        
+        published: "{published}" ,
+        
+        replies_count: {replies_count} ,
+        
+        participants_count: {participants_count} ,
+        
+        site_type: "{site_type}" ,
+        
+        country: "{country}" ,
+        
+        spam_score: {spam_score} ,
+        
+        main_image: "{main_image}" ,
+        
+        performance_score: {performance_score} ,
+        
+        domain_rank: {domain_rank} ,
+        
+        reach: {{
+        
+        per_million: {reach_per_m} ,
+        
+        page_views: {{
+        
+        per_million: {reach_views_per_m} ,
+        
+        per_user: {reach_views_per_u}
+        
+        }} ,
+        
+        updated: "{reach_updated}"
+        
+        }} ,
+        
+        social: {{
+        
+        facebook: {{
+        
+        likes: {facebook_likes} ,
+        
+        comments: {facebook_comments} ,
+        
+        shares: {facebook_shares}
+        
+        }} ,
+        
+        gplus: {{
+        
+        shares: {gplus_shares}
+        
+        }} ,
+        
+        pinterest: {{
+        
+        shares: {pinterest_shares}
+        
+        }} ,
+        
+        linkedin: {{
+        
+        shares: {linkedin_shares}
+        
+        }} ,
+        
+        stumbledupon: {{
+        
+        shares: {stumbledupon_shares}
+        
+        }} ,
+        
+        vk: {{
+        
+        shares: {vk_shares}
+        
+        }}
+        
+        }}
+        
+        }} ,
+
+    uuid: "{uuid}" ,
+    
+    url: "{url}" ,
+    
+    ord_in_thread: {ord_in_thread} ,
+    
+    parent_url: {parent_url} ,
+    
+    author: "{author}" ,
+    
+    published: "{published}" ,
+    
+    title: "{title}" ,
+    
+    text: "{text}" ,
+    
+    highlightText: "{highlight_text}" ,
+    
+    highlightTitle: "{highlight_title}" ,
+    
+    highlightThreadTitle: "{highlight_thread_title}" ,
+    
+    language: "{language}" ,
+    
+    external_links: {external_links} ,
+    
+    external_images: {external_images},
+    
+    entities: {{
+    
+    persons: {persons}
+    
+    organizations: {organizations},
+    
+    locations: {locations}
+    
+    }} ,
+    
+    rating: {rating} ,
+    
+    crawled: "{crawled}" ,
+    
+    updated: "{updated}"
+    
+}} 
+    '''.format(thread_uuid=newdocument.thread_uuid,url=newdocument.url,site_full=newdocument.site_full
+               ,site=newdocument.site,site_section=newdocument.site_section,site_categories=str(site_categories)
+               ,section_title=newdocument.section_title,title=newdocument.title,title_full=newdocument.title_full
+               ,published=newdocument.published,replies_count=newdocument.replies_count
+               ,participants_count=newdocument.participants_count,site_type=newdocument.site_type
+               ,country=newdocument.country,spam_score=newdocument.spam_score,main_image=newdocument.main_image
+               ,performance_score=newdocument.performance_score,domain_rank=newdocument.domain_rank
+               ,reach_per_m=newdocument.reach_per_m,reach_views_per_m=newdocument.reach_views_per_m
+               ,reach_views_per_u=newdocument.reach_views_per_u,reach_updated=newdocument.reach_updated
+               ,facebook_likes=newdocument.facebook_likes,facebook_comments=newdocument.facebook_comments
+               ,facebook_shares=newdocument.facebook_shares,gplus_shares=newdocument.gplus_shares
+               ,pinterest_shares=newdocument.pinterest_shares,linkedin_shares=newdocument.linkedin_shares
+               ,stumbledupon_shares=newdocument.stumbledupon_shares,vk_shares=newdocument.vk_shares,uuid=newdocument.uuid
+               ,ord_in_thread=newdocument.ord_in_thread,parent_url=newdocument.parent_url,author=newdocument.author
+               ,text=newdocument.text,highlight_text=newdocument.highlight_text,highlight_title=newdocument.highlight_title
+               ,highlight_thread_title=newdocument.highlight_thread_title,language=newdocument.language
+               ,external_links=str(external_links),external_images=str(external_images),persons=str(persons)
+               ,organizations=str(organizations),locations=str(locations),rating=newdocument.rating
+               ,crawled=newdocument.crawled,updated=newdocument.updated)
+
+
+    return render_template('seewebhose.html',data=data.replace('\n', '<br>'))
+
+
+
+
 @app.route('/threshold')
 def threshold():
     threshold = Threshold.query.filter_by(id=1).first()
@@ -988,8 +1197,9 @@ def edit_search_query_document():
     if(id=='' or id is None):
         return 'no search query document found'
     searchquerydocument = SearchQueryDocumentModel.query.filter_by(id = id).first()
+    newdocument = NewDocumentModel.query.filter_by(f_id=id).first()
     if(searchquerydocument is not None):
-        return render_template('editsearchquerydocument.html',searchquerydocument=searchquerydocument)
+        return render_template('editsearchquerydocument.html',searchquerydocument=searchquerydocument,newdocument=newdocument)
     else:
         return 'Error'
 
@@ -1522,7 +1732,7 @@ def newdocumentadd(i,f_title,f_id):
             database.append(temp_links)
     if(external_images):
         for image in external_images:
-            temp_images = NewDocumentExternalImagesModel(f_id=newdocument.id,url=image)
+            temp_images = NewDocumentExternalImagesModel(f_id=newdocument.id,url=str(image))
             database.append(temp_images)
 
     try:

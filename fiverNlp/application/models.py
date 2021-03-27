@@ -375,7 +375,13 @@ class NewDocumentExternalImagesModel(db.Model):
     __tablename__ = 'newdocumentexternalimages'
     id = db.Column(db.Integer, primary_key=True)
     f_id = db.Column(db.Integer)
-    url = db.Column(db.String(255))
+    url = db.Column(db.Text)
+
+    # url = db.Column(db.String(255))
+    # meta_info = db.Column(db.Text)
+    # uuid = db.Column(db.String(255))
+    # label = db.Column(db.Text)
+    # text = db.Column(db.Text)
 
     @classmethod
     def delete(cls, f_id):
