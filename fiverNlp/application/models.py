@@ -42,9 +42,9 @@ class CompanyDocumentModel(db.Model):
 class SearchQueryDocumentModel(db.Model):
     __tablename__ = 'searchquerydocument'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    __table_args__ = (
-        db.UniqueConstraint('url', 'f_title'),
-    )
+    # __table_args__ = (
+    #     db.UniqueConstraint('url', 'f_title'),
+    # )
     title = db.Column(db.String(255))
     clean_text = db.Column(db.Text)
     classified_sentences = db.Column(db.Text)

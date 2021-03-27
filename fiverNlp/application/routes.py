@@ -929,9 +929,10 @@ def save_search_query_document():
             clean_text = re.sub(r"([^0-9]\.)",r"\1 ",clean_text)
         searchquerydocument = SearchQueryDocumentModel(title=result.get('title'),clean_text=clean_text,date=result.get('date'),author=result.get('author'),provider=result.get('provider'),url=result.get('url'),image_url=result.get('image_url'))
         old_title = result.get('old_title')
-        if(searchquerydocument.title is None or searchquerydocument.title==''):
-            return "title cannot be empty"
-        if(old_title is None or old_title==''):
+        id = result.get('id')
+        # if(searchquerydocument.title is None or searchquerydocument.title==''):
+        #     return "title cannot be empty"
+        if(id is None or id==''):
             return "Error"
         if(searchquerydocument.clean_text=='' or searchquerydocument.clean_text=='None'):
             searchquerydocument.clean_text = None
@@ -944,7 +945,16 @@ def save_search_query_document():
                 searchquerydocument.classified_sentences = None
         else:
             searchquerydocument.classified_sentences = None
-        SearchQueryDocumentModel.query.filter_by(title = old_title).update(dict(title=searchquerydocument.title,clean_text=searchquerydocument.clean_text,classified_sentences=str(searchquerydocument.classified_sentences),date=searchquerydocument.date,author=searchquerydocument.author,provider=searchquerydocument.provider,url=searchquerydocument.url,image_url=searchquerydocument.image_url))
+        edit_document = SearchQueryDocumentModel.query.filter_by(id=id).first()
+        edit_document.title = searchquerydocument.title
+        edit_document.clean_text = searchquerydocument.clean_text
+        edit_document.classified_sentences = str(searchquerydocument.classified_sentences)
+        edit_document.date = searchquerydocument.date
+        edit_document.author = searchquerydocument.author
+        edit_document.provider = searchquerydocument.provider
+        edit_document.url = searchquerydocument.url
+        edit_document.image_url = searchquerydocument.image_url
+        # SearchQueryDocumentModel.query.filter_by(title = old_title).update(dict(title=searchquerydocument.title,clean_text=searchquerydocument.clean_text,classified_sentences=str(searchquerydocument.classified_sentences),date=searchquerydocument.date,author=searchquerydocument.author,provider=searchquerydocument.provider,url=searchquerydocument.url,image_url=searchquerydocument.image_url))
         db.session.commit()
         return redirect(url_for('search_query_documents',title=SearchQueryDocumentModel.query.filter_by(title = searchquerydocument.title).first().f_title))
     except Exception as e:

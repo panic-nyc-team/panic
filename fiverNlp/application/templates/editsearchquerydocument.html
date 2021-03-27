@@ -30,6 +30,7 @@
 
   <form action="/searchqueries/savesearchquerydocument" id="myform" class="needs-validation" novalidate method="post">
     <input type="hidden" name="old_title" value="{{searchquerydocument.title}}">
+    <input type="hidden" name="id" value="{{searchquerydocument.id}}">
     <div class="form-group">
       <label for="title">Title</label>
       <input type="text" class="form-control"  placeholder="Enter Title" name="title" required value="{{searchquerydocument.title}}">
