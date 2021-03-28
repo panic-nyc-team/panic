@@ -1133,9 +1133,9 @@ def save_search_query_document():
     try:
         result = request.form
         clean_text = result.get('clean_text')
-        if(clean_text):
-            clean_text = re.sub(r"(\r\n|\r|\n)","",clean_text)
-            clean_text = re.sub(r"([^0-9]\.)",r"\1 ",clean_text)
+        # if(clean_text):
+        #     clean_text = re.sub(r"(\r\n|\r|\n)","",clean_text)
+        #     clean_text = re.sub(r"([^0-9]\.)",r"\1 ",clean_text)
         searchquerydocument = SearchQueryDocumentModel(title=result.get('title'),clean_text=clean_text,date=result.get('date'),author=result.get('author'),provider=result.get('provider'),url=result.get('url'),image_url=result.get('image_url'))
         old_title = result.get('old_title')
         id = result.get('id')
@@ -1147,7 +1147,8 @@ def save_search_query_document():
             searchquerydocument.clean_text = None
         if(searchquerydocument.clean_text is not None):
             # searchquerydocument.classified_sentences = str(temp_azure(searchquerydocument.clean_text))
-            res = requests.post(url_for('classified',_external=True), json={"mytext":re.sub(r'[^a-zA-Z0-9. ]','',searchquerydocument.clean_text)})
+            # res = requests.post(url_for('classified',_external=True), json={"mytext":re.sub(r'[^a-zA-Z0-9. ]','',searchquerydocument.clean_text)})
+            res = requests.post(url_for('classified',_external=True), json={"mytext":searchquerydocument.clean_text})
             if res.ok:
                 searchquerydocument.classified_sentences = str(res.json())
             else:
@@ -1434,9 +1435,9 @@ def save_arbitrary_document():
     try:
         result = request.form
         clean_text = result.get('clean_text')
-        if(clean_text):
-            clean_text = re.sub(r"(\r\n|\r|\n)","",clean_text)
-            clean_text = re.sub(r"([^0-9]\.)",r"\1 ",clean_text)
+        # if(clean_text):
+        #     clean_text = re.sub(r"(\r\n|\r|\n)","",clean_text)
+        #     clean_text = re.sub(r"([^0-9]\.)",r"\1 ",clean_text)
         arbitrarydocument = ArbitraryDocumentModel(title=result.get('title'),clean_text=clean_text,date=result.get('date'),author=result.get('author'),provider=result.get('provider'),url=result.get('url'),image_url=result.get('image_url'),industry_tags=result.get('industry_tags'))
         old_title = result.get('old_title')
         if(arbitrarydocument.title is None or arbitrarydocument.title==''):
@@ -1445,7 +1446,8 @@ def save_arbitrary_document():
             arbitrarydocument.clean_text = None
         if(arbitrarydocument.clean_text is not None):
             # arbitrarydocument.classified_sentences = str(temp_azure(arbitrarydocument.clean_text))
-            res = requests.post(url_for('classified',_external=True), json={"mytext":re.sub(r'[^a-zA-Z0-9. ]','',arbitrarydocument.clean_text)})
+            # res = requests.post(url_for('classified',_external=True), json={"mytext":re.sub(r'[^a-zA-Z0-9. ]','',arbitrarydocument.clean_text)})
+            res = requests.post(url_for('classified',_external=True), json={"mytext":arbitrarydocument.clean_text})
             if res.ok:
                 arbitrarydocument.classified_sentences = str(res.json())
             else:
@@ -1585,8 +1587,8 @@ def savecompany():
             return "title cannot be empty"
         if(clean_text is None or clean_text==''):
             return "clean text cannot be empty"
-        clean_text = re.sub(r"(\r\n|\r|\n)","",clean_text)
-        clean_text = re.sub(r"([^0-9]\.)",r"\1 ",clean_text)
+        # clean_text = re.sub(r"(\r\n|\r|\n)","",clean_text)
+        # clean_text = re.sub(r"([^0-9]\.)",r"\1 ",clean_text)
 
         # if(industry_tags is None or industry_tags==''):
         #     return "industry tags cannot be empty"
@@ -1798,11 +1800,11 @@ def search_query_documents_background(searchquery):
                     continue
                 db.session.flush()
                 newdocumentadd(i,searchquery.title,searchquerydocument.id)
-
-                temp_clean_text = i.get('text')
-                temp_clean_text = re.sub(r'[\n]', ' ', temp_clean_text)
-                temp_clean_text = re.sub(r"([^0-9]\.)", r"\1 ", temp_clean_text)
-                searchquerydocument.clean_text = re.sub(r'[^a-zA-Z0-9. ]', '', temp_clean_text)
+                searchquerydocument.clean_text = i.get('text')
+                # temp_clean_text = i.get('text')
+                # temp_clean_text = re.sub(r'[\n]', ' ', temp_clean_text)
+                # temp_clean_text = re.sub(r"([^0-9]\.)", r"\1 ", temp_clean_text)
+                # searchquerydocument.clean_text = re.sub(r'[^a-zA-Z0-9. ]', '', temp_clean_text)
                 # res = requests.post('http://13.82.225.206:5000/predict',
                 #                     json={"mytext": searchquerydocument.clean_text})
                 res = requests.post(url_for('classified', _external=True),
