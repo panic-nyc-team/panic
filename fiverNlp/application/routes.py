@@ -1805,8 +1805,6 @@ def search_query_documents_background(searchquery):
                     site = i.get('thread').get('site')
                 else:
                     site = ''
-                if(i.get('uuid')=='af2359bd94dfc5e3b1b14cd44bf600b6342ac23c'):
-                    print('here you goo',file=sys.stderr)
                 searchquerydocument = SearchQueryDocumentModel(f_title=searchquery.title, title=i.get('title'),
                                                                author=str(i.get('author')),
                                                                provider=str(site),
