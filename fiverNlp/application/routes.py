@@ -4,6 +4,7 @@ from werkzeug.utils import secure_filename, redirect
 import json
 import inspect, nltk
 import numpy as np
+import urllib.parse
 
 from forms import (
     FileInputForm,
@@ -521,7 +522,18 @@ def seeBin():
 
 
 
-
+@app.route('/highlight',methods=['POST'])
+def highlight():
+    id = request.form.get('id')
+    sentence = request.form.get('sentence')
+    print(id,sentence)
+    search_query_document = SearchQueryDocumentModel.query.filter_by(id=id).first()
+    if(search_query_document):
+        url = search_query_document.url
+        url = url + '#:~:text=' + urllib.parse.quote(sentence)
+        return url
+    else:
+        return 'error'
 
 
 @app.route('/seewebhose')
@@ -1626,6 +1638,12 @@ def savecompany():
                     db.session.add(report)
                     db.session.commit()
                     executor.submit(report_background,report.id,'vssearchquery',title,reference_to_search_query,0,100,True)
+                else:
+                    report.second = reference_to_search_query
+                    report.status = 'running'
+                    db.session.commit()
+                    executor.submit(report_background, report.id, 'vssearchquery', title, reference_to_search_query, 0,
+                                    100, True)
         else:
             try:
                 CompanyDocumentModel.query.filter_by(title = old_title).update(dict(query_score=None))
@@ -1791,8 +1809,14 @@ def search_query_documents_background(searchquery):
                                                                author=str(i.get('author')),
                                                                provider=str(site),
                                                                url=i.get('url'), image_url=image,
-                                                               date=i.get('published'))
+                                                               date=i.get('published'),clean_text=i.get('text'))
                 if (SearchQueryDocumentModel.query.filter_by(f_title=searchquery.title,url=searchquerydocument.url).first() is None):
+                    res = requests.post('http://13.82.225.206:5000/predict',
+                                        json={"mytext": searchquerydocument.clean_text})
+                    if res.ok:
+                        searchquerydocument.classified_sentences = str(res.json())
+                    else:
+                        searchquerydocument.classified_sentences = None
                     db.session.add(searchquerydocument)
                 else:
                     print('Already in database', file=sys.stderr)
@@ -1800,21 +1824,20 @@ def search_query_documents_background(searchquery):
                     continue
                 db.session.flush()
                 newdocumentadd(i,searchquery.title,searchquerydocument.id)
-                searchquerydocument.clean_text = i.get('text')
-                # temp_clean_text = i.get('text')
-                # temp_clean_text = re.sub(r'[\n]', ' ', temp_clean_text)
-                # temp_clean_text = re.sub(r"([^0-9]\.)", r"\1 ", temp_clean_text)
-                # searchquerydocument.clean_text = re.sub(r'[^a-zA-Z0-9. ]', '', temp_clean_text)
+                # # searchquerydocument.clean_text = i.get('text')
+                # # temp_clean_text = i.get('text')
+                # # temp_clean_text = re.sub(r'[\n]', ' ', temp_clean_text)
+                # # temp_clean_text = re.sub(r"([^0-9]\.)", r"\1 ", temp_clean_text)
+                # # searchquerydocument.clean_text = re.sub(r'[^a-zA-Z0-9. ]', '', temp_clean_text)
                 # res = requests.post('http://13.82.225.206:5000/predict',
                 #                     json={"mytext": searchquerydocument.clean_text})
-                res = requests.post(url_for('classified', _external=True),
-                                    json={"mytext": searchquerydocument.clean_text})
-
-                print(3333, file=sys.stderr)
-                if res.ok:
-                    searchquerydocument.classified_sentences = str(res.json())
-                else:
-                    searchquerydocument.classified_sentences = None
+                # # res = requests.post(url_for('classified', _external=True),
+                # #                     json={"mytext": searchquerydocument.clean_text})
+                #
+                # if res.ok:
+                #     searchquerydocument.classified_sentences = str(res.json())
+                # else:
+                #     searchquerydocument.classified_sentences = None
                 db.session.commit()
                 db.session.close()
             except Exception as e:
@@ -2038,7 +2061,7 @@ def load_more():
             s[i.id] = i.sentence
         for i in sentences[offset:offset+20]:
             print(i.sentence1, file=sys.stderr)
-            d.append({'sentence1':s.get(int(i.sentence1)),'similarity':i.similarity,'sentence2':s.get(int(i.sentence2)),'title':i.title2,'id':i.id2})
+            d.append({'sentence1':s.get(int(i.sentence1)),'similarity':i.similarity,'sentence2':s.get(int(i.sentence2)),'title':i.title2,'id':i.id2,'provider':i.provider})
         return {'data':d}
     except Exception as e:
         return str(e)
@@ -2171,6 +2194,7 @@ def report_company_test():
             for i in sentences[:20]:
                 i.sentence1 = s.get(int(i.sentence1))
                 i.sentence2 = s.get(int(i.sentence2))
+
 
             return render_template(page_url,companydocuments=companydocuments,report=report,dimensions=dimensions,sentences=sentences[:20],searchqueries=searchqueries,tags=tags,score1=score1,score2=score2,providers=providers,tagdata=both,chartdimension=chartdimension)
 

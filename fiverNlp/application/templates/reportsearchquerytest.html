@@ -328,13 +328,14 @@
            <input type="hidden" name="id" value="{{i.id2}}">
           {%if i.title2|length < 5:%}
               {%if 'default:' in report.title%}
-                    <a type="button" onclick="opendoc(this.id)" id="{{i.id2}}"><h5>NO TITLE FOUND ({{i.provider}})</h5></a><br>
+                    <a type="button" onclick="highlight(this,'{{i.id2}}')" id="{{i.sentence2}}"><h5>NO TITLE FOUND ({{i.provider}})</h5></a><br>
                 {%else%}
                     <a type="button" onclick="opendoc(this.id)" id="{{i.id2}}"><h3>NO TITLE FOUND</h3></a><br>
                 {%endif%}
           {%else%}
                 {%if 'default:' in report.title%}
-                  <a type="button" onclick="opendoc(this.id)" id="{{i.id2}}"><h5>{{i.title2}} ({{i.provider}})</h5></a><br>
+<!--                  <a type="button" onclick="opendoc(this.id)" id="{{i.id2}}" name="{{i.sentence2}}"><h5>{{i.title2}} ({{i.provider}})</h5></a><br>-->
+                  <a type="button" onclick="highlight(this,'{{i.id2}}')" id="{{i.sentence2}}"><h5>{{i.title2}} ({{i.provider}})</h5></a><br>
                 {%else%}
                   <a type="button" onclick="opendoc(this.id)" id="{{i.id2}}"><h3>{{i.title2}}</h3></a><br>
                 {%endif%}
@@ -354,6 +355,7 @@
 
 <script>
 var offset = 21;
+report_title = "{{report.title}}";
 function loadMore(){
     $.post( "/loadmore", { id:{{report.id}},offset: offset})
     .done(function( data ) {
@@ -433,12 +435,29 @@ function loadMore(){
             doc_open.setAttribute("id", s[i]["id"]);
             doc_open.setAttribute("onclick", "opendoc(this.id)");
 
-            var h2 = document.createElement("H3");
             if(s[i]["title"].length<5){
-                h2.appendChild(document.createTextNode("TITLE NOT FOUND"));
+                if(report_title.includes('default:')){
+                    doc_open.setAttribute("id", s[i]["sentence2"]);
+                    doc_open.setAttribute("onclick", "highlight(this,"+s[i]["id"]+")");
+                    var h2 = document.createElement("H5");
+                    h2.appendChild(document.createTextNode("TITLE NOT FOUND ("+s[i]["provider"] + ")"));
+                }
+                else{
+                    var h2 = document.createElement("H3");
+                    h2.appendChild(document.createTextNode("TITLE NOT FOUND"));
+                }
             }
             else{
-                h2.appendChild(document.createTextNode(s[i]["title"]));
+                if(report_title.includes('default:')){
+                    doc_open.setAttribute("id", s[i]["sentence2"]);
+                    doc_open.setAttribute("onclick", "highlight(this,"+s[i]["id"]+")");
+                    var h2 = document.createElement("H5");
+                    h2.appendChild(document.createTextNode(s[i]["title"]+" ("+s[i]["provider"] + ")"));
+                }
+                else{
+                    var h2 = document.createElement("H3");
+                    h2.appendChild(document.createTextNode(s[i]["title"]));
+                }
             }
             doc_open.appendChild(h2);
 
@@ -451,16 +470,6 @@ function loadMore(){
 
 
 
-<!--            var form3 = document.createElement("form");-->
-<!--            form3.setAttribute("method", "get");-->
-<!--            form3.setAttribute("target", "_blank");-->
-<!--            form3.setAttribute("action", "/searchqueries/editsearchquerydocument");-->
-<!--            var title3 = document.createElement("input");-->
-<!--            title3.setAttribute("type", "hidden");-->
-<!--            title3.setAttribute("name", "id");-->
-<!--            title3.setAttribute("value", s[i]["id"]);-->
-<!--            form3.appendChild(title3);-->
-<!--            form3.appendChild(doc_open);-->
 
             
             form2.appendChild(title);
@@ -512,6 +521,16 @@ function updateClick(){
   }
 function opendoc(id) {
   window.location.href = "/searchqueries/editsearchquerydocument?id="+id;
+}
+function highlight(obj,id) {
+    $.post( "/highlight", { id: id,sentence:obj.id }).done(function( data ) {
+      if(data=="error"){
+        alert("error");
+      }
+      else{
+        window.open(data, '_blank').focus();
+      }
+    })
 }
 </script>
 
