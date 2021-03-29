@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Panic</title>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+<script type=text/javascript>
+  $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+</script>
+</head>
+<body>
+<div style="border:2px inset #AAA;cursor:text;height:500px;overflow:auto;width:1000px;white-space: pre-line;" >
+    <div style="width:1000px;" style="white-space: pre-line">
+      {{clean_text}}
+      <!--              {%if sentences%}-->
+<!--              {%for i in sentences:%}-->
+<!--                {%if sentences[i] in dimensions:%}-->
+<!--                  {%if highlight_sentence:%}-->
+<!--                    {%if i==highlight_sentence:%}-->
+<!--                      <td style="color: red;">{{i}}</td>-->
+<!--                    {%else%}-->
+<!--                      <td style="color: {{class_colors[sentences[i]]}};">{{i}}</td>-->
+<!--                    {%endif%}-->
+<!--                  {%else%}-->
+<!--                      <span style="background-color: {{class_colors[sentences[i]]}};" onclick="savenow()" id="123">{{i.replace('\n','<br>')}}</span>-->
+<!--                  {%endif%}-->
+
+<!--                  <td><select onchange="save('{{i}}',this.value)" name="dimension">-->
+<!--                       {%for dimension in dimensions:%}-->
+<!--                          {%if sentences[i]==dimension:%}-->
+<!--                           <option selected>{{dimension}}</option>-->
+<!--                          {%else%}-->
+<!--                          <option>{{dimension}}</option>-->
+<!--                          {%endif%}-->
+<!--                       {%endfor%}-->
+<!--                  </select></td>-->
+                {%endif%}
+              {%endfor%}
+              {%endif%}
+
+
+    </div>
+</div>
+<!-- small modal -->
+<div class="modal fade" id="smallModal" tabindex="-1" role="dialog" aria-labelledby="basicModal" aria-hidden="true">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h6 class="modal-title" id="myModalLabel">Select Dimension</h6>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+  <div class="modal-body">
+<select name="cars" id="cars">
+  <option  value="volvo">Volvo</option>
+  <option value="saab">Saab</option>
+  <option selected value="mercedes">Mercedes</option>
+  <option value="audi">Audi</option>
+</select>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-default"    data-dismiss="modal">Close</button>
+    <button id="save" onclick="save()" class="btn btn-width bkgrnd-cyan save-details" type="button" name="save-details">Save</button>
+  </div>
+    </div>
+  </div>
+</div>
+</body>
+<script>
+
+function save(){
+	  select_value = document.getElementById('cars').value;
+  $('#smallModal').modal('hide');
+  alert(select_value);
+}
+function savenow(text){
+  alert(  $('#123').text());
+  $('#smallModal').modal('show');
+}
+
+<!--function save(sentence,dimension){-->
+<!--  $.post( "saveclassifier", { id: "{{id}}",title:"{{title}}",sentence: sentence,dimension:dimension})-->
+<!--  .done(function( data ) {-->
+<!--  });-->
+<!--}-->
+<!--function savetobin(){-->
+<!--  $.post( "savetobin", { id: "{{id}}",title:"{{title}}",sentence:"{{highlight_sentence}}" })-->
+<!--  .done(function( data ) {-->
+<!--    if(data==='done'){-->
+<!--      alert('added to bin successfully')-->
+<!--    }-->
+<!--    else{-->
+<!--      alert('error')-->
+<!--    }-->
+<!--  });-->
+<!--}-->
+
+</script>
+</html>

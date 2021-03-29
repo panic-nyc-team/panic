@@ -23,7 +23,7 @@ class TrainModelForm(FlaskForm):
 
 class ChangeClassColorsForm(FlaskForm):
 	new_purpose 	 = StringField("Purpose:", validators=[DataRequired(), Length(min=7, max=7)])
-	new_craftsmaship = StringField("Craftsmaship:", validators=[DataRequired(), Length(min=7, max=7)])
+	new_craftsmaship = StringField("Craftsmanship:", validators=[DataRequired(), Length(min=7, max=7)])
 	new_aesthetic 	 = StringField("Aesthetic:", validators=[DataRequired(), Length(min=7, max=7)])
 	new_narrative 	 = StringField("Narrative:", validators=[DataRequired(), Length(min=7, max=7)])
 	submit 		 	 = SubmitField("Set Colors")

@@ -330,14 +330,17 @@
               {%if 'default:' in report.title%}
                     <a type="button" onclick="highlight(this,'{{i.id2}}')" id="{{i.sentence2}}"><h5>NO TITLE FOUND ({{i.provider}})</h5></a><br>
                 {%else%}
-                    <a type="button" onclick="opendoc(this.id)" id="{{i.id2}}"><h3>NO TITLE FOUND</h3></a><br>
+                    <a type="button" onclick="highlight(this,'{{i.id2}}')" id="{{i.sentence2}}"><h5>NO TITLE FOUND</h5></a><br>
+
+<!--                    <a type="button" onclick="opendoc(this.id)" id="{{i.id2}}"><h3>NO TITLE FOUND</h3></a><br>-->
                 {%endif%}
           {%else%}
                 {%if 'default:' in report.title%}
 <!--                  <a type="button" onclick="opendoc(this.id)" id="{{i.id2}}" name="{{i.sentence2}}"><h5>{{i.title2}} ({{i.provider}})</h5></a><br>-->
                   <a type="button" onclick="highlight(this,'{{i.id2}}')" id="{{i.sentence2}}"><h5>{{i.title2}} ({{i.provider}})</h5></a><br>
                 {%else%}
-                  <a type="button" onclick="opendoc(this.id)" id="{{i.id2}}"><h3>{{i.title2}}</h3></a><br>
+                  <a type="button" onclick="highlight(this,'{{i.id2}}')" id="{{i.sentence2}}"><h5>{{i.title2}}</h5></a><br>
+<!--                  <a type="button" onclick="opendoc(this.id)" id="{{i.id2}}"><h3>{{i.title2}}</h3></a><br>-->
                 {%endif%}
           {%endif%}
 
@@ -432,30 +435,32 @@ function loadMore(){
 
             var doc_open = document.createElement("a");
             doc_open.setAttribute("type", "button");
-            doc_open.setAttribute("id", s[i]["id"]);
-            doc_open.setAttribute("onclick", "opendoc(this.id)");
+<!--            doc_open.setAttribute("id", s[i]["id"]);-->
+<!--            doc_open.setAttribute("onclick", "opendoc(this.id)");-->
+            doc_open.setAttribute("id", s[i]["sentence2"]);
+            doc_open.setAttribute("onclick", "highlight(this,"+s[i]["id"]+")");
 
             if(s[i]["title"].length<5){
                 if(report_title.includes('default:')){
-                    doc_open.setAttribute("id", s[i]["sentence2"]);
-                    doc_open.setAttribute("onclick", "highlight(this,"+s[i]["id"]+")");
+<!--                    doc_open.setAttribute("id", s[i]["sentence2"]);-->
+<!--                    doc_open.setAttribute("onclick", "highlight(this,"+s[i]["id"]+")");-->
                     var h2 = document.createElement("H5");
                     h2.appendChild(document.createTextNode("TITLE NOT FOUND ("+s[i]["provider"] + ")"));
                 }
                 else{
-                    var h2 = document.createElement("H3");
+                    var h2 = document.createElement("H5");
                     h2.appendChild(document.createTextNode("TITLE NOT FOUND"));
                 }
             }
             else{
                 if(report_title.includes('default:')){
-                    doc_open.setAttribute("id", s[i]["sentence2"]);
-                    doc_open.setAttribute("onclick", "highlight(this,"+s[i]["id"]+")");
+<!--                    doc_open.setAttribute("id", s[i]["sentence2"]);-->
+<!--                    doc_open.setAttribute("onclick", "highlight(this,"+s[i]["id"]+")");-->
                     var h2 = document.createElement("H5");
                     h2.appendChild(document.createTextNode(s[i]["title"]+" ("+s[i]["provider"] + ")"));
                 }
                 else{
-                    var h2 = document.createElement("H3");
+                    var h2 = document.createElement("H5");
                     h2.appendChild(document.createTextNode(s[i]["title"]));
                 }
             }

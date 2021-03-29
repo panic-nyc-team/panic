@@ -118,7 +118,7 @@ def save_tokenizer(tokenizer):
 
 
 def save_classColors(new_purpose, new_craftsmaship, new_aesthetic, new_none):
-    class_colors = {'purpose': new_purpose, 'craftsmaship': new_craftsmaship, 'aesthetic': new_aesthetic, 'narrative':new_none}
+    class_colors = {'purpose': new_purpose, 'craftsmanship': new_craftsmaship, 'aesthetic': new_aesthetic, 'narrative':new_none}
 
     #Overwriting Previous Colors File
     with open('static/Pickles/class_colors.pickle', 'wb') as handle:

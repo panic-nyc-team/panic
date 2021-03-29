@@ -80,7 +80,8 @@ tokenizer 	 = load_tokenizer()
 model     	 = load_model('static/Models/model_under_use.h5')
 maxlen    	 = 40
 class_colors = load_classColors()
-#print(1111111111111111111,class_colors,file=sys.stderr)
+
+print(1111111111111111111,class_colors,file=sys.stderr)
 sentence_model = SentenceTransformer('distilbert-base-nli-stsb-mean-tokens')
 
 
@@ -395,9 +396,9 @@ def classified():
 
 
     test_input_ids_in = tf.convert_to_tensor(tok_test_features[0])
-    print("test_input_ids_in ----->", test_input_ids_in)
+    # print("test_input_ids_in ----->", test_input_ids_in)
     test_input_masks_in = tf.convert_to_tensor(tok_test_features[1])
-    print("test_input_ids_in --->", test_input_ids_in)
+    # print("test_input_ids_in --->", test_input_ids_in)
     # Getting Embeddings
     test_cls_token = embeddings(test_input_ids_in, test_input_masks_in)
     embedding_features = np.asarray(test_cls_token)
@@ -864,6 +865,7 @@ def classifier(type):
         temp = CompanyDocumentModel.query.filter_by(title=title).first()
         if(temp and temp.classified_sentences):
             sentences = eval(temp.classified_sentences)
+            clean_text = temp.clean_text
         else:
             return 'cannot find company'
     elif(type=='searchquerydocuments'):
@@ -872,15 +874,16 @@ def classifier(type):
             temp = SearchQueryDocumentModel.query.filter_by(id=id).first()
         else:
             temp = SearchQueryDocumentModel.query.filter(SearchQueryDocumentModel.f_title==title).filter(SearchQueryDocumentModel.classified_sentences.contains(highlight_sentence)).first()
-        print(temp)
         if(temp and temp.classified_sentences):
             sentences = eval(temp.classified_sentences)
+            clean_text = temp.clean_text
         else:
             return 'error'
     elif(type=='arbitrarydocuments'):
         temp = ArbitraryDocumentModel.query.filter_by(title=title).first()
         if(temp and temp.classified_sentences):
             sentences = eval(temp.classified_sentences)
+            clean_text = temp.clean_text
         else:
             return 'error'
     elif(type=='tags'):
@@ -896,13 +899,13 @@ def classifier(type):
                     break
         if(temp and temp.classified_sentences):
             sentences = eval(temp.classified_sentences)
+            clean_text = temp.clean_text
         else:
             return 'error'
     else:
         return 'error 1'
     dimensions = ["aesthetic","narrative","craftsmanship","purpose"]
-    #print(highlight_sentence,file=sys.stderr)
-    return render_template('classifier.html',sentences=sentences,dimensions=dimensions,title=title,highlight_sentence=highlight_sentence,class_colors=class_colors,id=id)
+    return render_template('classifier.html',sentences=sentences,dimensions=dimensions,title=title,highlight_sentence=highlight_sentence,class_colors=class_colors,id=id,clean_text=clean_text)
 
 
 
@@ -2085,9 +2088,15 @@ def report_company_test():
             tags = IndustryTags.query.all()
             all_sentences = SentenceModel.query.filter(SentenceModel.f_id==id).all()
             sentences = []
-            for i in all_sentences:
-                if(i.dimension==report.dimension and i.similarity>=report.range_from and i.similarity<=report.range_to):
-                    sentences.append(i)
+            if (report.dimension == 'all'):
+                for i in all_sentences:
+                    if i.similarity >= report.range_from and i.similarity <= report.range_to:
+                        sentences.append(i)
+            else:
+                for i in all_sentences:
+                    if(i.dimension==report.dimension and i.similarity>=report.range_from and i.similarity<=report.range_to):
+                        sentences.append(i)
+
             if(len(sentences)>0):
                 sentences = sorted(sentences, key=lambda x: x.similarity,reverse=report.descending)
             type = report.type
@@ -2284,9 +2293,9 @@ def report_background(id,type,first,second,range_from,range_to,default=False):
                 pass
             else:
                 print('delete error',file=sys.stderr)
-        all_sentence1s = []
-        all_sentence2s = []
-        # note this all_sentences solution to 'all' results in duplicate calculation, but I believe not duplicate database entries
+        # all_sentence1s = []
+        # all_sentence2s = []
+        # # note this all_sentences solution to 'all' results in duplicate calculation, but I believe not duplicate database entries
         all_sen_pro_authors = {}
         for dimension in dimensions:
             # dict_query = eval(companydocument_b.classified_sentences)
@@ -2298,8 +2307,8 @@ def report_background(id,type,first,second,range_from,range_to,default=False):
                     ##sentence1.append(i)
                     if(len(re.findall(r'\w+',i))>3):
                         sentence1.append(i)
-                if (len(re.findall(r'\w+', i)) > 3):
-                    all_sentence1s.append(i)
+                # if (len(re.findall(r'\w+', i)) > 3):
+                #     all_sentence1s.append(i)
             # print(1,sentence1,file=sys.stderr)
             if(type=='vscompany'):
                 print("entered vscompany condition")
@@ -2313,8 +2322,8 @@ def report_background(id,type,first,second,range_from,range_to,default=False):
                         ##sentence2.append(i)
                         if(len(re.findall(r'\w+',i))>3):
                             sentence2.append([i,second_company.id,'company',second_company.title])
-                    if (len(re.findall(r'\w+', i)) > 3):
-                        all_sentence2s.append([i,second_company.id,'company',second_company.title])
+                    # if (len(re.findall(r'\w+', i)) > 3):
+                    #     all_sentence2s.append([i,second_company.id,'company',second_company.title])
             elif(type=='vssearchquery'):
                 print('entered search query')
                 second_searchquery = SearchQueryDocumentModel.query.filter_by(f_title=second).all()
@@ -2328,9 +2337,9 @@ def report_background(id,type,first,second,range_from,range_to,default=False):
                             if(len(re.findall(r'\w+',i))>3):
                                 sentence2.append([i,querydocument.id,'searchquery',querydocument.title])
                                 sen_pro_author[i] = {'provider':querydocument.provider,'author':querydocument.author}
-                        if (len(re.findall(r'\w+', i)) > 3):
-                            all_sentence2s.append([i,querydocument.id,'searchquery',querydocument.title])
-                            all_sen_pro_authors[i] = {'provider': querydocument.provider, 'author': querydocument.author}
+                        # if (len(re.findall(r'\w+', i)) > 3):
+                        #     all_sentence2s.append([i,querydocument.id,'searchquery',querydocument.title])
+                        #     all_sen_pro_authors[i] = {'provider': querydocument.provider, 'author': querydocument.author}
             elif(type=='vstag'):
                 companies_tagged = CompanyDocumentModel.query.all()
                 documents_tagged = ArbitraryDocumentModel.query.all()
@@ -2353,8 +2362,8 @@ def report_background(id,type,first,second,range_from,range_to,default=False):
                             ##sentence2.append(i)
                             if(len(re.findall(r'\w+',i))>3):
                                 sentence2.append([i,querydocument.id,'tag',querydocument.title])
-                        if (len(re.findall(r'\w+', i)) > 3):
-                            all_sentence2s.append([i,querydocument.id,'tag',querydocument.title])
+                        # if (len(re.findall(r'\w+', i)) > 3):
+                        #     all_sentence2s.append([i,querydocument.id,'tag',querydocument.title])
             else:
                 return 'error'
             if(len(sentence1)==0 or len(sentence2)==0):
@@ -2363,8 +2372,8 @@ def report_background(id,type,first,second,range_from,range_to,default=False):
             dimensions[dimension] = get_scores(sentence1,sentence2,dimension,range_from,range_to,id,sen_pro_author)
 
         # scoring for comparing all sentences
-        dimension = 'all'
-        get_scores(all_sentence1s, all_sentence2s, dimension, range_from, range_to, id, sen_pro_author=all_sen_pro_authors)
+        # dimension = 'all'
+        # get_scores(all_sentence1s, all_sentence2s, dimension, range_from, range_to, id, sen_pro_author=all_sen_pro_authors)
 
         dimensions['overall'] = (dimensions['aesthetic']+dimensions['craftsmanship']+dimensions['purpose']+dimensions['narrative']) / 4
         ReportModel.query.filter_by(id = id).update(dict(score=str(dimensions),status='done'))

@@ -87,7 +87,7 @@
                 {%if(i.clean_text is none)%}
                   <td><button id="checkmark"><i class="fa fa-check-circle"></i></button></td>
                 {%else%}
-                  {%if i.clean_text | length < 500  %}
+                  {%if i.clean_text | length < 200  %}
                     <td><button id="checkmark"><i class="fa fa-check-circle"></i></button></td>
                   {%else%}
                     <td><button style="color: green;" id="checkmark"><i class="fa fa-check-circle"></i></button></td>
