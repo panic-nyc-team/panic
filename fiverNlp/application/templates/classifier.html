@@ -77,12 +77,12 @@ ul{
                 <tr>
                   {%if highlight_sentence:%}
                     {%if i==highlight_sentence:%}
-                      <td style="color: red;">{{i}}</td>
+                      <td style="background-color: red;">{{i}}</td>
                     {%else%}
-                      <td style="color: {{class_colors[sentences[i]]}};">{{i}}</td>
+                      <td style="background-color: {{class_colors[sentences[i]]}};">{{i}}</td>
                     {%endif%}
                   {%else%}
-                    <td style="color: {{class_colors[sentences[i]]}};">{{i}}</td>
+                    <td style="background-color: {{class_colors[sentences[i]]}};">{{i}}</td>
                     {%endif%}
 
                   <td><select onchange="save('{{i}}',this.value)" name="dimension">

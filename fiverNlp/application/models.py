@@ -18,7 +18,6 @@ class CompanyDocumentModel(db.Model):
     industry_tags = db.Column(db.String(200))
     query_score = db.Column(db.String(200))
     run_query_score = db.Column(db.Boolean)
-    # new
     date_created = db.Column(db.DateTime(), index=True, default=datetime.datetime.now(tz))
 
     @classmethod

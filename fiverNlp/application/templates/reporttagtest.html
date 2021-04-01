@@ -304,9 +304,9 @@
 
        <div class="section-3-3">
          <form target="_blank" action="/tags/classifier" method="POST">
-           <input type="hidden" name="title" value="{{report.second}}">
+           <input type="hidden" name="title" value="{{i.title2}}">
            <input type="hidden" name="sentence" value="{{i.sentence2}}">
-           <h3>{{report.second}}</h3>
+           <h3>{{i.title2}}</h3>
            <a type="button" onclick="this.parentElement.submit()" >{{i.sentence2}}</a><br>
          </form>
        </div>
@@ -389,13 +389,13 @@ function loadMore(){
             var title = document.createElement("input");
             title.setAttribute("type", "hidden");
             title.setAttribute("name", "title");
-            title.setAttribute("value", "{{report.second}}");
+            title.setAttribute("value", s[i]["title"]);
             var sentence = document.createElement("input");
             sentence.setAttribute("type", "hidden");
             sentence.setAttribute("name", "sentence");
             sentence.setAttribute("value", s[i]["sentence2"]);
             var h2 = document.createElement("H3");
-            h2.appendChild(document.createTextNode("{{report.second}}"));
+            h2.appendChild(document.createTextNode(s[i]["title"]));
 
             var form2 = document.createElement("form");
             form2.setAttribute("method", "post");

@@ -1,0 +1,125 @@
+{% extends 'layout.html' %}
+{% block content %}
+<html>
+<body>
+<div class="container">
+
+    <form action="/exportresult" class="needs-validation" method="post" novalidate>
+        <div class="form-group">
+            <label for="export_type">Export</label>
+            <select class="form-control" id="export_type" name="export_type">
+                <option value="report">Report</option>
+                <option value="search_query">Search Query</option>
+                <option value="document">Document</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="where">Where</label>
+            <select class="form-control" id="where" name="where">
+                {%for report in reports%}
+                    <option value="{{report.id}}">{{report.title}}</option>
+                {%endfor%}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <input id="date_checkbox" name="date_checkbox" type="checkbox" value="date">
+            <label for="date_checkbox"> Date Range Between:</label>
+            <input class="form-control" type="date" name="start_date" id="start_date"><br>
+            <input class="form-control" type="date" name="end_date" id="end_date">
+        </div>
+        <div class="form-group">
+            <input id="field_checkbox" name="field_checkbox" type="checkbox" value="field">
+            <label for="field_checkbox">Field:</label>
+            <br><br>
+            <button class="btn btn-light dropdown-toggle" data-toggle="dropdown" type="button">select</button>
+
+            <div class="dropdown-menu">
+                <a class="dropdown-item">
+                    <div class="custom-control custom-checkbox">
+                        <input class="custom-control-input" id="checkAll" type="checkbox">
+                        <label class="custom-control-label" for="checkAll">Select All</label>
+                    </div>
+                </a>
+                <div class="dropdown-divider"></div>
+                {%for attr in attributes%}
+                <a class="dropdown-item">
+                    <div class="custom-control custom-checkbox">
+                        <input class="custom-control-input" name="{{attr}}" id="{{attr}}" type="checkbox">
+                        <label class="custom-control-label" for="{{attr}}">{{attr}}</label>
+                    </div>
+                </a>
+                {%endfor%}
+            </div>
+            <br>
+            <br>
+            <select class="form-control" id="filter" name="filter">
+                <option value="includes">INCLUDES</option>
+<!--                <option value="greater">GREATER THAN OR EQUAL TO</option>-->
+<!--                <option value="less">LESS THAN OR EQUAL TO</option>-->
+            </select><br>
+            <input class="form-control" name="search_parameter" placeholder="query" type="text">
+
+        </div>
+
+        <div class="form-group">
+            <label for="format">Format</label>
+            <select class="form-control" id="format" name="format">
+                <option value="json">JSON</option>
+                <option value="excel">EXCEL</option>
+                <option value="flat_json">FLAT JSON</option>
+            </select>
+        </div>
+
+        <button class="mybutton" type="submit">Export</button>
+    </form>
+</div>
+
+</body>
+<script>
+$(document).ready(function() {
+document.getElementById('end_date').valueAsDate = new Date();
+var date = new Date();
+date ;
+date.setDate(date.getDate() - 30);
+document.getElementById('start_date').valueAsDate = date;
+});
+$('#checkAll').click(function () {
+    $(':checkbox.custom-control-input').prop('checked', this.checked);
+ });
+
+ $('#export_type').on('change', function() {
+  $( "#where" ).empty();
+  if(this.value==='report'){
+   {%for report in reports%}
+     $('#where').append($('<option>',
+     {
+        value: "{{report.id}}",
+        text : "{{report.title}}"
+    }));
+   {%endfor%}
+  }
+  else if(this.value==='search_query'){
+   {%for query in search_queries%}
+     $('#where').append($('<option>',
+     {
+        value: "{{query.id}}",
+        text : "{{query.title}}"
+    }));
+   {%endfor%}
+  }
+  else{
+      $( "#where" ).empty();
+  }
+
+
+});
+</script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script type=text/javascript>
+  $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+
+</script>
+
+</html>
+{% endblock %}
