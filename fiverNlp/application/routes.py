@@ -705,18 +705,18 @@ def get_doc_data(documents, field_checkbox, form, date_checkbox, start_date, end
                 print('date split error')
                 continue
             if published and start_date <= published <= end_date:
-                temp = get_doc_sub(document, field_checkbox, search_p, attributes,format)
+                temp = get_doc_sub(document, field_checkbox, search_p, attributes, format)
                 if temp == 'return':
                     continue
                 data.append(temp)
             else:
                 continue
         else:
-            temp = get_doc_sub(document, field_checkbox, search_p, attributes,format)
+            temp = get_doc_sub(document, field_checkbox, search_p, attributes, format)
             if temp == 'return':
                 continue
             data.append(temp)
-    if format=='flat_json':
+    if format == 'flat_json':
         result_flat = []
         for i in data:
             for j in i:
@@ -727,7 +727,8 @@ def get_doc_data(documents, field_checkbox, form, date_checkbox, start_date, end
     else:
         return 'error'
 
-def get_doc_sub(document, field_checkbox, search_p, attributes,format):
+
+def get_doc_sub(document, field_checkbox, search_p, attributes, format):
     temp = {'search_query': document.f_title, 'title': document.title, 'author': document.author
         , 'publish_date': document.published, 'site': document.site,
             'site_type': document.site_type
@@ -747,10 +748,11 @@ def get_doc_sub(document, field_checkbox, search_p, attributes,format):
     persons = []
     locations = []
     organizations = []
-    if format=='flat_json':
+    if format == 'flat_json':
         result = []
-        temp['reach'] = {'per_million': document.reach_per_m, 'page_views': {'per_million': document.reach_views_per_m
-            , 'per_user': document.reach_views_per_u}}
+        temp['reach_per_million'] = document.reach_per_m
+        temp['page_views_per_million'] = document.reach_views_per_m
+        temp['page_views_per_user'] = document.reach_views_per_u
         if not d_persons and not d_locations and not d_organizations:
             result.append(temp.copy())
         else:
@@ -774,7 +776,7 @@ def get_doc_sub(document, field_checkbox, search_p, attributes,format):
                 t['sentiment'] = i.sentiment
                 result.append(t.copy())
         return result
-    elif format=='json':
+    elif format == 'json':
         for i in d_persons:
             persons.append({'name': i.name, 'sentiment': i.sentiment})
         for i in d_locations:
@@ -787,6 +789,7 @@ def get_doc_sub(document, field_checkbox, search_p, attributes,format):
         return temp
     else:
         return 'error'
+
 
 def doc_attributes(sentence_text, document):
     newdocument = NewDocumentModel.query.filter_by(id=document.id).first()
