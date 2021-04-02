@@ -558,6 +558,7 @@ def export_result():
     print(form)
     export_type = form.get('export_type')
     id = form.get('where')
+    format = form.get('format')
     start_date = form.get('start_date')
     end_date = form.get('end_date')
     date_checkbox = form.get('date_checkbox')
@@ -688,6 +689,7 @@ def get_doc_data(documents, field_checkbox, form, date_checkbox, start_date, end
     data = []
     search_p = None
     attributes = {}
+    format = form.get('format')
     if field_checkbox:
         attributes = {'search_query': None, 'title': None, 'author': None, 'publish_date': None, 'site': None
             , 'site_type': None, 'url': None, 'main_image': None, 'country': None, 'text': None}
@@ -703,21 +705,29 @@ def get_doc_data(documents, field_checkbox, form, date_checkbox, start_date, end
                 print('date split error')
                 continue
             if published and start_date <= published <= end_date:
-                temp = get_doc_sub(document, field_checkbox, search_p, attributes)
+                temp = get_doc_sub(document, field_checkbox, search_p, attributes,format)
                 if temp == 'return':
                     continue
                 data.append(temp)
             else:
                 continue
         else:
-            temp = get_doc_sub(document, field_checkbox, search_p, attributes)
+            temp = get_doc_sub(document, field_checkbox, search_p, attributes,format)
             if temp == 'return':
                 continue
             data.append(temp)
-    return data
+    if format=='flat_json':
+        result_flat = []
+        for i in data:
+            for j in i:
+                result_flat.append(j)
+        return result_flat
+    elif format == 'json':
+        return data
+    else:
+        return 'error'
 
-
-def get_doc_sub(document, field_checkbox, search_p, attributes):
+def get_doc_sub(document, field_checkbox, search_p, attributes,format):
     temp = {'search_query': document.f_title, 'title': document.title, 'author': document.author
         , 'publish_date': document.published, 'site': document.site,
             'site_type': document.site_type
@@ -731,35 +741,52 @@ def get_doc_sub(document, field_checkbox, search_p, attributes):
         for attr in attributes:
             if attributes[attr] is None:
                 temp.pop(attr, None)
-    # d_categories = NewDocumentSiteCategoriesModel.query.filter_by(f_id=document.id).all()
-    # d_links = NewDocumentExternalLinksModel.query.filter_by(f_id=document.id).all()
-    # d_images = NewDocumentExternalImagesModel.query.filter_by(f_id=document.id).all()
     d_persons = NewDocumentPersonsModel.query.filter_by(f_id=document.id).all()
     d_locations = NewDocumentLocationsModel.query.filter_by(f_id=document.id).all()
     d_organizations = NewDocumentOrganizationsModel.query.filter_by(f_id=document.id).all()
-    # site_categories = []
-    # external_links = []
-    # external_images = []
     persons = []
     locations = []
     organizations = []
-    # for i in d_categories:
-    #     site_categories.append(i.category)
-    # for i in d_links:
-    #     external_links.append(i.url)
-    # for i in d_images:
-    #     external_images.append(i.url)
-    for i in d_persons:
-        persons.append({'name': i.name, 'sentiment': i.sentiment})
-    for i in d_locations:
-        locations.append({'name': i.name, 'sentiment': i.sentiment})
-    for i in d_organizations:
-        organizations.append({'name': i.name, 'sentiment': i.sentiment})
-    temp['entities'] = {'persons': persons, 'organizations': organizations, 'locations': locations}
-    temp['reach'] = {'per_million': document.reach_per_m, 'page_views': {'per_million': document.reach_views_per_m
-        , 'per_user': document.reach_views_per_u}}
-    return temp
+    if format=='flat_json':
+        result = []
+        temp['reach'] = {'per_million': document.reach_per_m, 'page_views': {'per_million': document.reach_views_per_m
+            , 'per_user': document.reach_views_per_u}}
+        if not d_persons and not d_locations and not d_organizations:
+            result.append(temp.copy())
+        else:
+            for i in d_persons:
+                t = temp.copy()
+                t['entity'] = i.name
+                t['sentiment'] = i.sentiment
+                result.append(t.copy())
+                # persons.append({'name': i.name, 'sentiment': i.sentiment})
 
+            for i in d_locations:
+                t = temp.copy()
+                t['entity'] = i.name
+                t['sentiment'] = i.sentiment
+                result.append(t.copy())
+                # locations.append({'name': i.name, 'sentiment': i.sentiment})
+
+            for i in d_organizations:
+                t = temp.copy()
+                t['entity'] = i.name
+                t['sentiment'] = i.sentiment
+                result.append(t.copy())
+        return result
+    elif format=='json':
+        for i in d_persons:
+            persons.append({'name': i.name, 'sentiment': i.sentiment})
+        for i in d_locations:
+            locations.append({'name': i.name, 'sentiment': i.sentiment})
+        for i in d_organizations:
+            organizations.append({'name': i.name, 'sentiment': i.sentiment})
+        temp['entities'] = {'persons': persons, 'organizations': organizations, 'locations': locations}
+        temp['reach'] = {'per_million': document.reach_per_m, 'page_views': {'per_million': document.reach_views_per_m
+            , 'per_user': document.reach_views_per_u}}
+        return temp
+    else:
+        return 'error'
 
 def doc_attributes(sentence_text, document):
     newdocument = NewDocumentModel.query.filter_by(id=document.id).first()
