@@ -1886,6 +1886,16 @@ def savesearchquery():
                 dict(title=title, query_string=query_string, market_language_code=market_language_code,
                      country_code=country_code, site_type=site_type, characters=characters, freshness=freshness,
                      fetch_frequency=fetch_frequency, site=site))
+            query_documents = SearchQueryDocumentModel.query.filter_by(f_title=old_title).all()
+            for d in query_documents:
+                d.f_title = title
+            new_documents = NewDocumentModel.query.filter_by(f_title=old_title).all()
+            for d in new_documents:
+                d.f_title = title
+            reports_temp = ReportModel.query.filter_by(second=old_title).all()
+            for d in reports_temp:
+                d.second = title
+            db.session.commit()
         else:
             db.session.add(searchquery)
         temp = SearchQueryModel(title=searchquery.title, query_string=searchquery.query_string,
