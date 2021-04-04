@@ -1,3 +1,6 @@
+import random
+import openpyxl
+
 from flask import Flask, render_template, request, url_for, flash, send_from_directory, send_file, jsonify
 # from flask import current_app as app
 from werkzeug.utils import secure_filename, redirect
@@ -674,15 +677,23 @@ def export_result():
         search_query = SearchQueryModel.query.filter_by(id=id).first()
         documents = NewDocumentModel.query.filter_by(f_title=search_query.title).all()
         data = get_doc_data(documents, field_checkbox, form, date_checkbox, start_date, end_date)
+        if format == 'excel':
+            if data == 'empty':
+                return 'empty'
+            return send_file(data, as_attachment=True)
         return jsonify(data)
 
     elif export_type == 'document':
         documents = NewDocumentModel.query.all()
         data = get_doc_data(documents, field_checkbox, form, date_checkbox, start_date, end_date)
+        if format == 'excel':
+            if data == 'empty':
+                return 'empty'
+            return send_file(data, as_attachment=True)
         return jsonify(data)
     else:
         return 'error'
-    return 'error'
+    # return 'error'
 
 
 def get_doc_data(documents, field_checkbox, form, date_checkbox, start_date, end_date):
@@ -722,6 +733,42 @@ def get_doc_data(documents, field_checkbox, form, date_checkbox, start_date, end
             for j in i:
                 result_flat.append(j)
         return result_flat
+    elif format == 'excel':
+        result_flat = []
+        for i in data:
+            for j in i:
+                result_flat.append(j)
+        largest = 0
+        largest_index = None
+        for index, i in enumerate(result_flat):
+            if len(i) > largest:
+                largest = len(i)
+                largest_index = index
+        if largest == 0:
+            return 'empty'
+        wb = openpyxl.Workbook()
+
+        sheet = wb.active
+
+        column_map = {}
+        for count, i in enumerate(result_flat[largest_index], 1):
+            row_1 = sheet.cell(row=1, column=count)
+            row_1.value = i
+            column_map[i] = count
+        for row, i in enumerate(result_flat, 2):
+            for j in i:
+                if column_map.get(j):
+                    row_1 = sheet.cell(row=row, column=column_map.get(j))
+                    row_1.value = i[j]
+
+        # c2 = sheet.cell(row=1, column=2)
+        # c2.value = "RAI"
+        name = f'static/excel/result{random.randint(0, 999)}.xlsx'
+        while os.path.exists(name):
+            name = f'static/excel/result{random.randint(0, 999)}.xlsx'
+        wb.save(name)
+        return name
+
     elif format == 'json':
         return data
     else:
@@ -748,7 +795,7 @@ def get_doc_sub(document, field_checkbox, search_p, attributes, format):
     persons = []
     locations = []
     organizations = []
-    if format == 'flat_json':
+    if format == 'flat_json' or format == 'excel':
         result = []
         temp['reach_per_million'] = document.reach_per_m
         temp['page_views_per_million'] = document.reach_views_per_m
@@ -789,183 +836,6 @@ def get_doc_sub(document, field_checkbox, search_p, attributes, format):
         return temp
     else:
         return 'error'
-
-
-def doc_attributes(sentence_text, document):
-    newdocument = NewDocumentModel.query.filter_by(id=document.id).first()
-    result = {}
-    thread = {}
-    result['text'] = sentence_text
-    d_categories = NewDocumentSiteCategoriesModel.query.filter_by(f_id=id).all()
-    d_links = NewDocumentExternalLinksModel.query.filter_by(f_id=id).all()
-    d_images = NewDocumentExternalImagesModel.query.filter_by(f_id=id).all()
-    d_persons = NewDocumentPersonsModel.query.filter_by(f_id=id).all()
-    d_locations = NewDocumentLocationsModel.query.filter_by(f_id=id).all()
-    d_organizations = NewDocumentOrganizationsModel.query.filter_by(f_id=id).all()
-    site_categories = []
-    external_links = []
-    external_images = []
-    persons = []
-    locations = []
-    organizations = []
-    for i in d_categories:
-        site_categories.append(i.category)
-    for i in d_links:
-        external_links.append(i.url)
-    for i in d_images:
-        external_images.append(i.url)
-    for i in d_persons:
-        persons.append('{{ name: "{name}",  sentiment: "{sentiment}" }}'.format(name=i.name, sentiment=i.sentiment))
-    for i in d_locations:
-        locations.append('{{ name: "{name}",  sentiment: "{sentiment}" }}'.format(name=i.name, sentiment=i.sentiment))
-    for i in d_organizations:
-        organizations.append(
-            '{{ name: "{name}",  sentiment: "{sentiment}" }}'.format(name=i.name, sentiment=i.sentiment))
-
-    '''        thread: {{
-    
-                uuid: "{thread_uuid}" ,
-    
-                url: "{url}" ,
-    
-                site_full: "{site_full}" ,
-    
-                site: "{site}" ,
-    
-                site_section: "{site_section}" ,
-    
-                site_categories: {site_categories} ,
-    
-                section_title: "{section_title}" ,
-    
-                title: "{title}" ,
-    
-                title_full: "{title_full}" ,
-    
-                published: "{published}" ,
-    
-                replies_count: {replies_count} ,
-    
-                participants_count: {participants_count} ,
-    
-                site_type: "{site_type}" ,
-    
-                country: "{country}" ,
-    
-                spam_score: {spam_score} ,
-    
-                main_image: "{main_image}" ,
-    
-                performance_score: {performance_score} ,
-    
-                domain_rank: {domain_rank} ,
-    
-                reach: {{
-    
-                per_million: {reach_per_m} ,
-    
-                page_views: {{
-    
-                per_million: {reach_views_per_m} ,
-    
-                per_user: {reach_views_per_u}
-    
-                }} ,
-    
-                updated: "{reach_updated}"
-    
-                }} ,
-    
-                social: {{
-    
-                facebook: {{
-    
-                likes: {facebook_likes} ,
-    
-                comments: {facebook_comments} ,
-    
-                shares: {facebook_shares}
-    
-                }} ,
-    
-                gplus: {{
-    
-                shares: {gplus_shares}
-    
-                }} ,
-    
-                pinterest: {{
-    
-                shares: {pinterest_shares}
-    
-                }} ,
-    
-                linkedin: {{
-    
-                shares: {linkedin_shares}
-    
-                }} ,
-    
-                stumbledupon: {{
-    
-                shares: {stumbledupon_shares}
-    
-                }} ,
-    
-                vk: {{
-    
-                shares: {vk_shares}
-    
-                }}
-    
-                }}
-    
-                }} ,
-    
-            uuid: "{uuid}" ,
-    
-            url: "{url}" ,
-    
-            ord_in_thread: {ord_in_thread} ,
-    
-            parent_url: {parent_url} ,
-    
-            author: "{author}" ,
-    
-            published: "{published}" ,
-    
-            title: "{title}" ,
-    
-            text: "{text}" ,
-    
-            highlightText: "{highlight_text}" ,
-    
-            highlightTitle: "{highlight_title}" ,
-    
-            highlightThreadTitle: "{highlight_thread_title}" ,
-    
-            language: "{language}" ,
-    
-            external_links: {external_links} ,
-    
-            external_images: {external_images},
-    
-            entities: {{
-    
-            persons: {persons}
-    
-            organizations: {organizations},
-    
-            locations: {locations}
-    
-            }} ,
-    
-            rating: {rating} ,
-    
-            crawled: "{crawled}" ,
-    
-            updated: "{updated}"
-    '''
 
 
 @app.route('/highlight', methods=['POST'])
