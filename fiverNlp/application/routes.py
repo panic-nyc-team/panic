@@ -1,6 +1,6 @@
 import random
 import openpyxl
-
+import glob
 from flask import Flask, render_template, request, url_for, flash, send_from_directory, send_file, jsonify
 # from flask import current_app as app
 from werkzeug.utils import secure_filename, redirect
@@ -109,9 +109,12 @@ class_colors = load_classColors()
 
 sentence_model = SentenceTransformer('distilbert-base-nli-stsb-mean-tokens')
 
-
 @tl.job(interval=datetime.timedelta(minutes=300))
 def day():
+    files = glob.glob('static/excel/*')
+    for f in files:
+        os.remove(f)
+
     work('Day')
     report_word('Daily')
 
