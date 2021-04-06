@@ -1762,7 +1762,6 @@ def savesearchquery():
             query_documents = SearchQueryDocumentModel.query.filter_by(f_title=old_title).all()
             for d in query_documents:
                 d.f_title = title
-                db.session.commit()
             new_documents = NewDocumentModel.query.filter_by(f_title=old_title).all()
             for d in new_documents:
                 d.f_title = title
