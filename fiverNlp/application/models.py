@@ -49,7 +49,7 @@ class SearchQueryDocumentModel(db.Model):
     classified_sentences = db.Column(db.Text)
     author = db.Column(db.String(255))
     provider = db.Column(db.String(255))
-    url = db.Column(db.String(255))
+    url = db.Column(db.Text)
     image_url = db.Column(db.Text)
     date = db.Column(db.String(255))
     f_title = db.Column(db.String(255))
@@ -235,7 +235,7 @@ class NewDocumentModel(db.Model):
     uuid = db.Column(db.String(255))
     thread_uuid = db.Column(db.String(255))
     ord_in_thread = db.Column(db.Integer)
-    parent_url = db.Column(db.String(255))
+    parent_url = db.Column(db.Text)
     highlight_text = db.Column(db.Text)
     highlight_title = db.Column(db.Text)
     highlight_thread_title = db.Column(db.Text)
@@ -360,7 +360,7 @@ class NewDocumentExternalLinksModel(db.Model):
     __tablename__ = 'newdocumentexternallinks'
     id = db.Column(db.Integer, primary_key=True)
     f_id = db.Column(db.Integer)
-    url = db.Column(db.String(255))
+    url = db.Column(db.Text)
 
     @classmethod
     def delete(cls, f_id):
