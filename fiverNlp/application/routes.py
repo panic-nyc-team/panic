@@ -602,12 +602,14 @@ def export_result():
                     c1 = CompanyDocumentModel.query.filter_by(title=report.first).first()
                     c2 = CompanyDocumentModel.query.filter_by(title=report.second).first()
                     if c1 and c2:
-                        data.append({'s1': {'text': sentence_text.get(int(s.sentence1)), 'parent_title': c1.title
-                            , 'parent_url': url_for('edit_company', title=c1.title, _external=True)}
-                                        , 's2': {'text': sentence_text.get(int(s.sentence2)), 'parent_title': c2.title
-                                , 'parent_url': url_for('edit_company', title=c2.title, _external=True)}
-                                        , 'similarity_dimension': s.dimension, 'similarity': s.similarity})
-
+                        try:
+                            data.append({'s1': {'text': sentence_text.get(int(s.sentence1)), 'parent_title': c1.title
+                                , 'parent_url': url_for('edit_company', title=c1.title, _external=True)}
+                                            , 's2': {'text': sentence_text.get(int(s.sentence2)), 'parent_title': c2.title
+                                    , 'parent_url': url_for('edit_company', title=c2.title, _external=True)}
+                                            , 'similarity_dimension': s.dimension, 'similarity': s.similarity})
+                        except:
+                            pass
             elif report.type == 'vssearchquery':
                 for s in sentences:
                     c1 = CompanyDocumentModel.query.filter_by(title=report.first).first()
@@ -621,29 +623,33 @@ def export_result():
                             continue
                         if published and start_date <= published <= end_date:
                             if c1 and c2:
-                                data.append(
-                                    {'s1': {'text': sentence_text.get(int(s.sentence1)), 'parent_title': c1.title
-                                        , 'parent_url': url_for('edit_company', title=c1.title, _external=True)}
-                                        , 's2': {'text': sentence_text.get(int(s.sentence2)), 'url': c2.url,
-                                                 'parent_title': c2.title
-                                        , 'parent_url': url_for('edit_search_query_document', id=s.id2, _external=True)
-                                        , 'parent_date': c2.published, 'parent_site': c2.site
-                                        , 'parent_site_type': c2.site_type, 'parent_country': c2.country}
-                                        , 'similarity_dimension': s.dimension, 'similarity': s.similarity})
+                                try:
+                                    data.append(
+                                        {'s1': {'text': sentence_text.get(int(s.sentence1)), 'parent_title': c1.title
+                                            , 'parent_url': url_for('edit_company', title=c1.title, _external=True)}
+                                            , 's2': {'text': sentence_text.get(int(s.sentence2)), 'url': c2.url,
+                                                     'parent_title': c2.title
+                                            , 'parent_url': url_for('edit_search_query_document', id=s.id2, _external=True)
+                                            , 'parent_date': c2.published, 'parent_site': c2.site
+                                            , 'parent_site_type': c2.site_type, 'parent_country': c2.country}
+                                            , 'similarity_dimension': s.dimension, 'similarity': s.similarity})
+                                except:
+                                    pass
                         else:
                             continue
                     else:
                         if c1 and c2:
-                            data.append({'s1': {'text': sentence_text.get(int(s.sentence1)), 'parent_title': c1.title
-                                , 'parent_url': url_for('edit_company', title=c1.title, _external=True)}
-                                            , 's2': {'text': sentence_text.get(int(s.sentence2)), 'url': c2.url,
-                                                     'parent_title': c2.title
-                                    , 'parent_url': url_for('edit_search_query_document', id=s.id2, _external=True)
-                                    , 'parent_date': c2.published, 'parent_site': c2.site
-                                    , 'parent_site_type': c2.site_type, 'parent_country': c2.country}
-                                            , 'similarity_dimension': s.dimension, 'similarity': s.similarity})
-
-
+                            try:
+                                data.append({'s1': {'text': sentence_text.get(int(s.sentence1)), 'parent_title': c1.title
+                                    , 'parent_url': url_for('edit_company', title=c1.title, _external=True)}
+                                                , 's2': {'text': sentence_text.get(int(s.sentence2)), 'url': c2.url,
+                                                         'parent_title': c2.title
+                                        , 'parent_url': url_for('edit_search_query_document', id=s.id2, _external=True)
+                                        , 'parent_date': c2.published, 'parent_site': c2.site
+                                        , 'parent_site_type': c2.site_type, 'parent_country': c2.country}
+                                                , 'similarity_dimension': s.dimension, 'similarity': s.similarity})
+                            except:
+                                pass
 
             elif report.type == 'vstag':
                 for s in sentences:
@@ -651,26 +657,33 @@ def export_result():
                     c2 = CompanyDocumentModel.query.filter_by(title=s.title2).first()
                     if (c2):
                         if c1 and c2:
-                            data.append({'s1': {'text': sentence_text.get(int(s.sentence1)), 'parent_title': c1.title
-                                , 'parent_url': url_for('edit_company', title=c1.title, _external=True)}
-                                            ,
-                                         's2': {'text': sentence_text.get(int(s.sentence2)), 'parent_title': c2.title
-                                             , 'parent_url': url_for('edit_company', title=c2.title, _external=True)}
-                                            , 'similarity_dimension': s.dimension,
-                                         'similarity': s.similarity})
+                            try:
+                                data.append({'s1': {'text': sentence_text.get(int(s.sentence1)), 'parent_title': c1.title
+                                    , 'parent_url': url_for('edit_company', title=c1.title, _external=True)}
+                                                ,
+                                             's2': {'text': sentence_text.get(int(s.sentence2)), 'parent_title': c2.title
+                                                 , 'parent_url': url_for('edit_company', title=c2.title, _external=True)}
+                                                , 'similarity_dimension': s.dimension,
+                                             'similarity': s.similarity})
+                            except:
+                                pass
+
                     else:
                         c2 = ArbitraryDocumentModel.query.filter_by(title=s.title2).first()
                         if c1 and c2:
-                            data.append({'s1': {'text': sentence_text.get(int(s.sentence1)), 'parent_title': c1.title
-                                , 'parent_url': url_for('edit_company', title=c1.title, _external=True)}
-                                            ,
-                                         's2': {'text': sentence_text.get(int(s.sentence2)), 'parent_title': c2.title
-                                             , 'parent_url': url_for('edit_arbitrary_document', title=c2.title,
-                                                                     _external=True),
-                                                'url': c2.url
-                                             , 'author': c2.author, 'provider': c2.provider, 'image_url': c2.image_url}
-                                            , 'similarity_dimension': s.dimension,
-                                         'similarity': s.similarity})
+                            try:
+                                data.append({'s1': {'text': sentence_text.get(int(s.sentence1)), 'parent_title': c1.title
+                                    , 'parent_url': url_for('edit_company', title=c1.title, _external=True)}
+                                                ,
+                                             's2': {'text': sentence_text.get(int(s.sentence2)), 'parent_title': c2.title
+                                                 , 'parent_url': url_for('edit_arbitrary_document', title=c2.title,
+                                                                         _external=True),
+                                                    'url': c2.url
+                                                 , 'author': c2.author, 'provider': c2.provider, 'image_url': c2.image_url}
+                                                , 'similarity_dimension': s.dimension,
+                                             'similarity': s.similarity})
+                            except:
+                                pass
 
             else:
                 return 'error'
