@@ -109,6 +109,7 @@ class_colors = load_classColors()
 
 sentence_model = SentenceTransformer('distilbert-base-nli-stsb-mean-tokens')
 
+
 @tl.job(interval=datetime.timedelta(minutes=300))
 def day():
     files = glob.glob('static/excel/*')
@@ -673,6 +674,52 @@ def export_result():
 
             else:
                 return 'error'
+            if format == 'excel':
+                flat_attrs = {}
+                wb = openpyxl.Workbook()
+                sheet = wb.active
+                if not data:
+                    return 'empty'
+                column_map = {}
+                temps1 = data[0].get('s1')
+                if temps1:
+                    for i in temps1:
+                        flat_attrs['s1_'+i] = True
+                temps2 = data[0].get('s2')
+                if temps2:
+                    for i in temps2:
+                        flat_attrs['s2_'+i] = True
+                flat_attrs['similarity_dimension'] = True
+                flat_attrs['similarity'] = True
+                for count, i in enumerate(flat_attrs, 1):
+                    row_1 = sheet.cell(row=1, column=count)
+                    row_1.value = i
+                    column_map[i] = count
+                result_flat = []
+                for d in data:
+                    flat_attrs_temp = {}
+                    temps1 = d.get('s1')
+                    if temps1:
+                        for i in temps1:
+                            flat_attrs_temp['s1_'+i] = temps1[i]
+                    temps2 = d.get('s2')
+                    if temps2:
+                        for i in temps2:
+                            flat_attrs_temp['s2_'+i] = temps2[i]
+                    flat_attrs_temp['similarity_dimension'] = d.get('similarity_dimension')
+                    flat_attrs_temp['similarity'] = d.get('similarity')
+                    result_flat.append(flat_attrs_temp.copy())
+                for row, i in enumerate(result_flat, 2):
+                    for j in i:
+                        if column_map.get(j):
+                            row_1 = sheet.cell(row=row, column=column_map.get(j))
+                            row_1.value = i.get(j)
+                name = f'static/excel/result{random.randint(0, 999)}.xlsx'
+                while os.path.exists(name):
+                    name = f'static/excel/result{random.randint(0, 999)}.xlsx'
+                wb.save(name)
+                return send_file(name, as_attachment=True)
+
             return jsonify(data)
         else:
             return 'report not found'
@@ -750,7 +797,6 @@ def get_doc_data(documents, field_checkbox, form, date_checkbox, start_date, end
         if largest == 0:
             return 'empty'
         wb = openpyxl.Workbook()
-
         sheet = wb.active
 
         column_map = {}
