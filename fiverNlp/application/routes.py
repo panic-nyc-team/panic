@@ -1742,9 +1742,13 @@ def search_queries():
 
 @app.route('/searchqueries/addnewsearchquery')
 def add_new_search_query():
+
     return render_template('addeditsearchqueries.html', COUNTRY_CODES=COUNTRY_CODES,
                            MARKET_LANGUAGE_CODES=MARKET_LANGUAGE_CODES, SITE_TYPES=SITE_TYPES, REST=REST,
                            searchquery=SearchQueryModel(title='', query_string='', characters='', site=''))
+    # return render_template('supersearchqueries.html', COUNTRY_CODES=COUNTRY_CODES,
+    #                        MARKET_LANGUAGE_CODES=MARKET_LANGUAGE_CODES, SITE_TYPES=SITE_TYPES, REST=REST,
+    #                        searchquery=SearchQueryModel(title='', query_string='', characters='', site=''))
 
 
 @app.route('/searchqueries/editsearchquery')
@@ -1769,6 +1773,7 @@ def delete_search_query():
         return 'no search query found'
     try:
         if (SearchQueryModel.delete(title=title) and SearchQueryDocumentModel.deleteall(f_title=title)):
+            # SuperSearchQueryModel.query.filter_by(title=title).delete()
             doc_list = NewDocumentModel.query.filter_by(f_title=title).all()
             NewDocumentModel.deleteall(f_title=title)
             for doc in doc_list:
@@ -1778,7 +1783,7 @@ def delete_search_query():
                 NewDocumentSiteCategoriesModel.delete(f_id=doc.id)
                 NewDocumentExternalLinksModel.delete(f_id=doc.id)
                 NewDocumentExternalImagesModel.delete(f_id=doc.id)
-
+            # db.session.commit()
             return redirect(url_for('search_queries'))
         else:
             return 'error'
@@ -1809,6 +1814,7 @@ def savesearchquery():
             site = ''
         if (characters == '' or characters == None):
             characters = ''
+
         searchquery = SearchQueryModel(title=title, query_string=query_string,
                                        market_language_code=market_language_code, country_code=country_code,
                                        site_type=site_type, site=site, freshness=freshness, characters=characters,
@@ -1827,15 +1833,18 @@ def savesearchquery():
             reports_temp = ReportModel.query.filter_by(second=old_title).all()
             for d in reports_temp:
                 d.second = title
-            db.session.commit()
         else:
             db.session.add(searchquery)
+        # db.session.commit()
         temp = SearchQueryModel(title=searchquery.title, query_string=searchquery.query_string,
                                 market_language_code=searchquery.market_language_code,
                                 country_code=searchquery.country_code, site=searchquery.site,
                                 site_type=searchquery.site_type, characters=characters, freshness=searchquery.freshness,
                                 fetch_frequency=searchquery.fetch_frequency)
         executor.submit(search_query_documents_background, temp)
+        # temp_id = SearchQueryModel.query.filter_by(title=title).first()
+        # t = SuperSearchQueryModel(f_id=temp_id.id,title=title,fetch_frequency=fetch_frequency)
+        # db.session.add(t)
         db.session.commit()
         db.session.expunge_all()
         db.session.close()
@@ -2569,16 +2578,18 @@ def report_company_test():
         tags = IndustryTags.query.all()
         all_sentences = SentenceModel.query.filter(SentenceModel.f_id == id).all()
         sentences = []
-        if (report.dimension == 'all'):
-            for i in all_sentences:
-                if i.similarity >= report.range_from and i.similarity <= report.range_to:
-                    sentences.append(i)
-        else:
-            for i in all_sentences:
-                if (
-                        i.dimension == report.dimension and i.similarity >= report.range_from and i.similarity <= report.range_to):
-                    sentences.append(i)
-
+        # if (report.dimension == 'all'):
+        #     for i in all_sentences:
+        #         if i.similarity >= report.range_from and i.similarity <= report.range_to:
+        #             sentences.append(i)
+        # else:
+        #     for i in all_sentences:
+        #         if (
+        #                 i.dimension == report.dimension and i.similarity >= report.range_from and i.similarity <= report.range_to):
+        #             sentences.append(i)
+        for i in all_sentences:
+            if(i.dimension==report.dimension and i.similarity>=report.range_from and i.similarity<=report.range_to):
+                sentences.append(i)
         if (len(sentences) > 0):
             sentences = sorted(sentences, key=lambda x: x.similarity, reverse=report.descending)
         type = report.type
@@ -2781,9 +2792,9 @@ def report_background(id, type, first, second, range_from, range_to, default=Fal
                 pass
             else:
                 print('delete error', file=sys.stderr)
-        # all_sentence1s = []
-        # all_sentence2s = []
-        # # note this all_sentences solution to 'all' results in duplicate calculation, but I believe not duplicate database entries
+        all_sentence1s = []
+        all_sentence2s = []
+        # note this all_sentences solution to 'all' results in duplicate calculation, but I believe not duplicate database entries
         all_sen_pro_authors = {}
         for dimension in dimensions:
             # dict_query = eval(companydocument_b.classified_sentences)
@@ -2795,8 +2806,8 @@ def report_background(id, type, first, second, range_from, range_to, default=Fal
                     ##sentence1.append(i)
                     if (len(re.findall(r'\w+', i)) > 3):
                         sentence1.append(i)
-                # if (len(re.findall(r'\w+', i)) > 3):
-                #     all_sentence1s.append(i)
+                if (len(re.findall(r'\w+', i)) > 3):
+                    all_sentence1s.append(i)
             # print(1,sentence1,file=sys.stderr)
             if (type == 'vscompany'):
                 print("entered vscompany condition")
@@ -2810,8 +2821,8 @@ def report_background(id, type, first, second, range_from, range_to, default=Fal
                         ##sentence2.append(i)
                         if (len(re.findall(r'\w+', i)) > 3):
                             sentence2.append([i, second_company.id, 'company', second_company.title])
-                    # if (len(re.findall(r'\w+', i)) > 3):
-                    #     all_sentence2s.append([i,second_company.id,'company',second_company.title])
+                    if (len(re.findall(r'\w+', i)) > 3):
+                        all_sentence2s.append([i,second_company.id,'company',second_company.title])
             elif (type == 'vssearchquery'):
                 print('entered search query')
                 second_searchquery = SearchQueryDocumentModel.query.filter_by(f_title=second).all()
@@ -2825,9 +2836,9 @@ def report_background(id, type, first, second, range_from, range_to, default=Fal
                             if (len(re.findall(r'\w+', i)) > 3):
                                 sentence2.append([i, querydocument.id, 'searchquery', querydocument.title])
                                 sen_pro_author[i] = {'provider': querydocument.provider, 'author': querydocument.author}
-                        # if (len(re.findall(r'\w+', i)) > 3):
-                        #     all_sentence2s.append([i,querydocument.id,'searchquery',querydocument.title])
-                        #     all_sen_pro_authors[i] = {'provider': querydocument.provider, 'author': querydocument.author}
+                        if (len(re.findall(r'\w+', i)) > 3):
+                            all_sentence2s.append([i,querydocument.id,'searchquery',querydocument.title])
+                            all_sen_pro_authors[i] = {'provider': querydocument.provider, 'author': querydocument.author}
             elif (type == 'vstag'):
                 companies_tagged = CompanyDocumentModel.query.all()
                 documents_tagged = ArbitraryDocumentModel.query.all()
@@ -2850,8 +2861,8 @@ def report_background(id, type, first, second, range_from, range_to, default=Fal
                             ##sentence2.append(i)
                             if (len(re.findall(r'\w+', i)) > 3):
                                 sentence2.append([i, querydocument.id, 'tag', querydocument.title])
-                        # if (len(re.findall(r'\w+', i)) > 3):
-                        #     all_sentence2s.append([i,querydocument.id,'tag',querydocument.title])
+                        if (len(re.findall(r'\w+', i)) > 3):
+                            all_sentence2s.append([i,querydocument.id,'tag',querydocument.title])
             else:
                 return 'error'
             if (len(sentence1) == 0 or len(sentence2) == 0):
@@ -2861,8 +2872,8 @@ def report_background(id, type, first, second, range_from, range_to, default=Fal
                                                sen_pro_author)
 
         # scoring for comparing all sentences
-        # dimension = 'all'
-        # get_scores(all_sentence1s, all_sentence2s, dimension, range_from, range_to, id, sen_pro_author=all_sen_pro_authors)
+        dimension = 'all'
+        get_scores(all_sentence1s, all_sentence2s, dimension, range_from, range_to, id, sen_pro_author=all_sen_pro_authors)
 
         dimensions['overall'] = (dimensions['aesthetic'] + dimensions['craftsmanship'] + dimensions['purpose'] +
                                  dimensions['narrative']) / 4
