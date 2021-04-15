@@ -1,0 +1,164 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script type=text/javascript>
+      $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+    </script>
+    <link crossorigin="anonymous" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+          integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" rel="stylesheet">
+
+    <style>
+    .flex-vs{
+        display: flex;
+        flex-direction: row;
+    }
+    .flex-vs > div{
+        flex: 50%;
+        margin-right: 3px;
+    }
+
+    *{
+		margin: 0;
+		padding: 0;
+		box-sizing: border-box;
+		font-family: Arial;
+
+	}
+	h3{
+		color: grey;
+	}
+
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <form action="/searchqueries/savesearchquery" method="post">
+     <input type="hidden" name="old_title" value="{{supersearchquery.title}}">
+
+        <br>
+        <div class="form-group">
+            <label> Search Query Title </label>
+            <input class="form-control" type="text" name="title" value="{{supersearchquery.title}}">
+        </div>
+
+        <div class="form-group">
+            <label> Fetch Frequency </label>
+            <select class="form-control" name="fetch_frequency">
+                {%for i in REST%}
+                {%if(i==supersearchquery.fetch_frequency)%}
+                <option value="{{i}}" selected>{{i}}</option>
+                {%else%}
+                <option value="{{i}}">{{i}}</option>
+                {%endif%}
+                {%endfor%}
+            </select>
+        </div>
+    <div id="forms">
+
+    </div>
+
+    <br>
+    <input type="button" class="mybutton" onclick="displayform()" style="float: right; margin-top: 10px" value="Add">
+    <br>
+    <div style="text-align:center;">
+        <button  style="background-color:#00BFFF; color: white; width: 80px">Save
+        </button>
+    </div>
+    </form>
+  {%if(supersearchquery.title)%}
+    <button class="mybutton" type="button" onclick="deleteSearchQuery()" >Delete Search Query</button><br>
+  {%endif%}
+
+
+</div>
+
+
+<script>
+  function deleteSearchQuery(){
+        window.location.href = "/searchqueries/deletesearchquery?title="+"{{supersearchquery.title}}";
+    }
+    var name_id = 1
+    var languages = []
+    var countries = []
+    var result = []
+    {%for l in MARKET_LANGUAGE_CODES%}
+      languages.push("{{l}}");
+    {%endfor%}
+    {%for c in COUNTRY_CODES%}
+      countries.push("{{c}}");
+    {%endfor%}
+    {%for s in searchqueries%}
+      result.push(["{{s.query_string}}","{{s.market_language_code}}","{{s.country_code}}","{{s.characters}}","{{s.site}}"]);
+    {%endfor%}
+    var language = ''
+    var country = ''
+    $(document).ready(function() {
+        var s_country = '';
+        var s_language = '';
+        function countryFunc(item) {
+            if(item){
+                if(s_language===item){
+                    country =  country + '<option selected value="'+item+'">'+item+'</option> ';
+                }
+                else{
+                    country =  country + '<option value="'+item+'">'+item+'</option> ';
+                }
+            }
+        }
+        function languageFunc(item) {
+            if(item){
+                if(s_language===item){
+                    language = language + '<option selected value="'+item+'">'+item+"</option> "
+                }
+                else{
+                    language = language + '<option value="'+item+'">'+item+"</option> "
+                }
+            }
+        }
+        var st = '';
+        for(i=0;i<result.length;i++){
+            var query_string = result[i][0];
+            s_language = result[i][1];
+            s_country = result[i][2];
+            console.log(s_country);
+            var characters = result[i][3];
+            var site = result[i][4];
+            countries.forEach(countryFunc);
+            languages.forEach(languageFunc);
+            $("#forms").append('<div class="container" style= "background-color: #F5F5F5"> <div class="form-group"> <label for=""> Search String </label> <input name="query_string'+name_id+'" type="text" class="form-control" value="'+query_string+'"> </div> <div class="flex-vs"> <div  class="form-group"> <label for="">Language</label> <select name="market_language_code'+name_id+'" class="form-control"> '+language+' </select> </div> <div class="form-group"> <label for="">Country </label> <select name="country_code'+name_id+'" class="form-control">'+country+'</select> </div> <div  class="form-group"> <label for="">Max Characters </label> <input type="text" value="'+characters+'" name="characters'+name_id+'" class="form-control"> </div> </div> <div class="form-group"> <label for=""> Limit to Site </label> <input type="text" value="'+site+'" name="site'+name_id+'" class="form-control"> </div> <button style="border: none;  color:red; float:right;" onclick="delform(event); return false;">Remove</button> </div>');
+            name_id += 1;
+            var language = ''
+            var country = ''
+        };
+
+    });
+    function displayform() {
+            language = ''
+            for(i=0;i<languages.length;i++){
+              language = language + '<option value="'+languages[i]+'">'+languages[i]+"</option> "
+            }
+            country = ''
+            for(i=0;i<countries.length;i++){
+              country = country + '"<option value="'+countries[i]+'">'+countries[i]+"</option> "
+            }
+            $("#forms").append('<div id="addForm" class="container" style= "background-color: #F5F5F5"> <div class="form-group"> <label for=""> Search String </label> <input name="query_string'+name_id+'" type="text" class="form-control"> </div> <div class="flex-vs"> <div id="companya"  class="form-group"> <label for="">Language</label> <select name="market_language_code'+name_id+'" class="form-control"> '+language+' </select> </div> <div id="companyb"  class="form-group"> <label for="">Country </label> <select name="country_code'+name_id+'" class="form-control">'+country+'</select> </div> <div id="frequently"  class="form-group"> <label for="">Max Characters </label> <input type="text" name="characters'+name_id+'" class="form-control"> </div> </div> <div class="form-group"> <label for=""> Limit to Site </label> <input type="text" name="site'+name_id+'" class="form-control"> </div> <button style="border: none;  color:red; float:right;" onclick="delform(event); return false;">Remove</button> </div>');
+            name_id += 1;
+    };
+
+   function delform(e) {
+    $(e.target).closest('.container').remove();
+  }
+
+
+</script>
+</body>
+
+
+{% endblock %}
+
+

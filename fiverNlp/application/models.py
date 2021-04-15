@@ -100,11 +100,19 @@ class ArbitraryDocumentModel(db.Model):
         except:
             return False
 
+class SuperSearchQueryModel(db.Model):
+    __tablename__ = 'supersearchquery'
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(255), unique=True)
+    fetch_frequency = db.Column(db.String(20))
+    status = db.Column(db.String(20))
+
+
 
 class SearchQueryModel(db.Model):
     __tablename__ = 'searchquery'
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(200), unique=True)
+    # title = db.Column(db.String(200), unique=True)
     query_string = db.Column(db.String(200))
     market_language_code = db.Column(db.String(20))
     country_code = db.Column(db.String(20))
@@ -112,8 +120,8 @@ class SearchQueryModel(db.Model):
     site = db.Column(db.String(100))
     characters = db.Column(db.String(20))
     freshness = db.Column(db.String(20))
-    fetch_frequency = db.Column(db.String(20))
-    status = db.Column(db.String(20))
+    # fetch_frequency = db.Column(db.String(20))
+    f_id = db.Column(db.Integer)
 
     date_created = db.Column(db.DateTime(), index=True, default=datetime.datetime.now(tz))
 
@@ -122,13 +130,9 @@ class SearchQueryModel(db.Model):
         return cls.query.all()
 
     @classmethod
-    def get_row_by_title(cls, title):
-        return cls.query.filter_by(title=title).first()
-
-    @classmethod
-    def delete(cls, title):
+    def delete(cls, f_id):
         try:
-            cls.query.filter_by(title=title).delete()
+            cls.query.filter_by(f_id=f_id).delete()
             db.session.commit()
             return True
         except:

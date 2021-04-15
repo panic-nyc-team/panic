@@ -553,7 +553,7 @@ def seeBin():
 @app.route('/export')
 def export():
     reports = ReportModel.query.all()
-    search_queries = SearchQueryModel.query.all()
+    search_queries = SuperSearchQueryModel.query.all()
     attributes = ['search_query', 'title', 'author', 'publish_date', 'site', 'site_type', 'url', 'main_image',
                   'country', 'text']
     return render_template('export.html', reports=reports, search_queries=search_queries, attributes=attributes)
@@ -605,8 +605,9 @@ def export_result():
                         try:
                             data.append({'s1': {'text': sentence_text.get(int(s.sentence1)), 'parent_title': c1.title
                                 , 'parent_url': url_for('edit_company', title=c1.title, _external=True)}
-                                            , 's2': {'text': sentence_text.get(int(s.sentence2)), 'parent_title': c2.title
-                                    , 'parent_url': url_for('edit_company', title=c2.title, _external=True)}
+                                            ,
+                                         's2': {'text': sentence_text.get(int(s.sentence2)), 'parent_title': c2.title
+                                             , 'parent_url': url_for('edit_company', title=c2.title, _external=True)}
                                             , 'similarity_dimension': s.dimension, 'similarity': s.similarity})
                         except:
                             pass
@@ -629,7 +630,8 @@ def export_result():
                                             , 'parent_url': url_for('edit_company', title=c1.title, _external=True)}
                                             , 's2': {'text': sentence_text.get(int(s.sentence2)), 'url': c2.url,
                                                      'parent_title': c2.title
-                                            , 'parent_url': url_for('edit_search_query_document', id=s.id2, _external=True)
+                                            , 'parent_url': url_for('edit_search_query_document', id=s.id2,
+                                                                    _external=True)
                                             , 'parent_date': c2.published, 'parent_site': c2.site
                                             , 'parent_site_type': c2.site_type, 'parent_country': c2.country}
                                             , 'similarity_dimension': s.dimension, 'similarity': s.similarity})
@@ -640,14 +642,15 @@ def export_result():
                     else:
                         if c1 and c2:
                             try:
-                                data.append({'s1': {'text': sentence_text.get(int(s.sentence1)), 'parent_title': c1.title
-                                    , 'parent_url': url_for('edit_company', title=c1.title, _external=True)}
-                                                , 's2': {'text': sentence_text.get(int(s.sentence2)), 'url': c2.url,
-                                                         'parent_title': c2.title
+                                data.append(
+                                    {'s1': {'text': sentence_text.get(int(s.sentence1)), 'parent_title': c1.title
+                                        , 'parent_url': url_for('edit_company', title=c1.title, _external=True)}
+                                        , 's2': {'text': sentence_text.get(int(s.sentence2)), 'url': c2.url,
+                                                 'parent_title': c2.title
                                         , 'parent_url': url_for('edit_search_query_document', id=s.id2, _external=True)
                                         , 'parent_date': c2.published, 'parent_site': c2.site
                                         , 'parent_site_type': c2.site_type, 'parent_country': c2.country}
-                                                , 'similarity_dimension': s.dimension, 'similarity': s.similarity})
+                                        , 'similarity_dimension': s.dimension, 'similarity': s.similarity})
                             except:
                                 pass
 
@@ -658,13 +661,14 @@ def export_result():
                     if (c2):
                         if c1 and c2:
                             try:
-                                data.append({'s1': {'text': sentence_text.get(int(s.sentence1)), 'parent_title': c1.title
-                                    , 'parent_url': url_for('edit_company', title=c1.title, _external=True)}
-                                                ,
-                                             's2': {'text': sentence_text.get(int(s.sentence2)), 'parent_title': c2.title
-                                                 , 'parent_url': url_for('edit_company', title=c2.title, _external=True)}
-                                                , 'similarity_dimension': s.dimension,
-                                             'similarity': s.similarity})
+                                data.append(
+                                    {'s1': {'text': sentence_text.get(int(s.sentence1)), 'parent_title': c1.title
+                                        , 'parent_url': url_for('edit_company', title=c1.title, _external=True)}
+                                        ,
+                                     's2': {'text': sentence_text.get(int(s.sentence2)), 'parent_title': c2.title
+                                         , 'parent_url': url_for('edit_company', title=c2.title, _external=True)}
+                                        , 'similarity_dimension': s.dimension,
+                                     'similarity': s.similarity})
                             except:
                                 pass
 
@@ -672,16 +676,17 @@ def export_result():
                         c2 = ArbitraryDocumentModel.query.filter_by(title=s.title2).first()
                         if c1 and c2:
                             try:
-                                data.append({'s1': {'text': sentence_text.get(int(s.sentence1)), 'parent_title': c1.title
-                                    , 'parent_url': url_for('edit_company', title=c1.title, _external=True)}
-                                                ,
-                                             's2': {'text': sentence_text.get(int(s.sentence2)), 'parent_title': c2.title
-                                                 , 'parent_url': url_for('edit_arbitrary_document', title=c2.title,
-                                                                         _external=True),
-                                                    'url': c2.url
-                                                 , 'author': c2.author, 'provider': c2.provider, 'image_url': c2.image_url}
-                                                , 'similarity_dimension': s.dimension,
-                                             'similarity': s.similarity})
+                                data.append(
+                                    {'s1': {'text': sentence_text.get(int(s.sentence1)), 'parent_title': c1.title
+                                        , 'parent_url': url_for('edit_company', title=c1.title, _external=True)}
+                                        ,
+                                     's2': {'text': sentence_text.get(int(s.sentence2)), 'parent_title': c2.title
+                                         , 'parent_url': url_for('edit_arbitrary_document', title=c2.title,
+                                                                 _external=True),
+                                            'url': c2.url
+                                         , 'author': c2.author, 'provider': c2.provider, 'image_url': c2.image_url}
+                                        , 'similarity_dimension': s.dimension,
+                                     'similarity': s.similarity})
                             except:
                                 pass
 
@@ -697,11 +702,11 @@ def export_result():
                 temps1 = data[0].get('s1')
                 if temps1:
                     for i in temps1:
-                        flat_attrs['s1_'+i] = True
+                        flat_attrs['s1_' + i] = True
                 temps2 = data[0].get('s2')
                 if temps2:
                     for i in temps2:
-                        flat_attrs['s2_'+i] = True
+                        flat_attrs['s2_' + i] = True
                 flat_attrs['similarity_dimension'] = True
                 flat_attrs['similarity'] = True
                 for count, i in enumerate(flat_attrs, 1):
@@ -714,11 +719,11 @@ def export_result():
                     temps1 = d.get('s1')
                     if temps1:
                         for i in temps1:
-                            flat_attrs_temp['s1_'+i] = temps1[i]
+                            flat_attrs_temp['s1_' + i] = temps1[i]
                     temps2 = d.get('s2')
                     if temps2:
                         for i in temps2:
-                            flat_attrs_temp['s2_'+i] = temps2[i]
+                            flat_attrs_temp['s2_' + i] = temps2[i]
                     flat_attrs_temp['similarity_dimension'] = d.get('similarity_dimension')
                     flat_attrs_temp['similarity'] = d.get('similarity')
                     result_flat.append(flat_attrs_temp.copy())
@@ -737,7 +742,7 @@ def export_result():
         else:
             return 'report not found'
     elif export_type == 'search_query':
-        search_query = SearchQueryModel.query.filter_by(id=id).first()
+        search_query = SuperSearchQueryModel.query.filter_by(id=id).first()
         documents = NewDocumentModel.query.filter_by(f_title=search_query.title).all()
         data = get_doc_data(documents, field_checkbox, form, date_checkbox, start_date, end_date)
         if format == 'excel':
@@ -1604,7 +1609,7 @@ def search_query_change_status():
     print(title, file=sys.stderr)
     if (title is None or title == ''):
         return 'error'
-    searchquery = SearchQueryModel.query.filter_by(title=title).first()
+    searchquery = SuperSearchQueryModel.query.filter_by(title=title).first()
     print(title, file=sys.stderr)
     if (searchquery.status == 'playing'):
         searchquery.status = 'paused'
@@ -1722,7 +1727,7 @@ def search():
 @app.route('/searchqueries/')
 def search_queries():
     try:
-        searchqueries = SearchQueryModel.get_rows()
+        searchqueries = SuperSearchQueryModel.query.all()
         total = []
         # new
         yesterday = datetime.datetime.now(tz) - datetime.timedelta(days=1)
@@ -1734,7 +1739,7 @@ def search_queries():
                 SearchQueryDocumentModel.query.filter(SearchQueryDocumentModel.f_title == i.title).filter(
                     SearchQueryDocumentModel.date_created > yesterday).all()))
     except Exception as e:
-        print(e, file=sys.stderr)
+        print(e,1, file=sys.stderr)
     # new
     return render_template('searchqueries.html', searchqueries=searchqueries, total=total, new_documents=new_documents,
                            zip=zip)
@@ -1742,13 +1747,12 @@ def search_queries():
 
 @app.route('/searchqueries/addnewsearchquery')
 def add_new_search_query():
-
-    return render_template('addeditsearchqueries.html', COUNTRY_CODES=COUNTRY_CODES,
-                           MARKET_LANGUAGE_CODES=MARKET_LANGUAGE_CODES, SITE_TYPES=SITE_TYPES, REST=REST,
-                           searchquery=SearchQueryModel(title='', query_string='', characters='', site=''))
-    # return render_template('supersearchqueries.html', COUNTRY_CODES=COUNTRY_CODES,
+    # return render_template('addeditsearchqueries.html', COUNTRY_CODES=COUNTRY_CODES,
     #                        MARKET_LANGUAGE_CODES=MARKET_LANGUAGE_CODES, SITE_TYPES=SITE_TYPES, REST=REST,
     #                        searchquery=SearchQueryModel(title='', query_string='', characters='', site=''))
+    return render_template('supersearchqueries.html', COUNTRY_CODES=COUNTRY_CODES,
+                           MARKET_LANGUAGE_CODES=MARKET_LANGUAGE_CODES, SITE_TYPES=SITE_TYPES, REST=REST,
+                           supersearchquery=SuperSearchQueryModel(title=''),searchqueries=[])
 
 
 @app.route('/searchqueries/editsearchquery')
@@ -1757,10 +1761,11 @@ def edit_search_queries():
     if (title == '' or title is None):
         return 'no search query found'
     try:
-        searchquery = SearchQueryModel.get_row_by_title(title)
-        return render_template('addeditsearchqueries.html', COUNTRY_CODES=COUNTRY_CODES,
+        supersearchquery = SuperSearchQueryModel.query.filter_by(title=title).first()
+        searchqueries = SearchQueryModel.query.filter_by(f_id=supersearchquery.id).all()
+        return render_template('supersearchqueries.html', COUNTRY_CODES=COUNTRY_CODES,
                                MARKET_LANGUAGE_CODES=MARKET_LANGUAGE_CODES, SITE_TYPES=SITE_TYPES, REST=REST,
-                               searchquery=searchquery)
+                               searchqueries=searchqueries,supersearchquery=supersearchquery)
     except Exception as e:
         print(e, file=sys.stderr)
         return 'error'
@@ -1772,8 +1777,9 @@ def delete_search_query():
     if (title == '' or title is None):
         return 'no search query found'
     try:
-        if (SearchQueryModel.delete(title=title) and SearchQueryDocumentModel.deleteall(f_title=title)):
-            # SuperSearchQueryModel.query.filter_by(title=title).delete()
+        sq = SuperSearchQueryModel.query.filter_by(title=title).first()
+        if SearchQueryModel.delete(f_id=sq.id) and SearchQueryDocumentModel.deleteall(f_title=title):
+            SuperSearchQueryModel.query.filter_by(title=title).delete()
             doc_list = NewDocumentModel.query.filter_by(f_title=title).all()
             NewDocumentModel.deleteall(f_title=title)
             for doc in doc_list:
@@ -1783,7 +1789,7 @@ def delete_search_query():
                 NewDocumentSiteCategoriesModel.delete(f_id=doc.id)
                 NewDocumentExternalLinksModel.delete(f_id=doc.id)
                 NewDocumentExternalImagesModel.delete(f_id=doc.id)
-            # db.session.commit()
+            db.session.commit()
             return redirect(url_for('search_queries'))
         else:
             return 'error'
@@ -1798,54 +1804,56 @@ def savesearchquery():
         result = request.form
         old_title = result.get('old_title')
         title = result.get('title')
-        query_string = result.get('query_string')
-        market_language_code = result.get('market_language_code')
-        country_code = result.get('country_code')
-        site_type = result.get('site_type')
-        site = result.get('site')
-        characters = result.get('characters')
-        freshness = 30
         fetch_frequency = result.get('fetch_frequency')
+        atts = []
+        for i in range(1, 30):
+            query_string = result.get(f'query_string{i}')
+            market_language_code = result.get(f'market_language_code{i}')
+            country_code = result.get(f'country_code{i}')
+            # site_type = result.get(f'site_type{i}')
+            site = result.get(f'site{i}')
+            characters = result.get(f'characters{i}')
+            if query_string:
+                atts.append({'query_string': query_string, 'market_language_code': market_language_code,
+                             'country_code': country_code, 'site': site, 'characters': characters})
+        freshness = 30
         if (title is None or title == ''):
             return "title cannot be empty"
-        if (query_string is None or query_string == ''):
-            return "query string cannot be empty"
-        if (site == '' or site == None):
-            site = ''
-        if (characters == '' or characters == None):
-            characters = ''
+        # if (query_string is None or query_string == ''):
+        #     return "query string cannot be empty"
+        # if (site == '' or site == None):
+        #     site = ''
+        # if (characters == '' or characters == None):
+        #     characters = ''
 
-        searchquery = SearchQueryModel(title=title, query_string=query_string,
-                                       market_language_code=market_language_code, country_code=country_code,
-                                       site_type=site_type, site=site, freshness=freshness, characters=characters,
-                                       fetch_frequency=fetch_frequency, status='playing')
-        if (old_title is not None and old_title != ''):
-            SearchQueryModel.query.filter_by(title=old_title).update(
-                dict(title=title, query_string=query_string, market_language_code=market_language_code,
-                     country_code=country_code, site_type=site_type, characters=characters, freshness=freshness,
-                     fetch_frequency=fetch_frequency, site=site))
-            query_documents = SearchQueryDocumentModel.query.filter_by(f_title=old_title).all()
-            for d in query_documents:
-                d.f_title = title
-            new_documents = NewDocumentModel.query.filter_by(f_title=old_title).all()
-            for d in new_documents:
-                d.f_title = title
-            reports_temp = ReportModel.query.filter_by(second=old_title).all()
-            for d in reports_temp:
-                d.second = title
+        super_search_query = SuperSearchQueryModel.query.filter_by(title=old_title).first()
+        if super_search_query:
+            super_search_query.title = title
         else:
-            db.session.add(searchquery)
-        # db.session.commit()
-        temp = SearchQueryModel(title=searchquery.title, query_string=searchquery.query_string,
-                                market_language_code=searchquery.market_language_code,
-                                country_code=searchquery.country_code, site=searchquery.site,
-                                site_type=searchquery.site_type, characters=characters, freshness=searchquery.freshness,
-                                fetch_frequency=searchquery.fetch_frequency)
-        executor.submit(search_query_documents_background, temp)
-        # temp_id = SearchQueryModel.query.filter_by(title=title).first()
-        # t = SuperSearchQueryModel(f_id=temp_id.id,title=title,fetch_frequency=fetch_frequency)
-        # db.session.add(t)
+            t = SuperSearchQueryModel(title=title, fetch_frequency=fetch_frequency,status='playing')
+            db.session.add(t)
         db.session.commit()
+
+        super_search_query = SuperSearchQueryModel.query.filter_by(title=title).first()
+        SearchQueryModel.query.filter_by(f_id=super_search_query.id).delete()
+        query_documents = SearchQueryDocumentModel.query.filter_by(f_title=old_title).all()
+        for d in query_documents:
+            d.f_title = title
+        new_documents = NewDocumentModel.query.filter_by(f_title=old_title).all()
+        for d in new_documents:
+            d.f_title = title
+        reports_temp = ReportModel.query.filter_by(second=old_title).all()
+        for d in reports_temp:
+            d.second = title
+        for i in atts:
+            searchquery = SearchQueryModel(query_string=i.get('query_string'),
+                                           market_language_code=i.get('market_language_code'),
+                                           country_code=i.get('country_code'),
+                                           site=i.get('site'), freshness=freshness, characters=i.get('characters'),
+                                           f_id=super_search_query.id)
+            db.session.add(searchquery)
+            db.session.commit()
+        executor.submit(search_query_documents_background, super_search_query.id)
         db.session.expunge_all()
         db.session.close()
 
@@ -1987,7 +1995,7 @@ def companies():
 @app.route('/companies/addnewcompanies')
 def add_new_companies():
     try:
-        searchqueries = SearchQueryModel.query.all()
+        searchqueries = SuperSearchQueryModel.query.all()
         industrytags = IndustryTags.query.all()
         return render_template('addeditcompanies.html', companydocument=CompanyDocumentModel(title='', clean_text=''),
                                searchqueries=searchqueries, report=None, industrytags=industrytags)
@@ -2003,7 +2011,7 @@ def edit_company():
         return 'no company found'
     try:
         companydocument = CompanyDocumentModel.get_row_by_title(title)
-        searchqueries = SearchQueryModel.query.all()
+        searchqueries = SuperSearchQueryModel.query.all()
         report = ReportModel.query.filter_by(title='default: ' + title).first()
         industrytags = IndustryTags.query.all()
         score = companydocument.query_score
@@ -2236,94 +2244,82 @@ def newdocumentadd(i, f_title, f_id):
         db.session.commit()
 
 
-def search_query_documents_background(searchquery):
-    try:
-        print(searchquery.market_language_code, searchquery.site_type, searchquery.country_code, searchquery.characters,
-              searchquery.site)
-        today = datetime.datetime.utcnow().date()
-        epoch = (today - datetime.timedelta(days=int(searchquery.freshness))).strftime('%s')
-        l = ' language:' + searchquery.market_language_code
-        st = ' site_type:' + searchquery.site_type
-        c = ' thread.country:' + searchquery.country_code
-        ch = ' num_chars:>' + searchquery.characters
-        s = ' site:' + searchquery.site
-        if (searchquery.market_language_code == ''):
-            l = ''
-        if (searchquery.site_type == ''):
-            st = ''
-        if (searchquery.country_code == ''):
-            c = ''
-        if (searchquery.characters == ''):
-            ch = ''
-        if (searchquery.site == ''):
-            s = ''
-
-        query_params = {"q": "{}{}{}{}{}{}".format(searchquery.query_string, l, st, c, ch, s),
-                        "ts": epoch,
-                        "sort": "crawled"}
-        print('start')
-        print(query_params)
-        output = webhoseio.query("filterWebContent", query_params)
-        print(output['totalResults'])
-    except Exception as e:
-        print(1111, e)
-    while True:
-        for i in output['posts']:
+def search_query_documents_background(id):
+    f_title = SuperSearchQueryModel.query.filter_by(id=id).first().title
+    search_queries = SearchQueryModel.query.filter_by(f_id=id).all()
+    db.session.expunge_all()
+    for searchquery in search_queries:
             try:
-                try:
-                    image = i.get('thread').get('main_image')
-                except:
-                    image = 'unavailable'
-                if i.get('thread'):
-                    site = i.get('thread').get('site')
-                else:
-                    site = ''
-                searchquerydocument = SearchQueryDocumentModel(f_title=searchquery.title, title=i.get('title'),
-                                                               author=str(i.get('author')),
-                                                               provider=str(site),
-                                                               url=i.get('url'), image_url=image,
-                                                               date=i.get('published'), clean_text=i.get('text'))
-                if (SearchQueryDocumentModel.query.filter_by(f_title=searchquery.title,
-                                                             url=searchquerydocument.url).first() is None):
-                    res = requests.post('http://13.82.225.206:5000/predict',
-                                        json={"mytext": searchquerydocument.clean_text})
-                    if res.ok:
-                        searchquerydocument.classified_sentences = str(res.json())
-                    else:
-                        searchquerydocument.classified_sentences = None
-                    db.session.add(searchquerydocument)
-                else:
-                    print('Already in database', file=sys.stderr)
-                    db.session.close()
-                    continue
-                db.session.flush()
-                newdocumentadd(i, searchquery.title, searchquerydocument.id)
-                # # searchquerydocument.clean_text = i.get('text')
-                # # temp_clean_text = i.get('text')
-                # # temp_clean_text = re.sub(r'[\n]', ' ', temp_clean_text)
-                # # temp_clean_text = re.sub(r"([^0-9]\.)", r"\1 ", temp_clean_text)
-                # # searchquerydocument.clean_text = re.sub(r'[^a-zA-Z0-9. ]', '', temp_clean_text)
-                # res = requests.post('http://13.82.225.206:5000/predict',
-                #                     json={"mytext": searchquerydocument.clean_text})
-                # # res = requests.post(url_for('classified', _external=True),
-                # #                     json={"mytext": searchquerydocument.clean_text})
-                #
-                # if res.ok:
-                #     searchquerydocument.classified_sentences = str(res.json())
-                # else:
-                #     searchquerydocument.classified_sentences = None
-                db.session.commit()
-                db.session.close()
+                today = datetime.datetime.utcnow().date()
+                epoch = (today - datetime.timedelta(days=int(searchquery.freshness))).strftime('%s')
+                l = ' language:' + str(searchquery.market_language_code)
+                # st = ' site_type:' + searchquery.site_type
+                c = ' thread.country:' + str(searchquery.country_code)
+                ch = ' num_chars:>' + str(searchquery.characters)
+                s = ' site:' + str(searchquery.site)
+
+                if (not searchquery.market_language_code or searchquery.market_language_code == ''):
+                    l = ''
+                # if (not searchquery.site_type or searchquery.site_type == ''):
+                #     st = ''
+                if (not searchquery.country_code or searchquery.country_code == ''):
+                    c = ''
+                if (not searchquery.characters or searchquery.characters== ''):
+                    ch = ''
+                if (not searchquery.site or searchquery.site == ''):
+                    s = ''
+                query_params = {"q": "{}{}{}{}{}".format(searchquery.query_string, l, c, ch, s),
+                                "ts": epoch,
+                                "sort": "crawled"}
+                print('start')
+                print(query_params)
+                output = webhoseio.query("filterWebContent", query_params)
+                print(output['totalResults'])
             except Exception as e:
-                print(e, 123, 123, file=sys.stderr)
-                db.session.rollback()
-                db.session.commit()
-                db.session.close()
-                continue
-        output = webhoseio.get_next()
-        if (int(output['moreResultsAvailable']) < 1):
-            break
-    db.session.commit()
+                print(e,1)
+            while True:
+                for i in output['posts']:
+                    try:
+                        try:
+                            image = i.get('thread').get('main_image')
+                        except:
+                            image = 'unavailable'
+                        if i.get('thread'):
+                            site = i.get('thread').get('site')
+                        else:
+                            site = ''
+                        searchquerydocument = SearchQueryDocumentModel(f_title=f_title, title=i.get('title'),
+                                                                       author=str(i.get('author')),
+                                                                       provider=str(site),
+                                                                       url=i.get('url'), image_url=image,
+                                                                       date=i.get('published'), clean_text=i.get('text'))
+                        if (SearchQueryDocumentModel.query.filter_by(f_title=f_title,
+                                                                     url=searchquerydocument.url).first() is None):
+                            res = requests.post('http://13.82.225.206:5000/predict',
+                                                json={"mytext": searchquerydocument.clean_text})
+                            if res.ok:
+                                searchquerydocument.classified_sentences = str(res.json())
+                            else:
+                                searchquerydocument.classified_sentences = None
+                            db.session.add(searchquerydocument)
+                        else:
+                            print('Already in database', file=sys.stderr)
+                            db.session.close()
+                            continue
+                        db.session.flush()
+                        newdocumentadd(i, f_title, searchquerydocument.id)
+                        db.session.commit()
+                        db.session.close()
+                    except Exception as e:
+                        print(e, 123, 123, file=sys.stderr)
+                        db.session.rollback()
+                        db.session.commit()
+                        continue
+                output = webhoseio.get_next()
+                if (int(output['moreResultsAvailable']) < 1):
+                    break
+            db.session.commit()
+
     db.session.close()
     print('end')
 
@@ -2449,7 +2445,7 @@ def new_report():
             elif (type == 'vscompany'):
                 pass
             elif (type == 'vssearchquery'):
-                second = SearchQueryModel.query.all()
+                second = SuperSearchQueryModel.query.all()
                 second_label = 'Search Query'
             elif (type == 'vstag'):
                 second = IndustryTags.query.all()
@@ -2574,21 +2570,13 @@ def report_company_test():
         if (report is None):
             return 'report not found'
         companydocuments = CompanyDocumentModel.query.all()
-        searchqueries = SearchQueryModel.query.all()
+        searchqueries = SuperSearchQueryModel.query.all()
         tags = IndustryTags.query.all()
         all_sentences = SentenceModel.query.filter(SentenceModel.f_id == id).all()
         sentences = []
-        # if (report.dimension == 'all'):
-        #     for i in all_sentences:
-        #         if i.similarity >= report.range_from and i.similarity <= report.range_to:
-        #             sentences.append(i)
-        # else:
-        #     for i in all_sentences:
-        #         if (
-        #                 i.dimension == report.dimension and i.similarity >= report.range_from and i.similarity <= report.range_to):
-        #             sentences.append(i)
         for i in all_sentences:
-            if(i.dimension==report.dimension and i.similarity>=report.range_from and i.similarity<=report.range_to):
+            if (
+                    i.dimension == report.dimension and i.similarity >= report.range_from and i.similarity <= report.range_to):
                 sentences.append(i)
         if (len(sentences) > 0):
             sentences = sorted(sentences, key=lambda x: x.similarity, reverse=report.descending)
@@ -2723,7 +2711,7 @@ def report_company_test():
                 report = ReportModel(first=first, second=second, frequency=frequency, type=type, status='incomplete',
                                      up_to_date=up_to_date)
                 companydocuments = CompanyDocumentModel.query.all()
-                searchqueries = SearchQueryModel.query.all()
+                searchqueries = SuperSearchQueryModel.query.all()
                 if (type == 'vscompany'):
                     return render_template('reportcompanytest.html', companydocuments=companydocuments, report=report,
                                            new=True, dimensions=dimensions)
@@ -2822,7 +2810,7 @@ def report_background(id, type, first, second, range_from, range_to, default=Fal
                         if (len(re.findall(r'\w+', i)) > 3):
                             sentence2.append([i, second_company.id, 'company', second_company.title])
                     if (len(re.findall(r'\w+', i)) > 3):
-                        all_sentence2s.append([i,second_company.id,'company',second_company.title])
+                        all_sentence2s.append([i, second_company.id, 'company', second_company.title])
             elif (type == 'vssearchquery'):
                 print('entered search query')
                 second_searchquery = SearchQueryDocumentModel.query.filter_by(f_title=second).all()
@@ -2837,8 +2825,9 @@ def report_background(id, type, first, second, range_from, range_to, default=Fal
                                 sentence2.append([i, querydocument.id, 'searchquery', querydocument.title])
                                 sen_pro_author[i] = {'provider': querydocument.provider, 'author': querydocument.author}
                         if (len(re.findall(r'\w+', i)) > 3):
-                            all_sentence2s.append([i,querydocument.id,'searchquery',querydocument.title])
-                            all_sen_pro_authors[i] = {'provider': querydocument.provider, 'author': querydocument.author}
+                            all_sentence2s.append([i, querydocument.id, 'searchquery', querydocument.title])
+                            all_sen_pro_authors[i] = {'provider': querydocument.provider,
+                                                      'author': querydocument.author}
             elif (type == 'vstag'):
                 companies_tagged = CompanyDocumentModel.query.all()
                 documents_tagged = ArbitraryDocumentModel.query.all()
@@ -2862,7 +2851,7 @@ def report_background(id, type, first, second, range_from, range_to, default=Fal
                             if (len(re.findall(r'\w+', i)) > 3):
                                 sentence2.append([i, querydocument.id, 'tag', querydocument.title])
                         if (len(re.findall(r'\w+', i)) > 3):
-                            all_sentence2s.append([i,querydocument.id,'tag',querydocument.title])
+                            all_sentence2s.append([i, querydocument.id, 'tag', querydocument.title])
             else:
                 return 'error'
             if (len(sentence1) == 0 or len(sentence2) == 0):
@@ -2873,7 +2862,8 @@ def report_background(id, type, first, second, range_from, range_to, default=Fal
 
         # scoring for comparing all sentences
         dimension = 'all'
-        get_scores(all_sentence1s, all_sentence2s, dimension, range_from, range_to, id, sen_pro_author=all_sen_pro_authors)
+        get_scores(all_sentence1s, all_sentence2s, dimension, range_from, range_to, id,
+                   sen_pro_author=all_sen_pro_authors)
 
         dimensions['overall'] = (dimensions['aesthetic'] + dimensions['craftsmanship'] + dimensions['purpose'] +
                                  dimensions['narrative']) / 4

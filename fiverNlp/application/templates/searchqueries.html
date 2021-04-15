@@ -72,7 +72,7 @@
                 <td>{{searchquery[2]}}/{{searchquery[1]}}</td>
                 <td>{{searchquery[0].fetch_frequency}}</td>
 
-                <td>{{"{:%d, %b %Y : %I:%M %p} EST".format(searchquery[0].date_created) }}</td>
+                <td>date here</td>
                 {%if searchquery[0].status=='paused'%}
                   <td><button style="color:red;" class="batn" onclick="changeStatus(this.id)" id="{{searchquery[0].title}}"><i class="fa fa-play-circle-o"></i></button></td>
                 {%else%}
