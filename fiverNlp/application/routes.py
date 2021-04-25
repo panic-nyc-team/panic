@@ -2019,7 +2019,7 @@ def edit_company():
         if (score):
             score = eval(score)
         return render_template('addeditcompanies.html', report=report, companydocument=companydocument,
-                               searchqueries=searchqueries, industrytags=industrytags, score=None)
+                               searchqueries=searchqueries, industrytags=industrytags, score=score)
     except Exception as e:
         print(e, file=sys.stderr)
         return 'error'
@@ -2866,7 +2866,7 @@ def report_background(id, type, first, second, range_from, range_to, default=Fal
             if (len(sentence1) == 0 or len(sentence2) == 0 or not default_flag):
                 continue
             # print(dimension,sentence1,sentence2,file=sys.stderr)
-            temp_score = get_scores(sentence1, sentence2, dimension, range_from, range_to, id, sen_pro_author)
+            temp_score = get_scores(sentence1, sentence2, dimension, id, sen_pro_author)
             if temp_score:
                 num = temp_score.get('num')
                 total = temp_score.get('total')
@@ -2879,7 +2879,7 @@ def report_background(id, type, first, second, range_from, range_to, default=Fal
         if default_flag:
             print(dimensions)
             dimension = 'all'
-            temp_all_score = get_scores(all_sentence1s, all_sentence2s, dimension, range_from, range_to, id,
+            temp_all_score = get_scores(all_sentence1s, all_sentence2s, dimension, id,
                        sen_pro_author=all_sen_pro_authors)
             if temp_all_score:
                 num = temp_all_score.get('num')
