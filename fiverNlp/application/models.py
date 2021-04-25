@@ -16,7 +16,7 @@ class CompanyDocumentModel(db.Model):
     classified_sentences = db.Column(db.Text)
     reference_to_search_query = db.Column(db.String(200))
     industry_tags = db.Column(db.String(200))
-    query_score = db.Column(db.String(200))
+    query_score = db.Column(db.Text)
     run_query_score = db.Column(db.Boolean)
     date_created = db.Column(db.DateTime(), index=True, default=datetime.datetime.now(tz))
 

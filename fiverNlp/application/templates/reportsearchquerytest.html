@@ -225,21 +225,21 @@
             {%if score1:%}
       			<div class="section-1-1">
       				<h2>Effectiveness Scores (vs Default Media)</h2>
-      					<label>Overall {{"{:.1f}".format(score1.get('overall'))}} %</label>
-      					<li style="color: lightgreen;">Purpose: {{"{:.1f}".format(score1.get('purpose'))}} %</li>
-      					<li style="color: orange;">Craftsmanship: {{"{:.1f}".format(score1.get('craftsmanship'))}} %</li>
-      					<li style="color: lightblue;">Aesthetics: {{"{:.1f}".format(score1.get('aesthetic'))}} %</li>
-                <li > Narrative: {{"{:.1f}".format(score1.get('narrative'))}} %</li>
+      					<label>Overall {{"{:.1f}".format(score1.get('overall').get('score'))}} % ({{score1.get('overall').get('num')}}/{{score1.get('overall').get('total')}})</label>
+      					<li style="color: lightgreen;">Purpose: {{"{:.1f}".format(score1.get('purpose').get('score'))}} % ({{score1.get('purpose').get('num')}}/{{score1.get('purpose').get('total')}})</li>
+      					<li style="color: orange;">Craftsmanship: {{"{:.1f}".format(score1.get('craftsmanship').get('score'))}} % ({{score1.get('craftsmanship').get('num')}}/{{score1.get('craftsmanship').get('total')}})</li>
+      					<li style="color: lightblue;">Aesthetics: {{"{:.1f}".format(score1.get('aesthetic').get('score'))}} % ({{score1.get('aesthetic').get('num')}}/{{score1.get('aesthetic').get('total')}})</li>
+                <li > Narrative: {{"{:.1f}".format(score1.get('narrative').get('score'))}} % ({{score1.get('narrative').get('num')}}/{{score1.get('narrative').get('total')}})</li>
       			</div>
             {%endif%}
             {%if score2:%}
             <div class="section-1-1">
       				<h2>Effectiveness Scores (vs Default Media)</h2>
-      					<label>Overall {{"{:.1f}".format(score2.get('overall'))}} %</label>
-      					<li style="color: lightgreen;">Purpose: {{"{:.1f}".format(score2.get('purpose'))}} %</li>
-      					<li style="color: orange;">Craftsmanship: {{"{:.1f}".format(score2.get('craftsmanship'))}} %</li>
-      					<li style="color: lightblue;">Aesthetics: {{"{:.1f}".format(score2.get('aesthetic'))}} %</li>
-                <li > Narrative: {{"{:.1f}".format(score2.get('narrative'))}} %</li>
+      					<label>Overall {{"{:.1f}".format(score2.get('overall').get('score'))}} % ({{score2.get('overall').get('num')}}/{{score2.get('overall').get('total')}})</label>
+      					<li style="color: lightgreen;">Purpose: {{"{:.1f}".format(score2.get('purpose').get('score'))}} % ({{score2.get('purpose').get('num')}}/{{score2.get('purpose').get('total')}})</li>
+      					<li style="color: orange;">Craftsmanship: {{"{:.1f}".format(score2.get('craftsmanship').get('score'))}} % ({{score2.get('craftsmanship').get('num')}}/{{score2.get('craftsmanship').get('total')}})</li>
+      					<li style="color: lightblue;">Aesthetics: {{"{:.1f}".format(score2.get('aesthetic').get('score'))}} % ({{score2.get('aesthetic').get('num')}}/{{score2.get('aesthetic').get('total')}})</li>
+                <li > Narrative: {{"{:.1f}".format(score2.get('narrative').get('score'))}} % ({{score2.get('narrative').get('num')}}/{{score2.get('narrative').get('total')}})</li>
       			</div>
             {%endif%}
             {%if providers:%}

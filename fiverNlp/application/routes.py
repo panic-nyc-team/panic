@@ -1,3 +1,4 @@
+import traceback
 import random
 import openpyxl
 import glob
@@ -1739,7 +1740,7 @@ def search_queries():
                 SearchQueryDocumentModel.query.filter(SearchQueryDocumentModel.f_title == i.title).filter(
                     SearchQueryDocumentModel.date_created > yesterday).all()))
     except Exception as e:
-        print(e,1, file=sys.stderr)
+        print(e, 1, file=sys.stderr)
     # new
     return render_template('searchqueries.html', searchqueries=searchqueries, total=total, new_documents=new_documents,
                            zip=zip)
@@ -1752,7 +1753,7 @@ def add_new_search_query():
     #                        searchquery=SearchQueryModel(title='', query_string='', characters='', site=''))
     return render_template('supersearchqueries.html', COUNTRY_CODES=COUNTRY_CODES,
                            MARKET_LANGUAGE_CODES=MARKET_LANGUAGE_CODES, SITE_TYPES=SITE_TYPES, REST=REST,
-                           supersearchquery=SuperSearchQueryModel(title=''),searchqueries=[])
+                           supersearchquery=SuperSearchQueryModel(title=''), searchqueries=[])
 
 
 @app.route('/searchqueries/editsearchquery')
@@ -1765,7 +1766,7 @@ def edit_search_queries():
         searchqueries = SearchQueryModel.query.filter_by(f_id=supersearchquery.id).all()
         return render_template('supersearchqueries.html', COUNTRY_CODES=COUNTRY_CODES,
                                MARKET_LANGUAGE_CODES=MARKET_LANGUAGE_CODES, SITE_TYPES=SITE_TYPES, REST=REST,
-                               searchqueries=searchqueries,supersearchquery=supersearchquery)
+                               searchqueries=searchqueries, supersearchquery=supersearchquery)
     except Exception as e:
         print(e, file=sys.stderr)
         return 'error'
@@ -1830,7 +1831,7 @@ def savesearchquery():
         if super_search_query:
             super_search_query.title = title
         else:
-            t = SuperSearchQueryModel(title=title, fetch_frequency=fetch_frequency,status='playing')
+            t = SuperSearchQueryModel(title=title, fetch_frequency=fetch_frequency, status='playing')
             db.session.add(t)
         db.session.commit()
 
@@ -2249,76 +2250,76 @@ def search_query_documents_background(id):
     search_queries = SearchQueryModel.query.filter_by(f_id=id).all()
     db.session.expunge_all()
     for searchquery in search_queries:
-            try:
-                today = datetime.datetime.utcnow().date()
-                epoch = (today - datetime.timedelta(days=int(searchquery.freshness))).strftime('%s')
-                l = ' language:' + str(searchquery.market_language_code)
-                # st = ' site_type:' + searchquery.site_type
-                c = ' thread.country:' + str(searchquery.country_code)
-                ch = ' num_chars:>' + str(searchquery.characters)
-                s = ' site:' + str(searchquery.site)
+        try:
+            today = datetime.datetime.utcnow().date()
+            epoch = (today - datetime.timedelta(days=int(searchquery.freshness))).strftime('%s')
+            l = ' language:' + str(searchquery.market_language_code)
+            # st = ' site_type:' + searchquery.site_type
+            c = ' thread.country:' + str(searchquery.country_code)
+            ch = ' num_chars:>' + str(searchquery.characters)
+            s = ' site:' + str(searchquery.site)
 
-                if (not searchquery.market_language_code or searchquery.market_language_code == ''):
-                    l = ''
-                # if (not searchquery.site_type or searchquery.site_type == ''):
-                #     st = ''
-                if (not searchquery.country_code or searchquery.country_code == ''):
-                    c = ''
-                if (not searchquery.characters or searchquery.characters== ''):
-                    ch = ''
-                if (not searchquery.site or searchquery.site == ''):
-                    s = ''
-                query_params = {"q": "{}{}{}{}{}".format(searchquery.query_string, l, c, ch, s),
-                                "ts": epoch,
-                                "sort": "crawled"}
-                print('start')
-                print(query_params)
-                output = webhoseio.query("filterWebContent", query_params)
-                print(output['totalResults'])
-            except Exception as e:
-                print(e,1)
-            while True:
-                for i in output['posts']:
+            if (not searchquery.market_language_code or searchquery.market_language_code == ''):
+                l = ''
+            # if (not searchquery.site_type or searchquery.site_type == ''):
+            #     st = ''
+            if (not searchquery.country_code or searchquery.country_code == ''):
+                c = ''
+            if (not searchquery.characters or searchquery.characters == ''):
+                ch = ''
+            if (not searchquery.site or searchquery.site == ''):
+                s = ''
+            query_params = {"q": "{}{}{}{}{}".format(searchquery.query_string, l, c, ch, s),
+                            "ts": epoch,
+                            "sort": "crawled"}
+            print('start')
+            print(query_params)
+            output = webhoseio.query("filterWebContent", query_params)
+            print(output['totalResults'])
+        except Exception as e:
+            print(e, 1)
+        while True:
+            for i in output['posts']:
+                try:
                     try:
-                        try:
-                            image = i.get('thread').get('main_image')
-                        except:
-                            image = 'unavailable'
-                        if i.get('thread'):
-                            site = i.get('thread').get('site')
+                        image = i.get('thread').get('main_image')
+                    except:
+                        image = 'unavailable'
+                    if i.get('thread'):
+                        site = i.get('thread').get('site')
+                    else:
+                        site = ''
+                    searchquerydocument = SearchQueryDocumentModel(f_title=f_title, title=i.get('title'),
+                                                                   author=str(i.get('author')),
+                                                                   provider=str(site),
+                                                                   url=i.get('url'), image_url=image,
+                                                                   date=i.get('published'), clean_text=i.get('text'))
+                    if (SearchQueryDocumentModel.query.filter_by(f_title=f_title,
+                                                                 url=searchquerydocument.url).first() is None):
+                        res = requests.post('http://13.82.225.206:5000/predict',
+                                            json={"mytext": searchquerydocument.clean_text})
+                        if res.ok:
+                            searchquerydocument.classified_sentences = str(res.json())
                         else:
-                            site = ''
-                        searchquerydocument = SearchQueryDocumentModel(f_title=f_title, title=i.get('title'),
-                                                                       author=str(i.get('author')),
-                                                                       provider=str(site),
-                                                                       url=i.get('url'), image_url=image,
-                                                                       date=i.get('published'), clean_text=i.get('text'))
-                        if (SearchQueryDocumentModel.query.filter_by(f_title=f_title,
-                                                                     url=searchquerydocument.url).first() is None):
-                            res = requests.post('http://13.82.225.206:5000/predict',
-                                                json={"mytext": searchquerydocument.clean_text})
-                            if res.ok:
-                                searchquerydocument.classified_sentences = str(res.json())
-                            else:
-                                searchquerydocument.classified_sentences = None
-                            db.session.add(searchquerydocument)
-                        else:
-                            print('Already in database', file=sys.stderr)
-                            db.session.close()
-                            continue
-                        db.session.flush()
-                        newdocumentadd(i, f_title, searchquerydocument.id)
-                        db.session.commit()
+                            searchquerydocument.classified_sentences = None
+                        db.session.add(searchquerydocument)
+                    else:
+                        print('Already in database', file=sys.stderr)
                         db.session.close()
-                    except Exception as e:
-                        print(e, 123, 123, file=sys.stderr)
-                        db.session.rollback()
-                        db.session.commit()
                         continue
-                output = webhoseio.get_next()
-                if (int(output['moreResultsAvailable']) < 1):
-                    break
-            db.session.commit()
+                    db.session.flush()
+                    newdocumentadd(i, f_title, searchquerydocument.id)
+                    db.session.commit()
+                    db.session.close()
+                except Exception as e:
+                    print(e, 123, 123, file=sys.stderr)
+                    db.session.rollback()
+                    db.session.commit()
+                    continue
+            output = webhoseio.get_next()
+            if (int(output['moreResultsAvailable']) < 1):
+                break
+        db.session.commit()
 
     db.session.close()
     print('end')
@@ -2647,6 +2648,7 @@ def report_company_test():
             providers = sorted(providers, key=lambda x: x[1], reverse=True)
             providers = providers[:5]
             print(4)
+
             # for key,value in a.items():
             #     authors.append([key,value/length_sen])
             # authors = sorted(authors, key=lambda x: x[1],reverse=True)
@@ -2671,7 +2673,7 @@ def report_company_test():
                             dict_query_score = eval(i.query_score)
                             if dict_query_score:
                                 for j in dict_query_score:
-                                    dict_query_score[j] = round(dict_query_score[j], 2)
+                                    dict_query_score[j] = round(dict_query_score[j]['score'], 2)
                             tag_data.append({'query_score': dict_query_score, 'title': i.title})
                             both.append(i)
         else:
@@ -2772,7 +2774,14 @@ def report_company_test():
 def report_background(id, type, first, second, range_from, range_to, default=False):
     try:
         print(id, type, first, second, range_from, range_to, file=sys.stderr)
-        dimensions = {'aesthetic': 0, 'craftsmanship': 0, 'purpose': 0, 'narrative': 0}
+        dimensions = {'aesthetic': {'num': 0, 'total': 0, 'score': 0},
+                      'craftsmanship': {'num': 0, 'total': 0, 'score': 0},
+                      'purpose': {'num': 0, 'total': 0, 'score': 0},
+                      'all': {'num': 0, 'total': 0, 'score': 0},
+                      'narrative': {'num': 0, 'total': 0, 'score': 0}}
+        default_flag = False
+        if 'default: ' in ReportModel.query.filter_by(id=id).first().title:
+            default_flag = True
         first = CompanyDocumentModel.query.filter_by(title=first).first()
         dict_company_A = eval(first.classified_sentences)
         if (SentenceModel.query.filter_by(f_id=id).first() is not None):
@@ -2854,56 +2863,97 @@ def report_background(id, type, first, second, range_from, range_to, default=Fal
                             all_sentence2s.append([i, querydocument.id, 'tag', querydocument.title])
             else:
                 return 'error'
-            if (len(sentence1) == 0 or len(sentence2) == 0):
+            if (len(sentence1) == 0 or len(sentence2) == 0 or not default_flag):
                 continue
             # print(dimension,sentence1,sentence2,file=sys.stderr)
-            dimensions[dimension] = get_scores(sentence1, sentence2, dimension, range_from, range_to, id,
-                                               sen_pro_author)
+            temp_score = get_scores(sentence1, sentence2, dimension, range_from, range_to, id, sen_pro_author)
+            if temp_score:
+                num = temp_score.get('num')
+                total = temp_score.get('total')
+                try:
+                    dimensions[dimension] = {'num': num, 'total': total, 'score': (num / total) * 100}
+                except:
+                    pass
 
         # scoring for comparing all sentences
-        dimension = 'all'
-        get_scores(all_sentence1s, all_sentence2s, dimension, range_from, range_to, id,
-                   sen_pro_author=all_sen_pro_authors)
+        if default_flag:
+            print(dimensions)
+            dimension = 'all'
+            temp_all_score = get_scores(all_sentence1s, all_sentence2s, dimension, range_from, range_to, id,
+                       sen_pro_author=all_sen_pro_authors)
+            if temp_all_score:
+                num = temp_all_score.get('num')
+                total = temp_all_score.get('total')
+                try:
+                    dimensions[dimension] = {'num': num, 'total': total, 'score': (num / total) * 100}
+                except:
+                    pass
+            overall_num = dimensions['aesthetic']['num'] + dimensions['craftsmanship']['num'] + dimensions['purpose']['num'] + dimensions['narrative']['num']
+            overall_total = dimensions['aesthetic']['total'] + dimensions['craftsmanship']['total'] + dimensions['purpose']['total'] + dimensions['narrative']['total']
 
-        dimensions['overall'] = (dimensions['aesthetic'] + dimensions['craftsmanship'] + dimensions['purpose'] +
-                                 dimensions['narrative']) / 4
-        ReportModel.query.filter_by(id=id).update(dict(score=str(dimensions), status='done'))
+            try:
+                dimensions['overall'] = {
+                    'num': overall_num,
+                    'total': overall_total, 'score': (overall_num / overall_total) * 100}
+            except:
+                dimensions['overall'] = {'num': 0, 'total': 0, 'score': 0}
+            ReportModel.query.filter_by(id=id).update(dict(score=str(dimensions), status='done'))
+        else:
+            ReportModel.query.filter_by(id=id).update(dict(status='done'))
         db.session.commit()
-        if ('default: ' in ReportModel.query.filter_by(id=id).first().title):
+        if default_flag:
             first.query_score = str(dimensions)
             db.session.commit()
 
     except Exception as e:
-        print(e, file=sys.stderr)
+        print(traceback.format_exc(),file=sys.stderr)
         ReportModel.query.filter_by(id=id).update(dict(status='done'))
         db.session.commit()
 
 
 def update_score(update_id):
-    dimensions = {'aesthetic': 0, 'craftsmanship': 0, 'purpose': 0, 'narrative': 0}
+    dimensions = {'aesthetic': {'num': 0, 'total': 0, 'score': 0},
+                  'craftsmanship': {'num': 0, 'total': 0, 'score': 0},
+                  'purpose': {'num': 0, 'total': 0, 'score': 0},
+                  'all': {'num': 0, 'total': 0, 'score': 0},
+                  'narrative': {'num': 0, 'total': 0, 'score': 0}}
     report = ReportModel.query.filter_by(id=update_id).first()
+    if 'default: ' not in report.title:
+        return None
     first = CompanyDocumentModel.query.filter_by(title=report.first).first()
     thresh = Threshold.query.filter_by(id=1).first()
+    if thresh:
+        value = thresh.value
+    else:
+        value = 100
+    SentenceModel.query.filter(SentenceModel.similarity < value).delete()
+    db.session.commit()
     sentences = SentenceModel.query.filter_by(f_id=update_id).all()
+    report_score = eval(report.score)
     for dimension in dimensions:
+        report_total = report_score[dimension]['total']
         num = 0
-        total = 0
+        # total = 0
         for sentence in sentences:
             if sentence.dimension != dimension:
                 continue
-            total += 1
-            if thresh:
-                value = thresh.value
-            else:
-                value = 100
+            # total += 1
             if sentence.similarity >= value:
                 num += 1
-        if total > 0:
-            dimensions[dimension] = (num / total) * 100
-        else:
-            dimensions[dimension] = 0
-    dimensions['overall'] = (dimensions['aesthetic'] + dimensions['craftsmanship'] + dimensions['purpose'] + dimensions[
-        'narrative']) / 4
+        if report_total != 0:
+            dimensions[dimension] = {'num': num, 'total': report_total, 'score': (num / report_total) * 100}
+
+    overall_num = dimensions['aesthetic']['num'] + dimensions['craftsmanship']['num'] + dimensions['purpose']['num'] + \
+                  dimensions['narrative']['num']
+    overall_total = dimensions['aesthetic']['total'] + dimensions['craftsmanship']['total'] + dimensions['purpose'][
+        'total'] + dimensions['narrative']['total']
+    try:
+        dimensions['overall'] = {
+            'num': overall_num,
+            'total': overall_total, 'score': (overall_num / overall_total) * 100}
+    except:
+        dimensions['overall'] = {'num': 0, 'total': 0, 'score': 0}
+
     report.score = str(dimensions)
     db.session.commit()
     if ('default: ' in ReportModel.query.filter_by(id=update_id).first().title):
@@ -2911,11 +2961,15 @@ def update_score(update_id):
         db.session.commit()
 
 
-def get_scores(sentence1, sentence2, dimension, range_from, range_to, id, sen_pro_author):
+def get_scores(sentence1, sentence2, dimension, id, sen_pro_author):
     print('get scores')
+    threshold = Threshold.query.filter_by(id=1).first()
+    if threshold:
+        value = threshold.value
+    else:
+        value = 100
     for s in sentence1:
         f = SentenceTextModel.query.filter_by(f_id=id, sentence=s).first()
-
         if (f is None):
             s = SentenceTextModel(f_id=id, sentence=s)
             db.session.add(s)
@@ -2925,58 +2979,44 @@ def get_scores(sentence1, sentence2, dimension, range_from, range_to, id, sen_pr
             s = SentenceTextModel(f_id=id, sentence=s[0])
             db.session.add(s)
             db.session.commit()
-    # res = requests.post(url_for('sentenceSimliarity',_external=True), json={"sentence1":sentence1,"sentence2":sentence2})
-    # print(res.text,file=sys.stderr)
+
     res_dict = getSimlarity(sentence1, sentence2)
-    # if res.ok:
-    # res_dict = res.json()
-    ##print(res_dict,file=sys.stderr)
-    # else:
-    # return 'error'
     t = []
     st = SentenceTextModel.query.filter_by(f_id=id).all()
     s = {}
     for i in st:
         s[i.sentence] = i.id
     # print(s)
+    num = 0
+    total = 0
+
     for i in res_dict:
         # print(i,s.get(i))
         for j in res_dict[i]:
+            total += 1
             score = abs(float(res_dict[i][j]['similarity']) * 100)
-            if (sen_pro_author == {}):
-                t.append(SentenceModel(sentence1=s.get(i), sentence2=s.get(j), similarity=int(score), f_id=id,
-                                       dimension=dimension, title2=res_dict[i][j]['title'], id2=res_dict[i][j]['id'],
-                                       type=res_dict[i][j]['type']))
-            else:
-                t.append(SentenceModel(sentence1=s.get(i), sentence2=s.get(j), similarity=int(score), f_id=id,
-                                       dimension=dimension, title2=res_dict[i][j]['title'], id2=res_dict[i][j]['id'],
-                                       type=res_dict[i][j]['type'], provider=sen_pro_author.get(j).get('provider'),
-                                       author=sen_pro_author.get(j).get('author')))
+            if score >= value:
+                num += 1
+                if (sen_pro_author == {}):
+                    t.append(SentenceModel(sentence1=s.get(i), sentence2=s.get(j), similarity=int(score), f_id=id,
+                                           dimension=dimension, title2=res_dict[i][j]['title'],
+                                           id2=res_dict[i][j]['id'],
+                                           type=res_dict[i][j]['type']))
+                else:
+                    t.append(SentenceModel(sentence1=s.get(i), sentence2=s.get(j), similarity=int(score), f_id=id,
+                                           dimension=dimension, title2=res_dict[i][j]['title'],
+                                           id2=res_dict[i][j]['id'],
+                                           type=res_dict[i][j]['type'], provider=sen_pro_author.get(j).get('provider'),
+                                           author=sen_pro_author.get(j).get('author')))
     try:
         db.session.add_all(list(dict.fromkeys(t)))
         db.session.commit()
     except Exception as e:
         print(e, file=sys.stderr)
-    num = 0
-    total = 0
-    threshold = Threshold.query.filter_by(id=1).first()
-    for i in res_dict:
-        for j in res_dict[i]:
-            total += 1
-            score = abs(float(res_dict[i][j]['similarity']) * 100)
-            if (threshold):
-                value = threshold.value
-            else:
-                value = 100
-            if (score >= value):
-                num += 1
-            # if(score>=range_from and score<=range_to):
-            #     num+=1
-
-    if (total > 0):
-        return (num / total) * 100
+    if total > 0:
+        return {'num':num,'total':total}
     else:
-        return 'error'
+        return 0
 
 
 def temp_azure(tmp):
