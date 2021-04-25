@@ -2019,7 +2019,7 @@ def edit_company():
         if (score):
             score = eval(score)
         return render_template('addeditcompanies.html', report=report, companydocument=companydocument,
-                               searchqueries=searchqueries, industrytags=industrytags, score=None)
+                               searchqueries=searchqueries, industrytags=industrytags, score=score)
     except Exception as e:
         print(e, file=sys.stderr)
         return 'error'
