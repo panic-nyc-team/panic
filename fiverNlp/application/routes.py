@@ -2,6 +2,8 @@ import traceback
 import random
 import openpyxl
 import glob
+
+from dateutil.relativedelta import relativedelta
 from flask import Flask, render_template, request, url_for, flash, send_from_directory, send_file, jsonify
 # from flask import current_app as app
 from werkzeug.utils import secure_filename, redirect
@@ -175,7 +177,7 @@ def report_word(frequency):
             default = False
             if ('default: ' in i.title):
                 default = True
-            report_background(i.id, i.type, i.first, i.second, i.range_from, i.range_to, default)
+            report_background(i.id, i.type, i.first, i.second, i.range_from, i.range_to)
 
 
 @app.teardown_appcontext
@@ -2112,19 +2114,27 @@ def savecompany():
         if (reference_to_search_query is not None):
             if (run_query_score):
                 if (report is None):
+                    now = datetime.datetime.now(tz)
+                    one_month_ago = now - relativedelta(months=1)
+                    dt_string = now.strftime('%Y-%m-%d')
+                    one_month_ago = one_month_ago.strftime('%Y-%m-%d')
+                    default_date_from = datetime.datetime.strptime(one_month_ago, '%Y-%m-%d').date()
+                    default_date_to = datetime.datetime.strptime(dt_string, '%Y-%m-%d').date()
+
                     report = ReportModel(first=title, second=reference_to_search_query, frequency='Weekly',
                                          type='vssearchquery', status='running', title='default: ' + title,
-                                         up_to_date=True, range_from=0, range_to=100, dimension='all', descending=True)
+                                         up_to_date=True, range_from=0, range_to=100, dimension='all', descending=True
+                                         ,date_from=default_date_from,date_to=default_date_to)
                     db.session.add(report)
                     db.session.commit()
                     executor.submit(report_background, report.id, 'vssearchquery', title, reference_to_search_query, 0,
-                                    100, True)
+                                    100)
                 else:
                     report.second = reference_to_search_query
                     report.status = 'running'
                     db.session.commit()
                     executor.submit(report_background, report.id, 'vssearchquery', title, reference_to_search_query, 0,
-                                    100, True)
+                                    100)
         else:
             try:
                 CompanyDocumentModel.query.filter_by(title=old_title).update(dict(query_score=None))
@@ -2471,13 +2481,23 @@ def new_report():
             frequency = result.get('frequency')
             type = result.get('type')
             up_to_date = result.get('up_to_date')
+            date_from = result.get('date_from')
+            date_to = result.get('date_to')
+            try:
+                date_from = datetime.datetime.strptime(date_from, '%Y-%m-%d').date()
+                date_to = datetime.datetime.strptime(date_to, '%Y-%m-%d').date()
+            except Exception as e:
+                print(e)
+                return 'date error'
+
             if (up_to_date is None or up_to_date is False):
                 up_to_date = False
             else:
                 up_to_date = True
+
             report = ReportModel(first=first, second=second, frequency=frequency, type=type, status='running',
                                  title=title, up_to_date=up_to_date, range_from=0, range_to=100, dimension='all',
-                                 descending=True)
+                                 descending=True, date_from=date_from, date_to=date_to)
             db.session.add(report)
             db.session.commit()
             executor.submit(report_background, report.id, type, first, second, 0, 100)
@@ -2693,13 +2713,20 @@ def report_company_test():
                 i.sentence1 = s.get(int(i.sentence1))
                 i.sentence2 = s.get(int(i.sentence2))
                 result_sentences.append(i)
-                if len(result_sentences)>=20:
+                if len(result_sentences) >= 20:
                     break
             except:
                 pass
+        try:
+            date_from = int(time.mktime(report.date_from.timetuple())) * 1000
+            date_to = int(time.mktime(report.date_to.timetuple())) * 1000
+        except:
+            date_from = None
+            date_to = None
         return render_template(page_url, companydocuments=companydocuments, report=report, dimensions=dimensions,
                                sentences=result_sentences, searchqueries=searchqueries, tags=tags, score1=score1,
-                               score2=score2, providers=providers, tagdata=tag_data, chartdimension=chartdimension)
+                               score2=score2, providers=providers, tagdata=tag_data, chartdimension=chartdimension
+                               ,date_from=date_from,date_to=date_to)
 
     # except Exception as e:
     #     print(e,file=sys.stderr)
@@ -2742,6 +2769,15 @@ def report_company_test():
             range_to = result.get('range_to')
             range_from = re.findall('\d+', range_from)
             range_to = re.findall('\d+', range_to)
+            date_from = result.get('date_from')
+            date_to = result.get('date_to')
+            try:
+                date_from = datetime.datetime.strptime(date_from, '%Y-%m-%d').date()
+                date_to = datetime.datetime.strptime(date_to, '%Y-%m-%d').date()
+            except Exception as e:
+                print(e)
+                return 'date error'
+
             if (title is None or title == ''):
                 return 'error in title'
             if (None in [range_from, range_to]):
@@ -2757,10 +2793,16 @@ def report_company_test():
                 descending = True
             if (id is None or id == 'None' or id == ''):
                 print(123, file=sys.stderr)
+                now = datetime.datetime.now(tz)
+                one_month_ago = now - relativedelta(months=1)
+                dt_string = now.strftime('%Y-%m-%d')
+                one_month_ago = one_month_ago.strftime('%Y-%m-%d')
+                default_date_from = datetime.datetime.strptime(one_month_ago, '%Y-%m-%d').date()
+                default_date_to = datetime.datetime.strptime(dt_string, '%Y-%m-%d').date()
                 report = ReportModel(first=first, second=second, frequency=frequency, type=type, status='running',
                                      dimension=dimension
                                      , descending=descending, range_from=range_from, range_to=range_to, title=title,
-                                     up_to_date=up_to_date)
+                                     up_to_date=up_to_date,date_from=default_date_from,date_to=default_date_to)
                 db.session.add(report)
                 db.session.commit()
                 executor.submit(report_background, report.id, type, first, second, range_from, range_to)
@@ -2771,7 +2813,7 @@ def report_company_test():
                     dict(first=first, second=second, frequency=frequency, type=type, status='running',
                          dimension=dimension
                          , descending=descending, range_from=range_from, range_to=range_to, title=title,
-                         up_to_date=up_to_date))
+                         up_to_date=up_to_date,date_from=date_from,date_to=date_to))
                 db.session.commit()
                 executor.submit(report_background, id, type, first, second, range_from, range_to)
                 return redirect(url_for('reports'))
@@ -2783,7 +2825,7 @@ def report_company_test():
             return 'error'
 
 
-def report_background(id, type, first, second, range_from, range_to, default=False):
+def report_background(id, type, first, second, range_from, range_to):
     try:
         print(id, type, first, second, range_from, range_to, file=sys.stderr)
         dimensions = {'aesthetic': {'num': 0, 'total': 0, 'score': 0},
@@ -2791,8 +2833,9 @@ def report_background(id, type, first, second, range_from, range_to, default=Fal
                       'purpose': {'num': 0, 'total': 0, 'score': 0},
                       'all': {'num': 0, 'total': 0, 'score': 0},
                       'narrative': {'num': 0, 'total': 0, 'score': 0}}
+        report = ReportModel.query.filter_by(id=id).first()
         default_flag = False
-        if 'default: ' in ReportModel.query.filter_by(id=id).first().title:
+        if 'default: ' in report.title:
             default_flag = True
         first = CompanyDocumentModel.query.filter_by(title=first).first()
         dict_company_A = eval(first.classified_sentences)
@@ -2834,18 +2877,28 @@ def report_background(id, type, first, second, range_from, range_to, default=Fal
                         all_sentence2s.append([i, second_company.id, 'company', second_company.title])
             elif (type == 'vssearchquery'):
                 print('entered search query')
-                second_searchquery = SearchQueryDocumentModel.query.filter_by(f_title=second).all()
+                temp_date = SearchQueryDocumentModel.query.filter_by(f_title=second).all()
+                second_searchquery = []
+                for query in temp_date:
+                    published = datetime.datetime.strptime(query.date.split('T')[0], '%Y-%m-%d')
+                    if published:
+                        if report.date_from <= published <= report.date_to:
+                            second_searchquery.append(query)
+                        else:
+                            print(query.title,'removed')
+
                 for querydocument in second_searchquery:
+                    dict_query = []
                     if (querydocument.classified_sentences):
                         dict_query = eval(querydocument.classified_sentences)
                     for i in dict_query:
                         if (dict_query[i] == dimension):
                             ##sentence2.append(i)
                             ##sen_pro_author[i] = {'provider':querydocument.provider,'author':querydocument.author}
-                            if (len(re.findall(r'\w+', i)) > 3):
+                            if len(re.findall(r'\w+', i)) > 3:
                                 sentence2.append([i, querydocument.id, 'searchquery', querydocument.title])
                                 sen_pro_author[i] = {'provider': querydocument.provider, 'author': querydocument.author}
-                        if (len(re.findall(r'\w+', i)) > 3):
+                        if len(re.findall(r'\w+', i)) > 3:
                             all_sentence2s.append([i, querydocument.id, 'searchquery', querydocument.title])
                             all_sen_pro_authors[i] = {'provider': querydocument.provider,
                                                       'author': querydocument.author}
@@ -2888,18 +2941,19 @@ def report_background(id, type, first, second, range_from, range_to, default=Fal
                     pass
 
         # scoring for comparing all sentences
-        dimension = 'all'
-        temp_all_score = get_scores(all_sentence1s, all_sentence2s, dimension, id,
-                   sen_pro_author=all_sen_pro_authors)
-        if temp_all_score and default_flag:
-            num = temp_all_score.get('num')
-            total = temp_all_score.get('total')
-            try:
-                dimensions[dimension] = {'num': num, 'total': total, 'score': (num / total) * 100}
-            except:
-                pass
-            ReportModel.query.filter_by(id=id).update(dict(score=str(dimensions)))
-            first.query_score = str(dimensions)
+        if len(all_sentence1s) > 0 and len(all_sentence2s) > 0:
+            dimension = 'all'
+            temp_all_score = get_scores(all_sentence1s, all_sentence2s, dimension, id,
+                       sen_pro_author=all_sen_pro_authors)
+            if temp_all_score and default_flag:
+                num = temp_all_score.get('num')
+                total = temp_all_score.get('total')
+                try:
+                    dimensions[dimension] = {'num': num, 'total': total, 'score': (num / total) * 100}
+                except:
+                    pass
+                ReportModel.query.filter_by(id=id).update(dict(score=str(dimensions)))
+                first.query_score = str(dimensions)
         ReportModel.query.filter_by(id=id).update(dict(status='done'))
         db.session.commit()
 

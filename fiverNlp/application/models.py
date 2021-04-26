@@ -156,7 +156,8 @@ class ReportModel(db.Model):
     descending = db.Column(db.Boolean)
     status = db.Column(db.String(20))
     authors = db.Column(db.String(200))
-    # new
+    date_from = db.Column(db.DateTime())
+    date_to = db.Column(db.DateTime())
     date_created = db.Column(db.DateTime(), index=True, default=datetime.datetime.now(tz))
 
     @classmethod
