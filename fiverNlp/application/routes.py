@@ -1155,6 +1155,7 @@ def set_threshold():
     else:
         threshold.value = t
         db.session.commit()
+    SentenceModel.query.filter(SentenceModel.similarity < threshold.value).delete()
     reports = ReportModel.query.all()
     for report in reports:
         update_score(report.id)
@@ -2874,11 +2875,11 @@ def report_background(id, type, first, second, range_from, range_to, default=Fal
                             all_sentence2s.append([i, querydocument.id, 'tag', querydocument.title])
             else:
                 return 'error'
-            if (len(sentence1) == 0 or len(sentence2) == 0 or not default_flag):
+            if (len(sentence1) == 0 or len(sentence2) == 0):
                 continue
             # print(dimension,sentence1,sentence2,file=sys.stderr)
             temp_score = get_scores(sentence1, sentence2, dimension, id, sen_pro_author)
-            if temp_score:
+            if temp_score and default_flag:
                 num = temp_score.get('num')
                 total = temp_score.get('total')
                 try:
@@ -2887,33 +2888,20 @@ def report_background(id, type, first, second, range_from, range_to, default=Fal
                     pass
 
         # scoring for comparing all sentences
-        if default_flag:
-            dimension = 'all'
-            temp_all_score = get_scores(all_sentence1s, all_sentence2s, dimension, id,
-                       sen_pro_author=all_sen_pro_authors)
-            if temp_all_score:
-                num = temp_all_score.get('num')
-                total = temp_all_score.get('total')
-                try:
-                    dimensions[dimension] = {'num': num, 'total': total, 'score': (num / total) * 100}
-                except:
-                    pass
-            # overall_num = dimensions['aesthetic']['num'] + dimensions['craftsmanship']['num'] + dimensions['purpose']['num'] + dimensions['narrative']['num']
-            # overall_total = dimensions['aesthetic']['total'] + dimensions['craftsmanship']['total'] + dimensions['purpose']['total'] + dimensions['narrative']['total']
-            #
-            # try:
-            #     dimensions['overall'] = {
-            #         'num': overall_num,
-            #         'total': overall_total, 'score': (overall_num / overall_total) * 100}
-            # except:
-            #     dimensions['overall'] = {'num': 0, 'total': 0, 'score': 0}
-            ReportModel.query.filter_by(id=id).update(dict(score=str(dimensions), status='done'))
-        else:
-            ReportModel.query.filter_by(id=id).update(dict(status='done'))
-        db.session.commit()
-        if default_flag:
+        dimension = 'all'
+        temp_all_score = get_scores(all_sentence1s, all_sentence2s, dimension, id,
+                   sen_pro_author=all_sen_pro_authors)
+        if temp_all_score and default_flag:
+            num = temp_all_score.get('num')
+            total = temp_all_score.get('total')
+            try:
+                dimensions[dimension] = {'num': num, 'total': total, 'score': (num / total) * 100}
+            except:
+                pass
+            ReportModel.query.filter_by(id=id).update(dict(score=str(dimensions)))
             first.query_score = str(dimensions)
-            db.session.commit()
+        ReportModel.query.filter_by(id=id).update(dict(status='done'))
+        db.session.commit()
 
     except Exception as e:
         print(traceback.format_exc(),file=sys.stderr)
@@ -2936,7 +2924,6 @@ def update_score(update_id):
         value = thresh.value
     else:
         value = 100
-    SentenceModel.query.filter(SentenceModel.similarity < value).delete()
     db.session.commit()
     sentences = SentenceModel.query.filter_by(f_id=update_id).all()
     report_score = eval(report.score)
