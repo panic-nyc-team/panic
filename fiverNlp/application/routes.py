@@ -2546,11 +2546,16 @@ def load_more():
         s = {}
         for i in SentenceTextModel.query.filter_by(f_id=report.id).all():
             s[i.id] = i.sentence
-        for i in sentences[offset:offset + 20]:
-            print(i.sentence1, file=sys.stderr)
-            d.append(
-                {'sentence1': s.get(int(i.sentence1)), 'similarity': i.similarity, 'sentence2': s.get(int(i.sentence2)),
-                 'title': i.title2, 'id': i.id2, 'provider': i.provider})
+        for i in sentences[offset:]:
+            try:
+                print(i.sentence1, file=sys.stderr)
+                d.append(
+                    {'sentence1': s.get(int(i.sentence1)), 'similarity': i.similarity, 'sentence2': s.get(int(i.sentence2)),
+                     'title': i.title2, 'id': i.id2, 'provider': i.provider})
+                if len(d) >= 20:
+                    break
+            except:
+                pass
         return {'data': d}
     except Exception as e:
         return str(e)
