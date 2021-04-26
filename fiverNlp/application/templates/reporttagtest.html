@@ -218,12 +218,6 @@
   <div id="vscompanyreport2"  class="container">
     <div class="section-1-1">
       <select onchange="selectOption(this.value)" id='chart'>
-        {%if('overall'==chartdimension)%}
-          <option value="overall" selected>overall</option>
-        {%else%}
-          <option value="overall">overall</option>
-          {%endif%}
-
         {%for i in dimensions%}
           {%if(i==chartdimension)%}
             <option value="{{i}}" selected>{{i}}</option>

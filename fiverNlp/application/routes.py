@@ -2899,15 +2899,15 @@ def report_background(id, type, first, second, range_from, range_to, default=Fal
                     dimensions[dimension] = {'num': num, 'total': total, 'score': (num / total) * 100}
                 except:
                     pass
-            overall_num = dimensions['aesthetic']['num'] + dimensions['craftsmanship']['num'] + dimensions['purpose']['num'] + dimensions['narrative']['num']
-            overall_total = dimensions['aesthetic']['total'] + dimensions['craftsmanship']['total'] + dimensions['purpose']['total'] + dimensions['narrative']['total']
-
-            try:
-                dimensions['overall'] = {
-                    'num': overall_num,
-                    'total': overall_total, 'score': (overall_num / overall_total) * 100}
-            except:
-                dimensions['overall'] = {'num': 0, 'total': 0, 'score': 0}
+            # overall_num = dimensions['aesthetic']['num'] + dimensions['craftsmanship']['num'] + dimensions['purpose']['num'] + dimensions['narrative']['num']
+            # overall_total = dimensions['aesthetic']['total'] + dimensions['craftsmanship']['total'] + dimensions['purpose']['total'] + dimensions['narrative']['total']
+            #
+            # try:
+            #     dimensions['overall'] = {
+            #         'num': overall_num,
+            #         'total': overall_total, 'score': (overall_num / overall_total) * 100}
+            # except:
+            #     dimensions['overall'] = {'num': 0, 'total': 0, 'score': 0}
             ReportModel.query.filter_by(id=id).update(dict(score=str(dimensions), status='done'))
         else:
             ReportModel.query.filter_by(id=id).update(dict(status='done'))
@@ -2954,16 +2954,16 @@ def update_score(update_id):
         if report_total != 0:
             dimensions[dimension] = {'num': num, 'total': report_total, 'score': (num / report_total) * 100}
 
-    overall_num = dimensions['aesthetic']['num'] + dimensions['craftsmanship']['num'] + dimensions['purpose']['num'] + \
-                  dimensions['narrative']['num']
-    overall_total = dimensions['aesthetic']['total'] + dimensions['craftsmanship']['total'] + dimensions['purpose'][
-        'total'] + dimensions['narrative']['total']
-    try:
-        dimensions['overall'] = {
-            'num': overall_num,
-            'total': overall_total, 'score': (overall_num / overall_total) * 100}
-    except:
-        dimensions['overall'] = {'num': 0, 'total': 0, 'score': 0}
+    # overall_num = dimensions['aesthetic']['num'] + dimensions['craftsmanship']['num'] + dimensions['purpose']['num'] + \
+    #               dimensions['narrative']['num']
+    # overall_total = dimensions['aesthetic']['total'] + dimensions['craftsmanship']['total'] + dimensions['purpose'][
+    #     'total'] + dimensions['narrative']['total']
+    # try:
+    #     dimensions['overall'] = {
+    #         'num': overall_num,
+    #         'total': overall_total, 'score': (overall_num / overall_total) * 100}
+    # except:
+    #     dimensions['overall'] = {'num': 0, 'total': 0, 'score': 0}
 
     report.score = str(dimensions)
     db.session.commit()
