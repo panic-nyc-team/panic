@@ -2569,7 +2569,7 @@ def report_company_test():
         id = request.args.get('id')
         chartdimension = request.args.get('chartdimension')
         if (chartdimension is None or chartdimension == '' or chartdimension == 'None'):
-            chartdimension = 'overall'
+            chartdimension = 'all'
         if (id is None):
             return 'error'
         report = ReportModel.query.filter_by(id=id).first()
@@ -2888,7 +2888,6 @@ def report_background(id, type, first, second, range_from, range_to, default=Fal
 
         # scoring for comparing all sentences
         if default_flag:
-            print(dimensions)
             dimension = 'all'
             temp_all_score = get_scores(all_sentence1s, all_sentence2s, dimension, id,
                        sen_pro_author=all_sen_pro_authors)
