@@ -2687,7 +2687,7 @@ def report_company_test():
         for i in SentenceTextModel.query.filter_by(f_id=report.id).all():
             s[i.id] = i.sentence
         result_sentences = []
-        for i in sentences[:50]:
+        for i in sentences:
             try:
                 i.sentence1 = s.get(int(i.sentence1))
                 i.sentence2 = s.get(int(i.sentence2))
@@ -3004,6 +3004,8 @@ def get_scores(sentence1, sentence2, dimension, id, sen_pro_author):
     for i in res_dict:
         # print(i,s.get(i))
         for j in res_dict[i]:
+            if not s.get(j) or not s.get(i):
+                continue
             total += 1
             score = abs(float(res_dict[i][j]['similarity']) * 100)
             if score >= value:
