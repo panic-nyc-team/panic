@@ -2681,12 +2681,18 @@ def report_company_test():
         s = {}
         for i in SentenceTextModel.query.filter_by(f_id=report.id).all():
             s[i.id] = i.sentence
-        for i in sentences[:20]:
-            i.sentence1 = s.get(int(i.sentence1))
-            i.sentence2 = s.get(int(i.sentence2))
-
+        result_sentences = []
+        for i in sentences[:50]:
+            try:
+                i.sentence1 = s.get(int(i.sentence1))
+                i.sentence2 = s.get(int(i.sentence2))
+                result_sentences.append(i)
+                if len(result_sentences)>=20:
+                    break
+            except:
+                pass
         return render_template(page_url, companydocuments=companydocuments, report=report, dimensions=dimensions,
-                               sentences=sentences[:20], searchqueries=searchqueries, tags=tags, score1=score1,
+                               sentences=result_sentences, searchqueries=searchqueries, tags=tags, score1=score1,
                                score2=score2, providers=providers, tagdata=tag_data, chartdimension=chartdimension)
 
     # except Exception as e:
