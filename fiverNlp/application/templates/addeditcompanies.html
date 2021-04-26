@@ -65,12 +65,11 @@
     </div>
       {%if score%}
       <div class="form-group" style="display: flex; flex-direction: row" id="classifiactionResult">
-          <label style="color: grey;">Overall {{"{:.1f}".format(score.get('overall').get('score'))}} % ({{score.get('overall').get('num')}}/{{score.get('overall').get('total')}})</label>
+          <label style="color: grey;"> All: {{"{:.1f}".format(score.get('all').get('score'))}} % ({{score.get('all').get('num')}}/{{score.get('all').get('total')}})</label>
           <label style="color: lightgreen;">Purpose: {{"{:.1f}".format(score.get('purpose').get('score'))}} % ({{score.get('purpose').get('num')}}/{{score.get('purpose').get('total')}})</label>
           <label style="color: orange;">Craftsmanship: {{"{:.1f}".format(score.get('craftsmanship').get('score'))}} % ({{score.get('craftsmanship').get('num')}}/{{score.get('craftsmanship').get('total')}})</label>
           <label style="color: lightblue;">Aesthetics: {{"{:.1f}".format(score.get('aesthetic').get('score'))}} % ({{score.get('aesthetic').get('num')}}/{{score.get('aesthetic').get('total')}})</label>
           <label style="color: grey;"> Narrative: {{"{:.1f}".format(score.get('narrative').get('score'))}} % ({{score.get('narrative').get('num')}}/{{score.get('narrative').get('total')}})</label>
-          <label style="color: grey;"> All: {{"{:.1f}".format(score.get('all').get('score'))}} % ({{score.get('all').get('num')}}/{{score.get('all').get('total')}})</label>
       </div>
       {%endif%}
 
