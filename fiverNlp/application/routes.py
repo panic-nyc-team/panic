@@ -2314,7 +2314,7 @@ def search_query_documents_background(id):
                                                                    date=i.get('published'), clean_text=i.get('text'))
                     if (SearchQueryDocumentModel.query.filter_by(f_title=f_title,
                                                                  url=searchquerydocument.url).first() is None):
-                        if searchquerydocument.clean_text > 50000:
+                        if len(searchquerydocument.clean_text) > 50000:
                             db.session.close()
                             continue
                         res = requests.post('http://13.82.225.206:5000/predict',
