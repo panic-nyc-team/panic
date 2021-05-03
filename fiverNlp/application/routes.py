@@ -1739,6 +1739,7 @@ def search_queries():
                 dates.append(temp)
             else:
                 dates.append(None)
+
         total = []
         yesterday = datetime.datetime.now(tz) - datetime.timedelta(days=1)
         new_documents = []
