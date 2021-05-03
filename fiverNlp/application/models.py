@@ -100,13 +100,13 @@ class ArbitraryDocumentModel(db.Model):
         except:
             return False
 
+
 class SuperSearchQueryModel(db.Model):
     __tablename__ = 'supersearchquery'
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(255), unique=True)
     fetch_frequency = db.Column(db.String(20))
     status = db.Column(db.String(20))
-
 
 
 class SearchQueryModel(db.Model):
@@ -170,7 +170,6 @@ class ReportModel(db.Model):
             return False
 
 
-
 class SentenceTextModel(db.Model):
     __tablename__ = 'sentencetexts'
     id = db.Column(db.Integer, primary_key=True)
@@ -185,7 +184,6 @@ class SentenceTextModel(db.Model):
             return True
         except:
             return False
-
 
 
 class SentenceModel(db.Model):
@@ -232,10 +230,9 @@ class Threshold(db.Model):
     value = db.Column(db.Integer)
 
 
-
 class NewDocumentModel(db.Model):
     __tablename__ = 'newdocument'
-    id = db.Column(db.Integer, primary_key=True,autoincrement=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     f_id = db.Column(db.Integer, unique=True)
     uuid = db.Column(db.String(255))
     thread_uuid = db.Column(db.String(255))
@@ -279,6 +276,7 @@ class NewDocumentModel(db.Model):
     crawled = db.Column(db.String(50))
     updated = db.Column(db.String(50))
     rating = db.Column(db.Float)
+
     @classmethod
     def delete(cls, id):
         try:
@@ -287,6 +285,7 @@ class NewDocumentModel(db.Model):
             return True
         except:
             return False
+
     @classmethod
     def deleteall(cls, f_title):
         try:
@@ -295,7 +294,6 @@ class NewDocumentModel(db.Model):
             return True
         except:
             return False
-
 
 
 class NewDocumentPersonsModel(db.Model):
@@ -347,6 +345,8 @@ class NewDocumentLocationsModel(db.Model):
             return True
         except:
             return False
+
+
 class NewDocumentSiteCategoriesModel(db.Model):
     __tablename__ = 'newdocumentsitecategories'
     id = db.Column(db.Integer, primary_key=True)
@@ -361,8 +361,11 @@ class NewDocumentSiteCategoriesModel(db.Model):
             return True
         except:
             return False
+
+
 class NewDocumentExternalLinksModel(db.Model):
     __tablename__ = 'newdocumentexternallinks'
+
     id = db.Column(db.Integer, primary_key=True)
     f_id = db.Column(db.Integer)
     url = db.Column(db.Text)
@@ -375,8 +378,11 @@ class NewDocumentExternalLinksModel(db.Model):
             return True
         except:
             return False
+
+
 class NewDocumentExternalImagesModel(db.Model):
     __tablename__ = 'newdocumentexternalimages'
+
     id = db.Column(db.Integer, primary_key=True)
     f_id = db.Column(db.Integer)
     url = db.Column(db.Text)

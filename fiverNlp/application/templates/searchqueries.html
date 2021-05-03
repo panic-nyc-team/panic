@@ -65,14 +65,15 @@
               </tr>
             </thead>
             <tbody>
-              {% for searchquery in zip(searchqueries,total,new_documents): %}
+              {% for searchquery in zip(searchqueries,total,new_documents,dates): %}
               <tr>
                 <td><a onclick="editSearchQuery(this.id)" id="{{searchquery[0].title}}" href="#">{{searchquery[0].title}}</a></td>
                 <td>{{searchquery[0].query_string}}</td>
                 <td>{{searchquery[2]}}/{{searchquery[1]}}</td>
                 <td>{{searchquery[0].fetch_frequency}}</td>
 
-                <td>date here</td>
+                <td>{{"{:%d, %b %Y : %I:%M %p} EST".format(searchquery[3].date_created) }}</td>
+
                 {%if searchquery[0].status=='paused'%}
                   <td><button style="color:red;" class="batn" onclick="changeStatus(this.id)" id="{{searchquery[0].title}}"><i class="fa fa-play-circle-o"></i></button></td>
                 {%else%}

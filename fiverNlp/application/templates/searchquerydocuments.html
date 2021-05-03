@@ -83,7 +83,11 @@
 <!--                <input hidden name="title" value="{{i.title}}">-->
                 <td>{{i.provider}}</td>
                 <td><a href="{{i.url}}" > Link </a></td>
-                <td>{{"{:%d, %b %Y : %I:%M %p} EST".format(i.date_created) }}</td>
+                {%if i.date and i.date.split('T')%}
+                <td>{{i.date.split('T')[0]}}</td>
+                {%else%}
+                <td>DATE ERROR<td>
+                {%endif%}
                 {%if(i.clean_text is none)%}
                   <td><button id="checkmark"><i class="fa fa-check-circle"></i></button></td>
                 {%else%}

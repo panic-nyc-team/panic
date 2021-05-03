@@ -1732,21 +1732,27 @@ def search():
 def search_queries():
     try:
         searchqueries = SuperSearchQueryModel.query.all()
+        dates = []
+        for s in searchqueries:
+            temp = SearchQueryModel.query.filter_by(f_id=s.id).first()
+            if temp:
+                dates.append(temp)
+            else:
+                dates.append(None)
         total = []
-        # new
         yesterday = datetime.datetime.now(tz) - datetime.timedelta(days=1)
         new_documents = []
         for i in searchqueries:
             total.append(len(SearchQueryDocumentModel.query.filter_by(f_title=i.title).all()))
-            # new
             new_documents.append(len(
                 SearchQueryDocumentModel.query.filter(SearchQueryDocumentModel.f_title == i.title).filter(
                     SearchQueryDocumentModel.date_created > yesterday).all()))
+        return render_template('searchqueries.html', searchqueries=searchqueries, total=total,
+                               new_documents=new_documents,
+                               dates=dates, zip=zip)
     except Exception as e:
         print(e, 1, file=sys.stderr)
-    # new
-    return render_template('searchqueries.html', searchqueries=searchqueries, total=total, new_documents=new_documents,
-                           zip=zip)
+        return 'error'
 
 
 @app.route('/searchqueries/addnewsearchquery')
