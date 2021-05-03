@@ -2316,7 +2316,7 @@ def search_query_documents_background(id):
                                                                  url=searchquerydocument.url).first() is None):
                         print(searchquerydocument.clean_text,len(searchquerydocument.clean_text))
                         res = requests.post('http://13.82.225.206:5000/predict',
-                                            json={"mytext": searchquerydocument.clean_text[:80000]})
+                                            json={"mytext": searchquerydocument.clean_text[:70000]})
                         if res.ok:
                             searchquerydocument.classified_sentences = str(res.json())
                         else:
