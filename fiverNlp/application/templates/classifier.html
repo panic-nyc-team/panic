@@ -1,11 +1,7 @@
-{% extends 'layout.html' %}
-{% block content %}
-
-<head>
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-  <script type=text/javascript>
-    $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
-  </script>
+{% extends "new_layout.html" %}
+{% block title %}Classified Sentences{% endblock %}
+{% block head %}
+  {{ super() }}
 <style>
     .flex-tags{
     display: flex;
@@ -54,13 +50,17 @@ ul{
 }
 </style>
 
-</head>
+{% endblock %}
 <body>
-
+{% block content %}
 <div class="container">
 <div class="data-display">
     <div class="container">
-          <h3>Classifier</h3>
+        <br>
+        <br>
+        <br>
+        <br>
+          <h3 style="color: white;">Classifier</h3>
           <table class="table ">
             <thead>
               <tr>
@@ -85,7 +85,7 @@ ul{
                     <td style="background-color: {{class_colors[sentences[i]]}};">{{i}}</td>
                     {%endif%}
 
-                  <td><select onchange="save('{{i}}',this.value)" name="dimension">
+                  <td><select class="form-control" style="width:auto;" onchange="save('{{i}}',this.value)" name="dimension">
                        {%for dimension in dimensions:%}
                           {%if sentences[i]==dimension:%}
                            <option selected>{{dimension}}</option>
@@ -102,10 +102,13 @@ ul{
             </tbody>
           </table>
         </div>
-         <div class="box"><button class="mybutton" onclick="savetobin()">Save to Bin</button></div>
+         <div class="box"><button class="btn btn-primary bg-theme" onclick="savetobin()">Save to Bin</button></div>
 </div>
-</body>
-
+</div>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script type=text/javascript>
+$SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+</script>
 <script>
 function save(sentence,dimension){
   $.post( "saveclassifier", { id: "{{id}}",title:"{{title}}",sentence: sentence,dimension:dimension})
@@ -125,6 +128,8 @@ function savetobin(){
   });
 }
 </script>
-
-
 {% endblock %}
+</body>
+
+
+

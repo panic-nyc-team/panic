@@ -1,94 +1,57 @@
-{% extends 'layout.html' %}
-{% block content %}
-<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-<script type=text/javascript>
-  $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
-</script>
+{% extends "new_layout.html" %}
+{% block title %}Arbitrary Documents{% endblock %}
+{% block head %}
+  {{ super() }}
+{% endblock %}
 
-<style>
-.query_buttons{
-    display: flex;
-    flex-direction: row;
-}
-.query_buttons > div{
-    margin: 10px;
-}
-
-.search{
-    flex-direction: row;
-    margin-left: 40%;
-}
-
-.batn,.batn1 {
-    border-color: white;
-    background-color: white;
-    font-size:20px;
-}
-
-[data-href] { cursor: pointer; }
-
-
-
-</style>
 <body>
-<div class="search">
-<nav class="navbar navbar-expand-sm ">
-  <form class="form-inline" action="/action_page.php">
-    <input class="form-control mr-sm-2" type="text" placeholder="Search">
-    <button class="mybutton" type="submit">Search</button>
-  </form>
-</nav>
-    <div>
-
-    </div>
-</div>
-
-
-  <div class="query_buttons">
-  {% for title in title_list %}
-      <div>
-     <button class="mybutton" onclick="editSearchQuery(this.id)" id="{{ title }}"> {{ title }} </button></div>
-  {% endfor %}
-  </div>
-
-    <div class="container">
-          <h3>Arbitrary Documents</h3>
-          <table class="table table-hover">
-            <thead>
-              <tr >
-                <th>Title</th>
-                <th>Industry Tags</th>
-                <th>Date</th>
-
-              </tr>
-            </thead>
-            <tbody>
-              {% for i in documents %}
-              <tr>
-                <td><a onclick="editDocument(this.id)" id="{{i.title}}" href="#">{{i.title}}</a></td>
-                <td>{{i.industry_tags}}</td>
-                <td>{{"{:%d, %b %Y : %I:%M %p} EST".format(i.date_created) }}</td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
+{% block content %}
+    <section class="mt-5">
+        <div class='container pt-5'>
+            <div class='row justify-content-center'>
+                <div class='row justify-content-center text-center text-white col-lg-12'>
+                    <h1>Arbitrary Documents</h1>
+                </div>
+                <div class="row col-12 mt-3">
+                    <table class="table">
+                        <thead>
+                          <tr>
+                            <th scope="col">Title</th>
+                            <th scope="col">Tags</th>
+                            <th scope="col">Updated</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {% for i in documents %}
+                              <tr>
+                                <td><a onclick="editDocument(this.id)" id="{{i.title}}" href="#">{{i.title}}</a></td>
+                                <td>{{i.industry_tags}}</td>
+                                <td>{{"{:%d, %b %Y : %I:%M %p} EST".format(i.date_created) }}</td>
+                              </tr>
+                          {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class='row justify-content-center text-center text-white col-lg-12 mt-3'>
+                    <button class="btn btn-primary bg-theme" type="button" onclick="myAddNew()">Add</button>
+                </div>
+            </div>
         </div>
-        <div class="box">
-        <button class="mybutton" onclick="myAddNew()">Add Arbitrary Document</button>
-    </div>
+    </section>
+    <footer></footer>
+    <script src='https://code.jquery.com/jquery-3.4.1.slim.min.js' integrity='sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n' crossorigin='anonymous'></script>
+    <script src='https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js' integrity='sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo' crossorigin='anonymous'></script>
+    <script src='https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js' integrity='sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6' crossorigin='anonymous'></script>
+    <script>
+        function myAddNew() {
+          window.location.href = "/arbitrarydocuments/addnew";
+        }
+        function editDocument(title) {
+          window.location.href = "/arbitrarydocuments/edit?title="+title;
+        }
 
-
-
-<script>
-function myAddNew() {
-  window.location.href = "/arbitrarydocuments/addnew";
-}
-function editDocument(title) {
-  window.location.href = "/arbitrarydocuments/edit?title="+title;
-}
-
-</script>
+    </script>
+{% endblock %}
 
 </body>
-
-{% endblock %}
+</html>

@@ -1,0 +1,99 @@
+body{
+    background: #2E2E2E url("dots.svg") no-repeat fixed right top;
+}
+.table{
+    color: white;
+}
+.bg-transparent{
+    background-color: #ffffff1c !important;
+}
+.bg-theme{
+    background: #85B0E3;
+    border: #85B0E3;
+    color: black;
+}
+.tag{
+    border: 1px solid #999999;
+    box-sizing: border-box;
+    border-radius: 20px;
+    color: white;
+}
+.block {
+    text-align: center;
+    vertical-align: middle;
+}
+.circle {
+    background: #9B9B9B;
+    border-radius: 200px;
+    color: black;
+    height: 25%;
+    font-weight: bold;
+    width: 45%;
+    display: table;
+}
+.circle p {
+    vertical-align: middle;
+    display: table-cell;
+}
+.nav-bg{
+    background-color: #2e2e2eab;
+}
+a{
+    color: white;
+    text-decoration: none;
+}
+button a{
+    color: black;
+    text-decoration: none;
+}
+a:hover{
+    color: #85B0E3 !important;
+    text-decoration: none !important;
+}
+button a:hover{
+    color: black !important;
+    text-decoration: none;
+}
+.line{
+    height: 1px;
+    background: #FFFFFF;
+    mix-blend-mode: normal;
+    opacity: 0.2;
+}
+    #classifiactionResult > label{
+        margin-right: 7%;
+    }
+    .flex-tags{
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    align-items: center
+}
+    .flex-tags > div{
+        padding: 2px;
+        margin: 2px;
+    }
+
+
+.mybutton {
+  display: inline-block;
+  padding: 10px 25px;
+  font-size: 16px;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  outline: none;
+  color: #000000;
+  background-color: #ffffff;
+  border-color: #000000;
+  border-radius: 15px;
+  box-shadow: 0 9px #999;
+}
+
+.mybutton:hover {background-color: #bab1ba}
+
+.mybutton:active {
+  background-color: #3e8e41;
+  box-shadow: 0 5px #666;
+  transform: translateY(4px);
+}

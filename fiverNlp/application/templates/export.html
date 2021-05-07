@@ -1,8 +1,55 @@
-{% extends 'layout.html' %}
-{% block content %}
-<html>
+{% extends "new_layout.html" %}
+{% block title %}Export{% endblock %}
+{% block head %}
+  {{ super() }}
+
+<style>
+.query_buttons{
+    display: flex;
+    flex-direction: row;
+}
+.query_buttons > div{
+    margin: 10px;}
+
+#querydata {
+    table-layout:fixed;
+}
+#querydata td {
+  min-width: 25px;
+  max-width: 25px;
+  overflow: hidden;
+}
+
+.search{
+    flex-direction: row;
+    margin-left: 40%;
+}
+
+
+#checkmark{
+    border:none;
+    background-color: inherit;
+    border-color: inherit;
+    font-size:24px;
+    color:red;
+}
+
+[data-href] { cursor: pointer; }
+
+
+</style>
+
+
+{% endblock %}
 <body>
-<div class="container">
+{% block content %}
+
+<div class="container text-white">
+  <br>
+  <br>
+  <br>
+  <br>
+  <br>
 
     <form action="/exportresult" class="needs-validation" method="post" novalidate>
         <div class="form-group">
@@ -71,11 +118,10 @@
             </select>
         </div>
 
-        <button class="mybutton" type="submit">Export</button>
+        <button class="btn btn-primary bg-theme" type="submit">Export</button>
     </form>
 </div>
 
-</body>
 <script>
 $(document).ready(function() {
 document.getElementById('end_date').valueAsDate = new Date();
@@ -118,8 +164,8 @@ $('#checkAll').click(function () {
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script type=text/javascript>
   $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
-
 </script>
-
-</html>
 {% endblock %}
+</body>
+
+

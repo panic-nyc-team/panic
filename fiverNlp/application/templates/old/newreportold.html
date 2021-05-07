@@ -1,0 +1,215 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<style>
+    .flex-vs{
+        display: flex;
+        flex-direction: row;
+    }
+    .flex-vs > div{
+        flex: 50%;
+        margin-left: 10px;
+    }
+
+    *{
+		margin: 0;
+		padding: 0;
+		box-sizing: border-box;
+		font-family: Arial;
+
+	}
+	h3{
+		color: grey;
+	}
+
+
+	.section-1{
+		display: flex;
+		padding-right: 40px;
+	}
+
+	.section-1 ul{
+		text-align: right;
+		padding-right: 15%;
+		margin-top: 30px;
+	}
+	.section-1 li{
+		list-style-type: none;
+	}
+	.circle{
+		background-color: #5A49B3;
+		border-radius: 50%;
+		text-align: center;
+		line-height: 80px;
+		vertical-align: middle;
+		color: white;
+		width: 80px;
+		height: 80px;
+		margin: auto;
+	}
+	.section-3-1{
+		flex: 2;
+	}
+
+	.section-3-2{
+        display: flex;
+        flex-direction: column;
+		flex: 1;
+		text-align: center;
+        justify-content: center;
+	}
+
+
+	.section-3-3{
+		flex: 2;
+	}
+
+	.section-4{
+		display: flex;
+	}
+
+	.section-4 ul{
+		border:1px solid grey;
+		border-radius: 3px;
+		padding: 20px;
+	}
+	.section-4 li{
+		list-style-type: none;
+		margin-top: 10px;
+	}
+
+	.section-4-1{
+		flex: 1;
+		margin-right: 10px;
+        text-align: center;
+	}
+
+	.section-4-2{
+		flex: 1;
+		margin-left: 10px;
+		text-align: center;
+
+	}
+
+	@media screen and (max-width: 768px){
+
+
+		.section-1{
+			flex-direction: column;
+		}
+		.section-4{
+			flex-direction: column;
+		}
+		.section-4-2{
+			margin-top: 20px;
+		}
+		#bar{
+			width: 400px;
+		}
+	}
+
+
+
+</style>
+</head>
+<body>
+
+<div class="container">
+   <br>
+  <h2>Add Details of New Report</h2>
+
+  <form action = "/newreport" method = "POST">
+    <div  class="form-group">
+      <label for=""> Title </label>
+      <input type="text" class="form-control"  placeholder="title" name="title" id="title">
+      <label for=""> Report Type </label>
+      <select id="vs" name="type" class="form-control" onchange="typeChange()">
+      {%if(type=="vscompany")%}
+      <option value="vscompany" selected>vs company</option>
+      <option value="vssearchquery">vs search query</option>
+      <option value="vstag">vs tag</option>
+      {%elif(type=="vssearchquery")%}
+      <option value="vscompany">vs company</option>
+      <option value="vssearchquery" selected>vs search query</option>
+      <option value="vstag">vs tag</option>
+      {%elif(type=="vstag")%}
+      <option value="vscompany">vs company</option>
+      <option value="vssearchquery">vs search query</option>
+      <option value="vstag" selected>vs tag</option>
+      {%endif%}
+      </select>
+    </div>
+   <div class="flex-vs">
+   <div id="companya" class="form-group">
+      <label for="">Company A</label>
+      <select name="first" class="form-control">
+        {%for i in first%}
+        <option value="{{i.title}}">{{i.title}}</option>
+        {%endfor%}
+      </select>
+    </div>
+
+      <div id="companyb" class="form-group">
+      <label for="">{{second_label}}</label>
+      <select name="second" class="form-control">
+          {%for i in second%}
+          <option value="{{i.title}}">{{i.title}}</option>
+          {%endfor%}
+      </select>
+    </div>
+
+    </div>
+     <div id="frequently" class="form-group">
+      <label for="">Frequency </label>
+      <select name="frequency" class="form-control">
+        <option value="Daily">Daily</option>
+        <option value="Weekly">Weekly</option>
+        <option value="Monthly">Monthly</option>
+      </select>
+      <br><label>Up To Date: </label>
+      <input type="checkbox" name="up_to_date" value="yes"><br>
+	  <label> Date Range Between:</label>
+	  <input class="form-control" type="date" name="date_from" id="date_from"><br>
+	  <input class="form-control" type="date" name="date_to" id="date_to">
+
+
+    </div>
+    <input class="mybutton" value="create" type="submit">
+    <!-- <a class="mybutton"  onclick="displayreport()" >Create</a> -->
+  </form>
+    <br>
+</div>
+
+
+</body>
+
+
+
+
+<script>
+
+document.getElementById('date_to').valueAsDate = new Date();
+var date = new Date();
+date ;
+date.setDate(date.getDate() - 30);
+document.getElementById('date_from').valueAsDate = date;
+
+    function displayreport() {
+        $("#vscompanyreport").show()
+}
+
+var typeElement = document.getElementById("vs");
+function typeChange(){
+      var e = document.getElementById("vs");
+      var val = e.value;
+      window.location.href = "/newreport?type="+val;
+  }
+
+</script>
+</body>
+
+
+{% endblock %}

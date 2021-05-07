@@ -31,10 +31,10 @@
       </div>
     </nav>
 
-    <div> 
+    <div>
       {% for category, message in get_flashed_messages(with_categories=true) %}
         {% if message %}
-          <div class="alert alert-{{ category }}">                     
+          <div class="alert alert-{{ category }}">
             {{ message }}
           </div>
         {% endif %}

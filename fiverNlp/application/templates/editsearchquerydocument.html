@@ -1,38 +1,24 @@
-{% extends 'layout.html' %}
+{% extends "new_layout.html" %}
+{% block title %}Edit SearchQuery Document{% endblock %}
+{% block head %}
+  {{ super() }}
+{% endblock %}
+
+<body>
 {% block content %}
-<!DOCTYPE html>
-
-<head>
-<style>
-    #classifiactionResult > label{
-        margin-right: 7%;
-    }
-    .flex-tags{
-    display: flex;
-    flex-direction: row;
-    width: 100%;
-    align-items: center
-}
-    .flex-tags > div{
-        padding: 2px;
-        margin: 2px;
-    }
-
-
-</style>
-</head>
-<html>
-
-
-<div class="container">
-   <br>
+<div class="container text-white mt-10">
+  <br>
+  <br>
+  <br>
+  <br>
+  <br>
   <h2>Search Query Document</h2>
 
   <form action="/searchqueries/savesearchquerydocument" id="myform" class="needs-validation" novalidate method="post">
     <input type="hidden" name="old_title" value="{{searchquerydocument.title}}">
     <input type="hidden" name="id" value="{{searchquerydocument.id}}">
     <div class="form-group">
-      <label for="title">Title</label>
+      <label>Title</label>
       <input type="text" class="form-control"  placeholder="Enter Title" name="title" required value="{{searchquerydocument.title}}">
     </div>
     <div class="form-group">
@@ -41,56 +27,56 @@
     </div>
 
      <div  class="form-group">
-       <label for="date">Date</label>
+       <label>Date</label>
        <input type="text" class="form-control"  placeholder="Enter Date" name="date" value="{{searchquerydocument.date}}">
        <div class="valid-feedback">Valid.</div>
        <div class="invalid-feedback">Please fill out this field.</div>
      </div>
 
      <div  class="form-group">
-       <label for="author">Author </label>
+       <label>Author </label>
        <input type="text" class="form-control"  placeholder="Enter Author Name" name="author" value="{{searchquerydocument.author}}">
        <div class="valid-feedback">Valid.</div>
        <div class="invalid-feedback">Please fill out this field.</div>
      </div>
 
      <div  class="form-group">
-       <label for="provider">Provider </label>
+       <label>Provider </label>
        <input type="text" class="form-control"  placeholder="Enter Provider" name="provider" value="{{searchquerydocument.provider}}">
        <div class="valid-feedback">Valid.</div>
        <div class="invalid-feedback">Please fill out this field.</div>
      </div>
 
      <div  class="form-group">
-       <label for="url">Url </label>
+       <label>Url </label>
        <input type="text" class="form-control"  placeholder="Enter Url" name="url" value="{{searchquerydocument.url}}">
        <div class="valid-feedback">Valid.</div>
        <div class="invalid-feedback">Please fill out this field.</div>
      </div>
 
      <div  class="form-group">
-       <label for="image_url">Image Url</label>
+       <label>Image Url</label>
        <input type="text" class="form-control"  placeholder="Enter Image Url" name="image_url" value="{{searchquerydocument.image_url}}">
        <div class="valid-feedback">Valid.</div>
        <div class="invalid-feedback">Please fill out this field.</div>
      </div>
 
 
-    <button class="mybutton" onclick="submitForm()" >Save</button><br><br>
+    <button class="btn btn-primary bg-theme" onclick="submitForm()" >Save</button><br><br>
   </form>
   <form action="/searchquerydocuments/classifier" method="POST">
-    <button class="mybutton" type="submit">See Classified Sentences</button><br><br>
+    <button class="btn btn-primary bg-theme" type="submit">See Classified Sentences</button><br><br>
     <input type="hidden" name="query_document_id" value="{{searchquerydocument.id}}">
   </form>
 
   <form action = "/searchqueries/deletesearchquerydocument" method = "GET">
     <input type="hidden" name="id" value="{{searchquerydocument.id}}">
-    <button class="mybutton" type="submit">Delete</button><br><br>
+    <button class="btn btn-danger" type="submit">Delete</button><br><br>
   </form>
 
   <form action = "/seewebhose" method = "GET">
     <input type="hidden" name="id" value="{{newdocument.id}}">
-    <button class="mybutton" type="submit">Webhose</button><br><br>
+    <button class="btn btn-secondary" type="submit">Webhose</button><br><br>
   </form>
 </div>
 
@@ -107,6 +93,6 @@
 
 </script>
 
-
-</html>
 {% endblock %}
+
+</body>

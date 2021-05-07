@@ -186,10 +186,59 @@ def shutdown_session(exception=None):
     db.session.remove()
 
 
+@app.route("/homeold", methods=[GET])
+def homeold():
+    return render_template('homeold.html')
+
+
 @app.route("/", methods=[GET])
 @app.route("/home", methods=[GET])
 def home():
-    return render_template('home.html')
+    return redirect(url_for("search_queries"))
+
+
+@app.route("/utility", methods=[GET])
+def utility():
+    threshold = Threshold.query.filter_by(id=1).first()
+    if (threshold is None):
+        threshold = Threshold(id=1, value=100)
+        db.session.add(threshold)
+        db.session.commit()
+    colors = ClassColors.query.filter_by(id=1).first()
+    return render_template('utility.html', threshold=threshold.value, colors=colors)
+
+
+@app.route("/setclasscolors", methods=[POST])
+def setclasscolors():
+    result = request.form
+    narrative = result.get('narrative')
+    if not narrative:
+        narrative = ''
+    aesthetic = result.get('aesthetic')
+    if not aesthetic:
+        aesthetic = ''
+    craftsmanship = result.get('craftsmanship')
+    if not craftsmanship:
+        craftsmanship = ''
+    purpose = result.get('purpose')
+    if not purpose:
+        purpose = ''
+    overall = result.get('all')
+    if not overall:
+        overall = ''
+    colors = ClassColors.query.filter_by(id=1).first()
+    if colors is None:
+        colors = ClassColors(id=1, narrative=narrative, aesthetic=aesthetic, craftsmanship=craftsmanship,
+                             purpose=purpose, overall=overall)
+        db.session.add(colors)
+    else:
+        colors.narrative = narrative
+        colors.aesthetic = aesthetic
+        colors.craftsmanship = craftsmanship
+        colors.purpose = purpose
+        colors.overall = overall
+    db.session.commit()
+    return redirect(url_for("utility"))
 
 
 @app.route("/changeClassColors", methods=[GET, POST])
@@ -207,7 +256,7 @@ def change_class_colors():
         class_colors = load_classColors()
 
         flash("Class Colors Changed Successfully!", "success")
-        return redirect(url_for("home"))
+        return redirect(url_for("utility"))
 
     return render_template("changeClassColors.html", form=form, class_colors=class_colors)
 
@@ -217,7 +266,6 @@ def train():
     inputform = FileInputForm()
 
     if inputform.validate_on_submit():
-
         file = inputform.file.data
         if file.filename.split(".")[-1] != 'tsv':
             flash("ONLY UPLOAD A 'tsv' FILE!", "danger")
@@ -226,7 +274,6 @@ def train():
         singlefile(file)
         flash("File Successfully Uploaded", "success")
         file.close()
-
     trainModelform = TrainModelForm()
 
     return render_template("train.html", inputform=inputform, trainModelform=trainModelform)
@@ -235,15 +282,16 @@ def train():
 @app.route('/train_model/<retrain>', methods=[GET, POST])
 def train_model(retrain):
     global model, tokenizer, maxlen
-
+    print(11112323123123)
     if retrain == 'True':
-        file_path = "bin/output2.tsv"
+        # file_path = "bin/output2.tsv"
+        data = loadTSVfromBin()
     else:
-        file_path = "static/File_Upload_Folder/uploaded.tsv"
-
-    try:
-        # data     = np.genfromtxt(file_path, delimiter='\t', dtype= str, encoding="utf8")
+        # file_path = "static/File_Upload_Folder/uploaded.tsv"
         data = loadTSVfromFolder()
+    try:
+        ## data     = np.genfromtxt(file_path, delimiter='\t', dtype= str, encoding="utf8")
+        # data = loadTSVfromFolder()
         data = np.array(data)
 
         features = data[:, 0]
@@ -313,8 +361,10 @@ def train_model(retrain):
 
     except IndexError as ie:
         flash("There must be atleast 70 rows of Data before training", "danger")
+        print(ie)
         return "indexError"
-
+    except Exception as e:
+        print(e)
 
 @app.route("/restrat_model", methods=[POST])
 def restart_model():
@@ -325,7 +375,7 @@ def restart_model():
 
     flash("Model Started Form Scratch Successful", "success")
 
-    return redirect(url_for('train'))
+    return redirect(url_for('utility'))
 
 
 @app.route("/test", methods=[GET, POST])
@@ -341,10 +391,21 @@ def test():
     return render_template("test.html", predictionForm=predictionForm)
 
 
+@app.route("/newtest", methods=[POST])
+def newtest():
+    global TEST_STRING
+    text = request.form.get('text')
+    if text:
+        TEST_STRING = text
+        return redirect(url_for("results"))
+    else:
+        return redirect(url_for('utility'))
+
+
 @app.route("/results", methods=[GET, POST])
 def results():
     global model, tokenizer, maxlen, TEST_STRING
-
+    colors = ClassColors.query.filter_by(id=1).first()
     sentences = nltk.sent_tokenize(TEST_STRING)
 
     tok_test_features = tokenize(sentences, tokenizer)
@@ -393,7 +454,7 @@ def results():
         len_data=len(data),
         bin_data=bin_data,
         len_bin_data=len(bin_data),
-        class_colors=class_colors,
+        colors=colors,
         specialForm=specialForm
     )
 
@@ -408,7 +469,7 @@ def download_file():
 def clear_bin():
     clearBin()
     flash("Bin Emptied", "success")
-    return redirect(url_for("home"))
+    return redirect(url_for("utility"))
 
 
 @app.route("/proceed", methods=[GET])
@@ -516,6 +577,7 @@ def addToBin():
 @app.route("/seeBin", methods=[GET, POST])
 def seeBin():
     bin_data = loadTSVfromBin()
+    print(bin_data)
     bin_labels = []
     bin_sentences = []
     for i in bin_data:
@@ -618,15 +680,14 @@ def export_result():
                 for s in sentences:
                     c1 = CompanyDocumentModel.query.filter_by(title=report.first).first()
                     c2 = NewDocumentModel.query.filter_by(f_id=s.id2).first()
-
                     if date_checkbox:
-                        try:
-                            published = datetime.datetime.strptime(c2.published.split('T')[0], '%Y-%m-%d').date()
-                        except:
-                            print('date split error')
-                            continue
-                        if published and start_date <= published <= end_date:
-                            if c1 and c2:
+                        if c1 and c2:
+                            try:
+                                published = datetime.datetime.strptime(c2.published.split('T')[0], '%Y-%m-%d').date()
+                            except:
+                                print('date split error')
+                                continue
+                            if published and start_date <= published <= end_date:
                                 try:
                                     data.append(
                                         {'s1': {'text': sentence_text.get(int(s.sentence1)), 'parent_title': c1.title
@@ -640,8 +701,8 @@ def export_result():
                                             , 'similarity_dimension': s.dimension, 'similarity': s.similarity})
                                 except:
                                     pass
-                        else:
-                            continue
+                            else:
+                                continue
                     else:
                         if c1 and c2:
                             try:
@@ -1161,7 +1222,7 @@ def set_threshold():
     reports = ReportModel.query.all()
     for report in reports:
         update_score(report.id)
-    return redirect(url_for('seeBin'))
+    return redirect(url_for('utility'))
 
 
 @app.route('/<type>/savetobin', methods=['POST'])
@@ -1328,9 +1389,6 @@ def classifier(type):
                            clean_text=clean_text)
 
 
-# @app.route('/')
-# def home():
-#    return render_template('home.html')
 
 
 @app.route('/industrytags/')
@@ -1454,7 +1512,7 @@ def industry_tags_delete():
             old_title = result.get('old_title')
             title = result.get('title')
             if (old_title is None or old_title == ''):
-                return 'error'
+                return 'error 1'
             companydocument = CompanyDocumentModel.query.filter_by(title=old_title).first()
             if (companydocument):
                 list_tags = companydocument.industry_tags.split(',')
@@ -1470,7 +1528,7 @@ def industry_tags_delete():
             old_title = result.get('old_title')
             title = result.get('title')
             if (old_title is None or old_title == ''):
-                return 'error'
+                return 'error 2'
             arbitrarydocument = ArbitraryDocumentModel.query.filter_by(title=old_title).first()
             if (arbitrarydocument):
                 list_tags = arbitrarydocument.industry_tags.split(',')
@@ -1511,10 +1569,10 @@ def industry_tags_delete():
                             db.session.commit()
                     return redirect(url_for('industry_tags_route'))
             else:
-                return 'error'
+                return 'error 3'
     except Exception as e:
         print(e, file=sys.stderr)
-        return 'error'
+        return 'error 4'
 
 
 @app.route('/searchqueries/deletesearchquerydocument')
@@ -1998,9 +2056,11 @@ def companies():
             for i in companies[:]:
                 if (i.industry_tags is None or tag not in i.industry_tags):
                     companies.remove(i)
+        return render_template('companies.html', companies=companies, industry_tags=industry_tags,
+                               eval=eval)
     except Exception as e:
         print(e, file=sys.stderr)
-    return render_template('companies.html', companies=companies, industry_tags=industry_tags)
+        return 'error'
 
 
 @app.route('/companies/addnewcompanies')
@@ -2131,7 +2191,7 @@ def savecompany():
                     report = ReportModel(first=title, second=reference_to_search_query, frequency='Weekly',
                                          type='vssearchquery', status='running', title='default: ' + title,
                                          up_to_date=True, range_from=0, range_to=100, dimension='all', descending=True
-                                         ,date_from=default_date_from,date_to=default_date_to)
+                                         , date_from=default_date_from, date_to=default_date_to)
                     db.session.add(report)
                     db.session.commit()
                     executor.submit(report_background, report.id, 'vssearchquery', title, reference_to_search_query, 0,
@@ -2581,7 +2641,8 @@ def load_more():
             try:
                 print(i.sentence1, file=sys.stderr)
                 d.append(
-                    {'sentence1': s.get(int(i.sentence1)), 'similarity': i.similarity, 'sentence2': s.get(int(i.sentence2)),
+                    {'sentence1': s.get(int(i.sentence1)), 'similarity': i.similarity,
+                     'sentence2': s.get(int(i.sentence2)),
                      'title': i.title2, 'id': i.id2, 'provider': i.provider})
                 if len(d) >= 20:
                     break
@@ -2651,6 +2712,7 @@ def report_company_test():
                     providers.append([])
                 else:
                     providers.append(result2)
+            print(providers)
         elif (type == 'vssearchquery'):
             page_url = 'reportsearchquerytest.html'
             providers = []
@@ -2736,7 +2798,7 @@ def report_company_test():
         return render_template(page_url, companydocuments=companydocuments, report=report, dimensions=dimensions,
                                sentences=result_sentences, searchqueries=searchqueries, tags=tags, score1=score1,
                                score2=score2, providers=providers, tagdata=tag_data, chartdimension=chartdimension
-                               ,date_from=date_from,date_to=date_to)
+                               , date_from=date_from, date_to=date_to)
 
     # except Exception as e:
     #     print(e,file=sys.stderr)
@@ -2781,12 +2843,13 @@ def report_company_test():
             range_to = re.findall('\d+', range_to)
             date_from = result.get('date_from')
             date_to = result.get('date_to')
-            try:
-                date_from = datetime.datetime.strptime(date_from, '%Y-%m-%d').date()
-                date_to = datetime.datetime.strptime(date_to, '%Y-%m-%d').date()
-            except Exception as e:
-                print(e)
-                return 'date error'
+            if type == 'vssearchquery':
+                try:
+                    date_from = datetime.datetime.strptime(date_from, '%Y-%m-%d').date()
+                    date_to = datetime.datetime.strptime(date_to, '%Y-%m-%d').date()
+                except Exception as e:
+                    print(e)
+                    return 'date error'
 
             if (title is None or title == ''):
                 return 'error in title'
@@ -2812,7 +2875,7 @@ def report_company_test():
                 report = ReportModel(first=first, second=second, frequency=frequency, type=type, status='running',
                                      dimension=dimension
                                      , descending=descending, range_from=range_from, range_to=range_to, title=title,
-                                     up_to_date=up_to_date,date_from=default_date_from,date_to=default_date_to)
+                                     up_to_date=up_to_date, date_from=default_date_from, date_to=default_date_to)
                 db.session.add(report)
                 db.session.commit()
                 executor.submit(report_background, report.id, type, first, second, range_from, range_to)
@@ -2823,7 +2886,7 @@ def report_company_test():
                     dict(first=first, second=second, frequency=frequency, type=type, status='running',
                          dimension=dimension
                          , descending=descending, range_from=range_from, range_to=range_to, title=title,
-                         up_to_date=up_to_date,date_from=date_from,date_to=date_to))
+                         up_to_date=up_to_date, date_from=date_from, date_to=date_to))
                 db.session.commit()
                 executor.submit(report_background, id, type, first, second, range_from, range_to)
                 return redirect(url_for('reports'))
@@ -2831,7 +2894,7 @@ def report_company_test():
                 return 'error sqlalchemy'
 
         except Exception as e:
-            print(e, file=sys.stderr)
+            print(traceback.format_exc())
             return 'error'
 
 
@@ -2890,12 +2953,15 @@ def report_background(id, type, first, second, range_from, range_to):
                 temp_date = SearchQueryDocumentModel.query.filter_by(f_title=second).all()
                 second_searchquery = []
                 for query in temp_date:
-                    published = datetime.datetime.strptime(query.date.split('T')[0], '%Y-%m-%d')
+                    try:
+                        published = datetime.datetime.strptime(query.date.split('T')[0], '%Y-%m-%d')
+                    except:
+                        continue
                     if published:
                         if report.date_from <= published <= report.date_to:
                             second_searchquery.append(query)
                         else:
-                            print(query.title,'removed')
+                            print(query.title, 'removed')
 
                 for querydocument in second_searchquery:
                     dict_query = []
@@ -2954,7 +3020,7 @@ def report_background(id, type, first, second, range_from, range_to):
         if len(all_sentence1s) > 0 and len(all_sentence2s) > 0:
             dimension = 'all'
             temp_all_score = get_scores(all_sentence1s, all_sentence2s, dimension, id,
-                       sen_pro_author=all_sen_pro_authors)
+                                        sen_pro_author=all_sen_pro_authors)
             if temp_all_score and default_flag:
                 num = temp_all_score.get('num')
                 total = temp_all_score.get('total')
@@ -2968,7 +3034,7 @@ def report_background(id, type, first, second, range_from, range_to):
         db.session.commit()
 
     except Exception as e:
-        print(traceback.format_exc(),file=sys.stderr)
+        print(traceback.format_exc(), file=sys.stderr)
         ReportModel.query.filter_by(id=id).update(dict(status='done'))
         db.session.commit()
 
@@ -3077,7 +3143,7 @@ def get_scores(sentence1, sentence2, dimension, id, sen_pro_author):
     except Exception as e:
         print(e, file=sys.stderr)
     if total > 0:
-        return {'num':num,'total':total}
+        return {'num': num, 'total': total}
     else:
         return 0
 

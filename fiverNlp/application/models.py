@@ -230,6 +230,16 @@ class Threshold(db.Model):
     value = db.Column(db.Integer)
 
 
+class ClassColors(db.Model):
+    __tablename__ = 'classcolors'
+    id = db.Column(db.Integer, primary_key=True)
+    overall = db.Column(db.String(50))
+    narrative = db.Column(db.String(50))
+    aesthetic = db.Column(db.String(50))
+    craftsmanship = db.Column(db.String(50))
+    purpose = db.Column(db.String(50))
+
+
 class NewDocumentModel(db.Model):
     __tablename__ = 'newdocument'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)

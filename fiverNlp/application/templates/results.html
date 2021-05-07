@@ -1,29 +1,42 @@
-{% extends 'layout2.html' %}
-
-{% block content %}
-
+{% extends "new_layout.html" %}
+{% block title %}Companies{% endblock %}
+{% block head %}
+  {{ super() }}
 {% if data %}
 <style type="text/css">
+::marker {
+color: white;
+}
 #purpose{
-    background-color: {{ class_colors['purpose'] }}; 
+    background-color: {{ colors.purpose }};
     color: black;
 }
 #craftsmanship{
-    background-color:  {{ class_colors['craftsmanship'] }};
+    background-color:  {{ colors.craftsmanship }};
     color: black;
 }
 #aesthetic{
-    background-color: {{ class_colors['aesthetic'] }};
+    background-color: {{ colors.aesthetic }};
     color: black;
 }
 #narrative{
-    background-color: {{ class_colors['narrative'] }};
+    background-color: {{ colors.narrative }};
     color: black;
 }
 </style>
 {% endif %}
+{% endblock %}
+<body>
+{% block content %}
+
 
 <!-- Showing Output div -->
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+
 <div class="pl-4 py-3">
 	<p>
 	    {% for sentence, _, label, _ in data %}
@@ -40,11 +53,11 @@
 		<!-- Diaplaying Sentences Classified by the Model -->
 		{% for d in data %}
 			<li>
-				<div>
+				<div class="text-white">
 					<p>
 						{{ d[0] }}
 						<br>
-						<span id="{{ d[2] }}">{{ d[2] }}</span>
+						<span  id="{{ d[2] }}">{{ d[2] }}</span>
 						<span class="mx-2">| Confidence: {{ d[1] }}% |</span>
 						{{ d[3] }}
 					</p>
@@ -55,12 +68,12 @@
 		{% endfor %}
 	</ol>
 
-	{{ specialForm.proceed(class='btn btn-outline-dark m-4')  }}
+	{{ specialForm.proceed(class='btn btn-primary bg-theme m-4')  }}
 	<br>
-	<span>NOTE: Proceeding will add {{ len_data }} news rows to the bin</span>
+	<span class="text-white">NOTE: Proceeding will add {{ len_data }} news rows to the bin</span>
 			
 </form>
 {% endif %}
 
 {% endblock %}
-
+</body>

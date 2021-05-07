@@ -1,75 +1,69 @@
-{% extends 'layout2.html' %}
-
+{% extends "new_layout.html" %}
+{% block title %}See Bin{% endblock %}
+{% block head %}
+  {{ super() }}
+    <style>
+        ::marker {
+  			color: white;
+		}
+		#purpose{
+			background-color: {{ class_colors['purpose'] }};
+			color: black;
+		}
+		#craftsmanship{
+			background-color:  {{ class_colors['craftsmanship'] }};
+			color: black;
+		}
+		#aesthetic{
+			background-color: {{ class_colors['aesthetic'] }};
+			color: black;
+		}
+		#narrative{
+			background-color: {{ class_colors['narrative'] }};
+			color: black;
+		}
+    </style>
+{% endblock %}
+<body>
 {% block content %}
-
-{% if data %}
-<style type="text/css">
-#purpose{
-    background-color: {{ class_colors['purpose'] }}; 
-    color: black;
-}
-#craftsmanship{
-    background-color:  {{ class_colors['craftsmanship'] }};
-    color: black;
-}
-#aesthetic{
-    background-color: {{ class_colors['aesthetic'] }};
-    color: black;
-}
-#narrative{
-    background-color: {{ class_colors['narrative'] }};
-    color: black;
-}
-</style>
-{% endif %}
-
-
-
-    <form action="/setthreshold">
-        <input name="t" placeholder="threshold" value="{{threshold}}">
-        <input type="submit" >
-    </form>
-
-
+<br><br>
 <form method="POST" action="" id="forma">
 	{{ specialForm.csrf_token }}
 	<ol id="list_data">
 		<!-- Displaying Data From Bin -->
 		{% if len_bin_data > 0 %}
 			<hr>
-			<legend class="text-center">Data From bin (uneditable)</legend>
+			<legend style="color: white;" class="text-center">Data From bin (uneditable)</legend>
 			{% for d in data %}
 				<li>
-					<div>
-						<p>
+					<div class="text-white">
+						<p style="color: white;">
 							{{ d[0] }}
 							<br>
 							Class: <span id="{{ d[1] }}">{{ d[1] }}</span>
 							{{d[2]}}
 						</p>
 					</div>
-					<button onClick="this.parentNode.parentNode.removeChild(this.parentNode);">Delete me</button>
+<!--					<button onClick="this.parentNode.parentNode.removeChild(this.parentNode);">Delete me</button>-->
 				</li>
-				
+
 
 			{% endfor %}
-			
+
 			<hr>
 		{% endif %}
-		
-		
 
-	{{ specialForm.proceed(class='btn btn-outline-dark m-4 he')  }}
+
+
+	{{ specialForm.proceed(class='btn btn-primary bg-theme m-4 he')  }}
 	<br>
-	<span>NOTE: Proceeding will add {{ len_data }} news rows to the bin</span>
-			
+	<span style="color: white;">NOTE: Proceeding will update {{ len_bin_data }} rows from the bin</span>
 </form>
 
 
 <script type="text/javascript">
 
-	document.getElementByClass("he")[0].setAttribute("onClick()");
-		document.getElementByClass("he")[0].onClick(s())
+		document.getElementsByClassName("he")[0].onclick = s();
 
 		function s(){
 		//var lits=document.getElementById("list_data").getElementsByTag("li")
@@ -84,7 +78,9 @@
 		//console.log(lits)
 		//window.alert(lits)
 }
-	
+
 </script>
 
 {% endblock %}
+
+</body>

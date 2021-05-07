@@ -49,6 +49,6 @@ def special_form(labels):
 				default   = label,
 				validators= [DataRequired()],
 			))
-	F.proceed   = SubmitField("Proceed")
+	F.proceed   = SubmitField("Update Bin")
 	
 	return F()

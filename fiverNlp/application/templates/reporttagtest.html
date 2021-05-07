@@ -1,428 +1,231 @@
-{% extends 'layout.html' %}
-{% block content %}
-
-<head>
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-  <script type=text/javascript>
-    $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
-  </script>
-  <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
-
-<style>
-    .flex-vs{
-        display: flex;
-        flex-direction: row;
-    }
-    .flex-vs > div{
-        flex: 50%;
-        margin-left: 10px;
-    }
-
-    *{
-		margin: 0;
-		padding: 0;
-		box-sizing: border-box;
-		font-family: Arial;
-
-	}
-	h3{
-		color: grey;
-	}
-
-
-	.section-1{
-		display: flex;
-		padding-right: 40px;
-	}
-
-	.section-1 ul{
-		text-align: right;
-		padding-right: 15%;
-		margin-top: 30px;
-	}
-	.section-1 li{
-		list-style-type: none;
-	}
-	.circle{
-		background-color: #5A49B3;
-		border-radius: 50%;
-		text-align: center;
-		line-height: 80px;
-		vertical-align: middle;
-		color: white;
-		width: 80px;
-		height: 80px;
-		margin: auto;
-	}
-
-    #sementicSimilarities > div{
-        margin-right:5% ;
-
-    }
-
-	.section-3-1{
-		flex: 2;
-	}
-
-	.section-3-2{
-        display: flex;
-        flex-direction: column;
-		flex: 1;
-		text-align: center;
-        justify-content: center;
-	}
-
-
-	.section-3-3{
-		flex: 2;
-	}
-
-	.section-4{
-		display: flex;
-	}
-
-	.section-4 ul{
-		border:1px solid grey;
-		border-radius: 3px;
-		padding: 20px;
-	}
-	.section-4 li{
-		list-style-type: none;
-		margin-top: 10px;
-	}
-
-	.section-4-1{
-		flex: 1;
-		margin-right: 10px;
-        text-align: center;
-	}
-
-	.section-4-2{
-		flex: 1;
-		margin-left: 10px;
-		text-align: center;
-
-	}
-
-	@media screen and (max-width: 768px){
-
-
-		.section-1{
-			flex-direction: column;
-		}
-		.section-4{
-			flex-direction: column;
-		}
-		.section-4-2{
-			margin-top: 20px;
-		}
-		#bar{
-			width: 400px;
-		}
-	}
-
-
-
-</style>
-</head>
+{% extends "new_layout.html" %}
+{% block title %}Reports{% endblock %}
+{% block head %}
+  {{ super() }}
+{% endblock %}
 <body>
+{% block content %}
   <form action="/reporttest" method="POST">
   <input type="hidden" name="id" value="{{report.id}}">
   <input type="hidden" name="type" value="{{report.type}}">
+    <section class="mt-5">
+        <div class='container pt-5'>
+            <div class='row justify-content-center'>
+                <div class='row justify-content-center text-center text-white col-lg-12'>
+                    <h1>Reports</h1>
+                </div>
+                <div class="row col-9 mt-3 justify-content-center">
+                        <div class="row col-12 justify-content-center">
+                            <div class="form-group row justify-content-center m-0 p-0">
+                                <div>
+                                    <label class="text-white mr-4">Title:</label>
+                                    <input type="text" class="input-theme form-control form-control-sm" name="title" id="title" value="{{report.title}}">
+                                </div>
+                                <div class="ml-0 ml-md-3 mt-3 mt-md-0">
+                                      <label class="text-white mr-4">Frequency:</label><br>
+                                      <select class="input-theme form-control form-control-sm" name="frequency">
+                                      {%if report and report.frequency=='Daily'%}
+                                      <option selected>Daily</option>
+                                      <option>Weekly</option>
+                                      <option>Monthly</option>
+                                      {%endif%}
+                                      {%if report and report.frequency=='Weekly'%}
+                                      <option>Daily</option>
+                                      <option selected>Weekly</option>
+                                      <option>Monthly</option>
+                                      {%endif%}
+                                      {%if report and report.frequency=='Monthly'%}
+                                      <option>Daily</option>
+                                      <option>Weekly</option>
+                                      <option selected>Monthly</option>
+                                      {%endif%}
+                                      </select>
 
-<div class="container">
-   <br>
-  <h2>Add Details of New Report</h2>
-  <label for=""> Title </label>
-  <input type="text" class="form-control" name="title" id="title" value="{{report.title}}"><br>
-  <form action="">
-   <div class="flex-vs">
-   <div id="companya"  class="form-group">
-      <label for="">Company A</label>
-      <select name="first" class="form-control">
-        {%for i in companydocuments%}
-        {%if(i.title==report.first)%}
-        <option value="{{i.title}}" selected>{{i.title}}</option>
-        {%else%}
-        <option value="{{i.title}}">{{i.title}}</option>
-        {%endif%}
-        {%endfor%}
-      </select>
-    </div>
+<!--                                    <input type="number" class="input-theme form-control form-control-sm" id="inputTag" placeholder="Value here">-->
+                                </div>
+                                <div class="ml-0 ml-md-3 mt-3 mt-md-0 row text-white">
+                                    <div class="col-12"></div>
+                                    <div class="col-12"></div>
+                                    <div class="col-12 form-check">
+                                        {%if(report and report.up_to_date)%}
+                                          <input class="form-check-input" type="checkbox" value="yes" id="up_to_date" name="up_to_date" checked>
+                                        {%else%}
+                                          <input class="form-check-input" type="checkbox" value="yes" id="up_to_date" name="up_to_date">
+                                        {%endif%}
+                                        <label class="form-check-label ml-2">
+                                            Keep up-to-date
+                                        </label>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-sm bg-theme mt-4">Run Now</button>
+                            </div>
+                        </div>
+                </div>
+                <div class="row col-9 mt-3 justify-content-center">
+                        <div class="row col-12 justify-content-center">
+                            <div class="form-group row justify-content-center m-0 p-0">
+                                <div>
+                                  <label class="text-white mr-4">Company A:</label>
+                                  <select name="first" class="input-theme form-control form-control-sm">
+                                    {%for i in companydocuments%}
+                                    {%if(i.title==report.first)%}
+                                    <option value="{{i.title}}" selected>{{i.title}}</option>
+                                    {%else%}
+                                    <option value="{{i.title}}">{{i.title}}</option>
+                                    {%endif%}
+                                    {%endfor%}
+                                  </select>
+                                </div>
+                                <div class="ml-0 ml-md-3 mt-3 mt-md-0">
+                                  <label class="text-white mr-4">Tag:</label>
+                                  <select name="second" class="input-theme form-control form-control-sm">
+                                    {%for i in tags%}
+                                      {%if(i.title==report.second)%}
+                                      <option value="{{i.title}}" selected>{{i.title}}</option>
+                                      {%else%}
+                                      <option value="{{i.title}}">{{i.title}}</option>
+                                      {%endif%}
+                                    {%endfor%}
+                                  </select>
+                                </div>
+                            </div>
+                        </div>
+                </div>
+                  <div id="vscompanyreport2"  class="container">
+                        <div class="section-1-1">
+                          <select style="width:auto;" class="form-control" onchange="selectOption(this.value)" id='chart'>
+                            {%for i in dimensions%}
+                              {%if(i==chartdimension)%}
+                                <option value="{{i}}" selected>{{i}}</option>
+                              {%else%}
+                                <option value="{{i}}">{{i}}</option>
+                              {%endif%}
+                            {%endfor%}
+                          </select>
+                        </div>
+                        <div class="section-1"><br>
+                        <div id="chartContainer" style="height: 800px; width: 100%;"></div>
+                        </div>
+                      </div>
+            </div>
+        </div>
+    </section>
 
-      <div id="companyb"  class="form-group">
-      <label for="">Tag </label>
-      <select name="second" class="form-control">
-        {%for i in tags%}
-          {%if(i.title==report.second)%}
-          <option value="{{i.title}}" selected>{{i.title}}</option>
-          {%else%}
-          <option value="{{i.title}}">{{i.title}}</option>
-          {%endif%}
-        {%endfor%}
-      </select>
-      </div>
-    </div>
+    <section class="mt-5">
+        <div class='container'>
+            <div class='row'>
+                <div class='col-lg-12'>
+                        <div class="form-group row justify-content-center">
+                            <div class="row col-12 col-md-auto justify-content-center justify-content-md-end">
+                                <label class="text-white mr-4"><h3 class="font-weight-bold m-0 p-0">Semantic Similarity:</h3></label>
+                                <div class="col-10 col-md-auto">
+                                  <select name="dimensions" id="dimension" class="form-control form-control-sm">
+                                      {%for i in dimensions%}
+                                        {%if(i==report.dimension)%}
+                                          <option value="{{i}}" selected>{{i}}</option>
+                                        {%else%}
+                                          <option value="{{i}}">{{i}}</option>
+                                        {%endif%}
+                                      {%endfor%}
+                                  </select>
 
+                                </div>
+                            </div>
+                            <div class="row col-12 col-md-auto justify-content-center justify-content-md-start mt-3 mt-md-0">
+                                <div class="col-4 col-md-auto">
+                                    {%if( report and report.descending)%}
+                                    <label style="color: white;"><input style="margin-right: 10px" name="descending" id="descending" type="checkbox" value="yes" checked>Descending</label>
+                                    {%else%}
+                                    <label style="color: white;"><input style="margin-right: 10px" name="descending" id="descending" type="checkbox" value="yes">Descending</label>
+                                    {%endif%}
+                                </div>
+                                <div class="col-4 col-md-auto">
+                                     {%if report%}
+                                         <input style="width: 50px;" type="text" class="form-control form-control-sm ml-0 ml-md-2"  placeholder="Min" name="range_from" id="range_from" value="{{report.range_from}}">
+                                     {%else%}
+                                         <input style="width: 50px;" type="text" class="form-control form-control-sm ml-0 ml-md-2"  placeholder="Min" name="range_from" id="range_from">
+                                     {%endif%}
+                                </div>
+                                <div class="col-4 col-md-auto">
+                                   {%if report%}
+                                        <input style="width: 50px;" type="text" class="form-control form-control-sm mr-0 mr-md-4"  placeholder="Min" name="range_to" id="range_to" value="{{report.range_to}}">
+                                   {%else%}
+                                        <input style="width: 50px;" type="text" class="form-control form-control-sm mr-0 mr-md-4"  placeholder="Max" name="range_to" id="range_to">
+                                   {%endif%}
+                                </div>
+                                <button class="btn btn-primary btn-sm bg-theme mb-3" onclick="updateClick()" type="button">Update</button>
+                            </div>
+                        </div>
+                </div>
+            </div>
+      </form>
+            <div id="loadhere" class="row justify-content-center text-white">
+             {%for i in sentences%}
+                <div class="row col-10 mt-3 justify-content-center text-white">
+                    <div class="row col-12 col-md-5 m-0 p-0 justify-content-end">
+                           <h3 class="font-weight-bold text-right">{{report.first}}</h3>
+                           <div class="row col-12 justify-content-end">
+                             <form target="_blank" action="/companies/classifier" method="POST">
+                               <input type="hidden" name="title" value="{{report.first}}">
+                               <input type="hidden" name="sentence" value="{{i.sentence1}}">
+                               <a class="text-right" type="button" onclick="this.parentElement.submit()" >{{i.sentence1}}</a><br>
+                             </form>
+                           </div>
+                    </div>
+                    <div class="row col-12 col-md-2">
+                        <div class="col-12 block row justify-content-center m-0 p-0">
+                            <div class="circle">
+                                <p>{{i.similarity}}%</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row col-12 col-md-5 m-0 p-0 justify-content-start text-center mt-3 mt-md-0">
+                       <h3 class="font-weight-bold text-right">{{report.second}}</h3>
+                       <div class="row col-12 justify-content-start">
+                           <form target="_blank" action="/tags/classifier" method="POST">
+                               <input type="hidden" name="title" value="{{report.second}}">
+                               <input type="hidden" name="sentence" value="{{i.sentence2}}">
+                               <a class="text-left" type="button" onclick="this.parentElement.submit()" >{{i.sentence2}}</a><br>
+                           </form>
+                       </div>
+                    </div>
+                </div>
+             {%endfor%}
+                <div id="loadbuttondiv" class='row justify-content-center text-center text-white col-lg-12 mt-3'>
+                    <button class="btn btn-primary bg-theme" id="load" type="button" onclick="loadhere()">Load More</button>
+                </div>
 
-   <div class="flex-vs">
-     <div id="frequently"  class="form-group">
-      <label for="">Keep up to date</label>
-      {%if(report and report.up_to_date)%}
-        <input type="checkbox" name="up_to_date" id="up_to_date" value="yes" checked>
-      {%else%}
-        <input type="checkbox" name="up_to_date" id="up_to_date" value="yes">
-      {%endif%}
-    </div>
+            </div>
+        </div>
+    </section>
 
+    <footer></footer>
 
-     <div id="frequently"  class="form-group">
-      <label for="">Frequency </label>
-      <select name="frequency" class="form-control">
-      {%if report and report.frequency=='Daily'%}
-      <option selected>Daily</option>
-      <option>Weekly</option>
-      <option>Monthly</option>
-      {%endif%}
-      {%if report and report.frequency=='Weekly'%}
-      <option>Daily</option>
-      <option selected>Weekly</option>
-      <option>Monthly</option>
-      {%endif%}
-      {%if report and report.frequency=='Monthly'%}
-      <option>Daily</option>
-      <option>Weekly</option>
-      <option selected>Monthly</option>
-      {%endif%}
-      </select>
-    </div>
-    </div>
-
-
-      <div id="uptoDate" style="margin-top: 35px; display: none" class="checkbox">
-      <label><input style="margin-right: 5px" type="checkbox" value="">Keep-upto-date</label>
-    </div>
-
-    <div style="display:flex; margin-left: 80%">
-    <div style=" margin-top: 2px; align-items: flex-end">
-      {%if 'default: ' not in report.title:%}
-     <button type="button" onclick="deleteClick(this.id)" id="{{ report.id }}" style="color:blueviolet; background-color: inherit; border-color: inherit; border:none"><b>Delete</b></button>
-      {%endif%}
-  </div>
-  <div style=" margin-top: 2px; margin-left: 40px; align-items: flex-end">
-       <button type="submit" style="color:blueviolet; background-color: inherit; border-color: inherit; border:none"><b>Rerun</b></button>
-  </div>
-  </div>
-    <br>
-  </div>
-  <div id="vscompanyreport2"  class="container">
-    <div class="section-1-1">
-      <select onchange="selectOption(this.value)" id='chart'>
-        {%for i in dimensions%}
-          {%if(i==chartdimension)%}
-            <option value="{{i}}" selected>{{i}}</option>
-          {%else%}
-            <option value="{{i}}">{{i}}</option>
-          {%endif%}
-        {%endfor%}
-      </select>
-    </div>
-        		<div class="section-1">
-                <div id="chartContainer" style="height: 800px; width: 100%;"></div>
-        		</div>
-  </div>
-<div id="vscompanyreport"  class="container">
-      		<div class="section-1">
-
-      		</div>
-		<br>
-		<br>
-    <h2>Semantic Similarities</h2>
-    <div id="sementicSimilarities" class="form-group" style="display: flex; flex-direction: row" >
-       <div >
-      <select name="dimensions" id="dimension" class="form-control">
-          {%for i in dimensions%}
-            {%if(i==report.dimension)%}
-              <option value="{{i}}" selected>{{i}}</option>
-            {%else%}
-              <option value="{{i}}">{{i}}</option>
-            {%endif%}
-          {%endfor%}
-
-      </select>
-         </div>
-
-      <div style="margin-top: 5px">
-          <div class="checkbox">
-            {%if( report and report.descending)%}
-            <label><input style="margin-right: 10px" name="descending" id="descending" type="checkbox" value="yes" checked>Descending</label>
-            {%else%}
-            <label><input style="margin-right: 10px" name="descending" id="descending" type="checkbox" value="yes">Descending</label>
-            {%endif%}
-    </div>
-      </div>
-       <div>
-         {%if report%}
-         <input type="text" class="form-control"  placeholder="Min" name="range_from" id="range_from" value="{{report.range_from}}">
-         {%else%}
-         <input type="text" class="form-control"  placeholder="Min" name="range_from" id="range_from">
-         {%endif%}
-       </div>
-         <div>
-           {%if report%}
-           <input type="text" class="form-control"  placeholder="Min" name="range_to" id="range_to" value="{{report.range_to}}">
-           {%else%}
-           <input type="text" class="form-control"  placeholder="Max" name="range_to" id="range_to">
-           {%endif%}
-       </div>
-       <div style=" margin-top: 2px;">
-           <button type="button" onclick="updateClick()" style="color:blueviolet; background-color: inherit; border-color: inherit; border:none"><b>Update</b></button>
-      </div>
-     </div>
-   </form>
-
-     {%for i in sentences%}
-     <div class="section-1">
-       <div class="section-3-1">
-         <form target="_blank" action="/companies/classifier" method="POST">
-           <input type="hidden" name="title" value="{{report.first}}">
-           <input type="hidden" name="sentence" value="{{i.sentence1}}">
-           <h3>{{report.first}}</h3>
-           <a type="button" onclick="this.parentElement.submit()" >{{i.sentence1}}</a><br>
-         </form>
-       </div>
-
-       <div class="section-3-2">
-         <div class="circle">{{i.similarity}}</div><br>
-       </div>
-
-       <div class="section-3-3">
-         <form target="_blank" action="/tags/classifier" method="POST">
-           <input type="hidden" name="title" value="{{i.title2}}">
-           <input type="hidden" name="sentence" value="{{i.sentence2}}">
-           <h3>{{i.title2}}</h3>
-           <a type="button" onclick="this.parentElement.submit()" >{{i.sentence2}}</a><br>
-         </form>
-       </div>
-     </div>
-     <br>
-     {%endfor%}
-     <button id="load" type="button" onclick="loadMore()">load more</button>
-
-</body>
-
-
-
-
+    <script src='https://code.jquery.com/jquery-3.4.1.slim.min.js' integrity='sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n' crossorigin='anonymous'></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script type=text/javascript>
+      $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+    </script>
+    <script src='https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js' integrity='sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo' crossorigin='anonymous'></script>
+    <script src='https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js' integrity='sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6' crossorigin='anonymous'></script>
+    <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
 <script>
 
+
 var offset = 21;
-function loadMore(){
+
+function loadhere(){
     $.post( "/loadmore", { id:{{report.id}},offset: offset})
     .done(function( data ) {
-        document.getElementById("load").remove();
-        s = data['data']
+                s = data['data']
+                document.getElementById("loadbuttondiv").remove();
+
         for(i=0;i<s.length;i++){
-
-            var br = document.createElement("br");
-            var section1 = document.createElement("div");
-            section1.setAttribute("class","section-1");
-            var section31 = document.createElement("div");
-            section31.setAttribute("class","section-3-1");
-            var section32 = document.createElement("div");
-            section32.setAttribute("class","section-3-2");
-            var section33 = document.createElement("div");
-            section33.setAttribute("class","section-3-3");
-
-
-            var a1 = document.createElement("a");
-            a1.setAttribute("type", "button");
-            a1.setAttribute("onclick", "this.parentElement.submit()");
-            a1.appendChild(document.createTextNode(s[i]["sentence1"]));
-
-
-
-
-            var title = document.createElement("input");
-            title.setAttribute("type", "hidden");
-            title.setAttribute("name", "title");
-            title.setAttribute("value", "{{report.first}}");
-
-            var sentence = document.createElement("input");
-            sentence.setAttribute("type", "hidden");
-            sentence.setAttribute("name", "sentence");
-            sentence.setAttribute("value", s[i]["sentence1"]);
-
-            var h1 = document.createElement("H3");
-            h1.appendChild(document.createTextNode("{{report.first}}"));
-
-
-            var form1 = document.createElement("form");
-            form1.setAttribute("method", "post");
-            form1.setAttribute("target", "_blank");
-            form1.setAttribute("action", "/companies/classifier");
-
-            form1.appendChild(title);
-            form1.appendChild(sentence);
-            form1.appendChild(h1);
-            form1.appendChild(a1);
-
-            var center = document.createElement("div");
-            center.setAttribute("class","circle");
-            center.appendChild(document.createTextNode(s[i]["similarity"]));
-            section32.appendChild(center);
-
-
-
-
-            var a2 = document.createElement("a");
-            a2.setAttribute("type", "button");
-            a2.setAttribute("onclick", "this.parentElement.submit()");
-            a2.appendChild(document.createTextNode(s[i]["sentence2"]));
-
-            var title = document.createElement("input");
-            title.setAttribute("type", "hidden");
-            title.setAttribute("name", "title");
-            title.setAttribute("value", s[i]["title"]);
-            var sentence = document.createElement("input");
-            sentence.setAttribute("type", "hidden");
-            sentence.setAttribute("name", "sentence");
-            sentence.setAttribute("value", s[i]["sentence2"]);
-            var h2 = document.createElement("H3");
-            h2.appendChild(document.createTextNode(s[i]["title"]));
-
-            var form2 = document.createElement("form");
-            form2.setAttribute("method", "post");
-            form2.setAttribute("target", "_blank");
-            form2.setAttribute("action", "/tags/classifier");
-
-            form2.appendChild(title);
-            form2.appendChild(sentence);
-            form2.appendChild(h2);
-            form2.appendChild(a2);
-
-
-
-            section31.appendChild(form1);
-            section33.appendChild(form2);
-            section1.appendChild(section31);
-            section1.appendChild(section32);
-            section1.appendChild(section33);
-
-            document.getElementById('vscompanyreport').appendChild(br);
-            document.getElementById('vscompanyreport').appendChild(section1);
+                $("#loadhere").append('<div class="row col-10 mt-3 justify-content-center text-white"><div class="row col-12 col-md-5 m-0 p-0 justify-content-end"><h3 class="font-weight-bold text-right">{{report.first}}</h3><div class="row col-12 justify-content-end"><form target="_blank" action="/companies/classifier" method="POST"><input type="hidden" name="title" value="{{report.first}}"><input type="hidden" name="sentence" value="'+s[i]["sentence1"]+'"><a class="text-right" type="button" onclick="this.parentElement.submit()" >'+s[i]["sentence1"]+'</a><br></form></div></div><div class="row col-12 col-md-2"><div class="col-12 block row justify-content-center m-0 p-0"><div class="circle"><p>'+s[i]["similarity"]+'%</p></div></div></div><div class="row col-12 col-md-5 m-0 p-0 justify-content-start text-center mt-3 mt-md-0"><h3 class="font-weight-bold text-right">{{report.second}}</h3><div class="row col-12 justify-content-start"><form target="_blank" action="/tags/classifier" method="POST"><input type="hidden" name="title" value="{{report.second}}"><input type="hidden" name="sentence" value="'+s[i]["sentence2"]+'"><a class="text-left" type="button" onclick="this.parentElement.submit()" >'+s[i]["sentence2"]+'</a><br></form></div></div></div>');
         }
-        var br = document.createElement("br");
-        var b = document.createElement("button");
-        b.setAttribute("type", "button");
-        b.setAttribute("id", "load");
-        b.setAttribute("onclick", "loadMore()");
-        b.appendChild(document.createTextNode("load more"));
-        document.getElementById('vscompanyreport').appendChild(br);
-        document.getElementById('vscompanyreport').appendChild(b);
+        offset+=20;
+        $("#loadhere").append('<div id="loadbuttondiv" class="row justify-content-center text-center text-white col-lg-12 mt-3"><button class="btn btn-primary bg-theme" id="load" type="button" onclick="loadhere()">Load More</button></div>')
     });
-
-    offset+=20;
 }
 
 
@@ -443,14 +246,6 @@ function updateClick(){
       }
     });
   }
-  function deleteClick(id) {
-    window.location.href = "/deletereport?id="+id;
-  }
-
-
-
-
-
 
   window.onload = function(){
     chart = getChart();
@@ -502,11 +297,8 @@ function updateClick(){
   		alert(  e.dataSeries.type+ ", dataPoint { label:" + e.dataPoint.label + ", y: "+ e.dataPoint.y + " }" );
   	}
 
-
-
-
 </script>
 
-
-
 {% endblock %}
+</body>
+</html>

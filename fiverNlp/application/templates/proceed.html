@@ -1,17 +1,37 @@
-{% extends 'layout2.html' %}
-
+{% extends "new_layout.html" %}
+{% block title %}Train from Bin{% endblock %}
+{% block head %}
+  {{ super() }}
+{% endblock %}
+<body>
 {% block content %}
-	
-	<h1 class="mx-4">Choose an Option</h1>
+
+    <div  class="text-white">
+        <br>
+        <br>
+        <br>
+        <br>
+        <br>
+        <div>
+              {% for category, message in get_flashed_messages(with_categories=true) %}
+                {% if message %}
+                  <div class="alert alert-{{ category }}">
+                    {{ message }}
+                  </div>
+                {% endif %}
+              {% endfor %}
+                </div>
+    <h1 class="mx-4">Choose an Option</h1>
 	<ul class="mx-4">
 		<li>
 			<button id="trainingButton" class="btn btn-link">Train Model on data from bin</button>
 			<p id="guideMsg" style="color: red"></p>
 		</li>
 	</ul>
-	<span class="mx-4">NOTE: The bin will downloaded after training has completed, It is advised to clear the bin everytime after training to prevent training over the same data multiple times</span>
+	<span class="mx-4">NOTE: Please Disable Popup Blocker. The bin will downloaded after training has completed, It is advised to clear the bin everytime after training to prevent training over the same data multiple times</span>
 
 	<a id="download" href="{{ url_for('download_file') }}"></a>
+    </div>
 
 	<script type="text/javascript">
 		
@@ -23,8 +43,8 @@
 					console.log(response)
 					console.log("Downlading");
 					console.log($("#download").attr("href"));
-					window.open($("#download").attr("href"));		
-					window.open("{{ url_for('home') }}");
+					window.open($("#download").attr("href"));
+					window.open("{{ url_for('proceed') }}");
 				}
 				else if (response == "less than 70"){
 					console.log(response)
@@ -41,5 +61,12 @@
 
 
 	</script>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script type=text/javascript>
+      $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
 
 {% endblock %}
+</body>
