@@ -24,7 +24,7 @@
                         <tbody>
                           {%for i in companies%}
                               <tr>
-                                <td ><a onclick="editCompany(this.id)" id="{{i.title}}" href="#">{{i.title}}</a></td>
+                                <td ><a onclick="editCompany(this.id)" id="{{i.title}}" style="font-weight: bold;" href="#">{{i.title}}</a></td>
                                 {%if i.query_score%}
                                 <td>{{"{:.1f}".format(eval(i.query_score).get('all').get('score'))}}%</td>
                                 {%else%}
