@@ -1310,6 +1310,13 @@ def save_classifier(type):
 @app.route('/<type>/classifier', methods=['POST'])
 def classifier(type):
     sentences = None
+    temp_colors = ClassColors.query.filter_by(id=1).first()
+    if temp_colors:
+        colors = {'purpose': temp_colors.purpose, 'craftsmanship': temp_colors.craftsmanship,
+                  'aesthetic': temp_colors.aesthetic, 'narrative':temp_colors.narrative}
+    else:
+        colors = {'purpose': '', 'craftsmanship': '',
+                  'aesthetic': '', 'narrative': ''}
     title = request.form.get('title')
     id = request.form.get('query_document_id')
     highlight_sentence = request.form.get('sentence')
@@ -1373,11 +1380,8 @@ def classifier(type):
         return 'error 1'
     dimensions = ["aesthetic", "narrative", "craftsmanship", "purpose"]
     return render_template('classifier.html', sentences=sentences, dimensions=dimensions, title=title,
-                           highlight_sentence=highlight_sentence, class_colors=class_colors, id=id,
+                           highlight_sentence=highlight_sentence, class_colors=colors, id=id,
                            clean_text=clean_text)
-
-
-
 
 @app.route('/industrytags/')
 def industry_tags_route():
