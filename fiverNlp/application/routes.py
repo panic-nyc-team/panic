@@ -149,23 +149,14 @@ def month():
 
 
 def work(fetch_frequency):
-    searchqueries = SearchQueryModel.query.filter_by(fetch_frequency=fetch_frequency, status='playing').all()
+    searchqueries = SuperSearchQueryModel.query.filter_by(fetch_frequency=fetch_frequency, status='playing').all()
     if (searchqueries == []):
         print('Empty', file=sys.stderr)
         return None
 
     for searchquery in searchqueries:
         try:
-            print(searchquery.title, file=sys.stderr)
-            temp = SearchQueryModel(title=searchquery.title, query_string=searchquery.query_string,
-                                    market_language_code=searchquery.market_language_code,
-                                    country_code=searchquery.country_code, site=searchquery.site,
-                                    site_type=searchquery.site_type, characters=searchquery.characters, freshness=2,
-                                    fetch_frequency=searchquery.fetch_frequency)
-            search_query_documents_background(temp)
-            db.session.commit()
-            db.session.expunge_all()
-            db.session.close()
+            search_query_documents_background(searchquery.id)
         except Exception as e:
             print('error 123', e)
 
@@ -174,9 +165,6 @@ def report_word(frequency):
     reports = ReportModel.query.filter_by(frequency=frequency, up_to_date=True).all()
     if (len(reports) > 0):
         for i in reports:
-            default = False
-            if ('default: ' in i.title):
-                default = True
             report_background(i.id, i.type, i.first, i.second, i.range_from, i.range_to)
 
 
