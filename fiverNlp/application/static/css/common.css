@@ -1,6 +1,26 @@
+@font-face {
+    font-family: "themeFont";
+    src: url("Gotham/GothamHTF-Book/GothamHTF-Book.ttf");
+}
+@font-face {
+    font-family: "boldFont";
+    src: url("Gotham/GothamHTF-Bold/GothamHTF-Bold.ttf");
+}
+@font-face {
+    font-family: "lightFont";
+    src: url("Gotham/GothamHTF-Light/GothamHTF-Light.ttf");
+}
 body{
     background: #2E2E2E url("dots.svg") no-repeat fixed right top;
+    font-family: "themeFont";
 }
+body h1,h2,h3,h4,h5,th{
+    font-family: "boldFont";
+}
+body .tag{
+    font-family: "lightFont";
+}
+
 .table{
     color: white;
 }

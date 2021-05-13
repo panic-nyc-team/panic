@@ -1,0 +1,12 @@
+/* Webfont: GothamHTF-Light */@font-face {
+    font-family: 'GothamHTF-Light';
+    src: url('GothamHTF-Light1.eot'); /* IE9 Compat Modes */
+    src: url('GothamHTF-Light1.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+         url('GothamHTF-Light1.woff') format('woff'), /* Modern Browsers */
+         url('GothamHTF-Light1.ttf') format('truetype'), /* Safari, Android, iOS */
+         url('GothamHTF-Light1.svg#GothamHTF-Light') format('svg'); /* Legacy iOS */
+    font-style: normal;
+    font-weight: normal;
+    text-rendering: optimizeLegibility;
+}
+

@@ -2662,6 +2662,13 @@ def report_company_test():
         companydocuments = CompanyDocumentModel.query.all()
         searchqueries = SuperSearchQueryModel.query.all()
         tags = IndustryTags.query.all()
+        temp_colors = ClassColors.query.filter_by(id=1).first()
+        if temp_colors:
+            colors = {'overall': temp_colors.overall,'purpose': temp_colors.purpose, 'craftsmanship': temp_colors.craftsmanship,
+                      'aesthetic': temp_colors.aesthetic, 'narrative': temp_colors.narrative}
+        else:
+            colors = {'overall': '', 'purpose': '', 'craftsmanship': '',
+                      'aesthetic': '', 'narrative': ''}
         all_sentences = SentenceModel.query.filter(SentenceModel.f_id == id).all()
         sentences = []
         for i in all_sentences:
@@ -2790,7 +2797,7 @@ def report_company_test():
         return render_template(page_url, companydocuments=companydocuments, report=report, dimensions=dimensions,
                                sentences=result_sentences, searchqueries=searchqueries, tags=tags, score1=score1,
                                score2=score2, providers=providers, tagdata=tag_data, chartdimension=chartdimension
-                               , date_from=date_from, date_to=date_to)
+                               , date_from=date_from, date_to=date_to,color=colors)
 
     # except Exception as e:
     #     print(e,file=sys.stderr)

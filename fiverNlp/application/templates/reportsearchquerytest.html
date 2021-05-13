@@ -102,67 +102,136 @@
                             </div>
                         </div>
                 </div>
-                <div class="row col-9 mt-3 justify-content-center text-white">
+                <div class="row col-12 mt-3 justify-content-center text-white pt-5">
+                    <div class="row col-12 col-md-6 m-0 p-0 justify-content-center">
+                        <div class="row col-12 justify-content-center">
+                            <h5 class="font-weight-bold pb-3 text-center">Effective Scores (vs Default media)</h5>
+                        </div>
                     {%if score1:%}
-                                    <div class="row col-12 col-md-6 m-0 p-0 justify-content-center">
-                                    <h3 class="font-weight-bold">Effective Scores</h3>
-                                    <div class="row col-8 justify-content-end text-secondary">
-                                        <p>Overall: <span class="font-weight-bold">{{"{:.1f}".format(score1.get('all').get('score'))}} % ({{score1.get('all').get('num')}}/{{score1.get('all').get('total')}}) </span></p>
-                                    </div>
-                                    <div class="col-4"></div>
-                                    <div class="row col-8 justify-content-end text-primary">
-                                        <p>Purpose: <span class="font-weight-bold">{{"{:.1f}".format(score1.get('purpose').get('score'))}} % ({{score1.get('purpose').get('num')}}/{{score1.get('purpose').get('total')}})</span></p>
-                                    </div>
-                                    <div class="col-4"></div>
-                                    <div class="row col-8 justify-content-end text-success">
-                                        <p>Craftsmanship: <span class="font-weight-bold">{{"{:.1f}".format(score1.get('craftsmanship').get('score'))}} % ({{score1.get('craftsmanship').get('num')}}/{{score1.get('craftsmanship').get('total')}})</span></p>
-                                    </div>
-                                    <div class="col-4"></div>
-                                    <div class="row col-8 justify-content-end text-warning">
-                                        <p>Aesthetic: <span class="font-weight-bold">{{"{:.1f}".format(score1.get('aesthetic').get('score'))}} % ({{score1.get('aesthetic').get('num')}}/{{score1.get('aesthetic').get('total')}})</span></p>
-                                    </div>
-                                    <div class="col-4"></div>
-                                    <div class="row col-8 justify-content-end text-danger">
-                                        <p>Narrative: <span class="font-weight-bold">{{"{:.1f}".format(score1.get('narrative').get('score'))}} % ({{score1.get('narrative').get('num')}}/{{score1.get('narrative').get('total')}})</span></p>
-                                    </div>
-                                    <div class="col-4"></div>
-                                </div>
-                    {%endif%}
-                    {%if providers:%}
-                            <div class="row col-12 col-md-6 m-0 p-0 justify-content-center text-center">
-                                <h3 class="font-weight-bold">Top Publishers</h3>
-                                {%if providers[0:]:%}
-                                <div class="row col-8 justify-content-end" style="opacity: 1;">
-                                    <p><span class="font-weight-bold">{{providers[0][0]}}: {{"{:.1f}".format(providers[0][1])}}%</span></p>
-                                </div>
-                                <div class="col-4"></div>
-                                {%endif%}
-                                {%if providers[1:]:%}
-                                <div class="row col-8 justify-content-end" style="opacity: 0.8;">
-                                    <p><span class="font-weight-bold">{{providers[1][0]}}: {{"{:.1f}".format(providers[1][1])}}%</span></p>
-                                </div>
-                                <div class="col-4"></div>
-                                {%endif%}
-                                {%if providers[2:]:%}
-                                <div class="row col-8 justify-content-end" style="opacity: 0.6;">
-                                    <p><span class="font-weight-bold">{{providers[2][0]}}: {{"{:.1f}".format(providers[2][1])}}%</span></p>
-                                </div>
-                                <div class="col-4"></div>
-                                {%endif%}
-                                {%if providers[3:]:%}
-                                <div class="row col-8 justify-content-end" style="opacity: 0.4;">
-                                    <p><span class="font-weight-bold">{{providers[3][0]}}: {{"{:.1f}".format(providers[3][1])}}%</span></p>
-                                </div>
-                                <div class="col-4"></div>
-                                {%endif%}
-                                {%if providers[4:]:%}
-                                <div class="row col-8 justify-content-end" style="opacity: 0.2;">
-                                    <p><span class="font-weight-bold">{{providers[4][0]}}: {{"{:.1f}".format(providers[4][1])}}%</span></p>
-                                </div>
-                                <div class="col-4"></div>
-                                {%endif%}
+                        <div class="row col-6 m-0 p-0">
+                            <div class="row col justify-content-center mb-2">
+                                <h4>{{report.first}}</h4>
                             </div>
+                            <div class="col-4"></div>
+                            <div class="row col-8 justify-content-end text-secondary mb-2">
+                                <div class="row col-12 justify-content-center">
+                                    <p style="color: {{color['overall']}}" class="m-0 p-0 font-weight-bold">Overall: {{"{:.1f}".format(score1.get('all').get('score'))}} % ({{score1.get('all').get('num')}}/{{score1.get('all').get('total')}})</p>
+                                </div>
+                            </div>
+                            <div class="col-4"></div>
+                            <div class="row col-8 justify-content-end text-secondary mb-2">
+                                <div class="row col-12 justify-content-center">
+                                    <p style="color: {{color['purpose']}}" class="m-0 p-0 font-weight-bold">Purpose: {{"{:.1f}".format(score1.get('purpose').get('score'))}} % ({{score1.get('purpose').get('num')}}/{{score1.get('purpose').get('total')}})</p>
+                                </div>
+                            </div>
+                            <div class="col-4"></div>
+                            <div class="row col-8 justify-content-end text-secondary mb-2">
+                                <div class="row col-12 justify-content-center">
+                                    <p style="color: {{color['craftsmanship']}}" class="m-0 p-0 font-weight-bold">Craftsmanship: {{"{:.1f}".format(score1.get('craftsmanship').get('score'))}} % ({{score1.get('craftsmanship').get('num')}}/{{score1.get('craftsmanship').get('total')}})</p>
+                                </div>
+                            </div>
+                            <div class="col-4"></div>
+                            <div class="row col-8 justify-content-end text-secondary mb-2">
+                                <div class="row col-12 justify-content-center">
+                                    <p style="color: {{color['aesthetic']}}" class="m-0 p-0 font-weight-bold">Aesthetic: {{"{:.1f}".format(score1.get('aesthetic').get('score'))}} % ({{score1.get('aesthetic').get('num')}}/{{score1.get('aesthetic').get('total')}})</p>
+                                </div>
+                            </div>
+                            <div class="col-4"></div>
+                            <div class="row col-8 justify-content-end text-secondary mb-2">
+                                <div class="row col-12 justify-content-center">
+                                    <p style="color: {{color['narrative']}}" class="m-0 p-0 font-weight-bold">Narrative: {{"{:.1f}".format(score1.get('narrative').get('score'))}} % ({{score1.get('narrative').get('num')}}/{{score1.get('narrative').get('total')}})</p>
+                                </div>
+                            </div>
+                            <div class="col-4"></div>
+                        </div>
                     {%endif%}
+
+                    </div>
+
+                    <div class="row col-12 col-md-6 m-0 p-0 justify-content-center">
+                        <div class="row col-10 justify-content-center">
+                            <h5 class="font-weight-bold pb-3 text-center">Top Matching Search Media Providers</h5>
+                        </div>
+                    {%if providers[0]:%}
+                        <div class="row col-6 m-0 p-0">
+                            <div class="row col justify-content-center mb-2">
+                                <h4>{{report.first}}</h4>
+                            </div>
+                            <div class="col-4"></div>
+                            {%if providers[0:]:%}
+                            <div class="row col-8 justify-content-end text-secondary mb-2">
+                                <div class="row col-12 justify-content-center">
+                                    <p class="m-0 p-0 font-weight-bold">{{providers[0][0]}}: {{"{:.1f}".format(providers[0][1])}}%</p>
+                                </div>
+                            </div>
+                            {%else%}
+                            <div class="row col-8 justify-content-end text-secondary mb-2">
+                                <div class="row col-12 justify-content-center">
+                                    <p class="m-0 p-0 font-weight-bold">Provider Not Available</p>
+                                </div>
+                            </div>
+                            {%endif%}
+                            <div class="col-4"></div>
+                            {%if providers[1:]:%}
+                            <div class="row col-8 justify-content-end text-secondary mb-2">
+                                <div class="row col-12 justify-content-center">
+                                    <p class="m-0 p-0 font-weight-bold">{{providers[1][0]}}: {{"{:.1f}".format(providers[1][1])}}%</p>
+                                </div>
+                            </div>
+                            {%else%}
+                            <div class="row col-8 justify-content-end text-secondary mb-2">
+                                <div class="row col-12 justify-content-center">
+                                    <p class="m-0 p-0 font-weight-bold">Provider Not Available</p>
+                                </div>
+                            </div>
+                            {%endif%}
+                            <div class="col-4"></div>
+                            {%if providers[2:]:%}
+                            <div class="row col-8 justify-content-end text-secondary mb-2">
+                                <div class="row col-12 justify-content-center">
+                                    <p class="m-0 p-0 font-weight-bold">{{providers[2][0]}}: {{"{:.1f}".format(providers[2][1])}}%</p>
+                                </div>
+                            </div>
+                            {%else%}
+                            <div class="row col-8 justify-content-end text-secondary mb-2">
+                                <div class="row col-12 justify-content-center">
+                                    <p class="m-0 p-0 font-weight-bold">Provider Not Available</p>
+                                </div>
+                            </div>
+                            {%endif%}
+                            <div class="col-4"></div>
+                            {%if providers[3:]:%}
+                            <div class="row col-8 justify-content-end text-secondary mb-2">
+                                <div class="row col-12 justify-content-center">
+                                    <p class="m-0 p-0 font-weight-bold">{{providers[3][0]}}: {{"{:.1f}".format(providers[3][1])}}%</p>
+                                </div>
+                            </div>
+                            {%else%}
+                            <div class="row col-8 justify-content-end text-secondary mb-2">
+                                <div class="row col-12 justify-content-center">
+                                    <p class="m-0 p-0 font-weight-bold">Provider Not Available</p>
+                                </div>
+                            </div>
+                            {%endif%}
+                            <div class="col-4"></div>
+                            {%if providers[4:]:%}
+                            <div class="row col-8 justify-content-end text-secondary mb-2">
+                                <div class="row col-12 justify-content-center">
+                                    <p class="m-0 p-0 font-weight-bold">{{providers[4][0]}}: {{"{:.1f}".format(providers[4][1])}}%</p>
+                                </div>
+                            </div>
+                            {%else%}
+                            <div class="row col-8 justify-content-end text-secondary mb-2">
+                                <div class="row col-12 justify-content-center">
+                                    <p class="m-0 p-0 font-weight-bold">Provider Not Available</p>
+                                </div>
+                            </div>
+                            {%endif%}
+                            <div class="col-4"></div>
+                        </div>
+                    {%endif%}
+
+                    </div>
                 </div>
             </div>
         </div>
