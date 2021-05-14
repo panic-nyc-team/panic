@@ -2,6 +2,15 @@
 {% block title %}Reports{% endblock %}
 {% block head %}
   {{ super() }}
+<style>
+    .centered {
+  position: absolute;
+  top: 33px;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+</style>
+
 {% endblock %}
 <body>
 {% block content %}
@@ -300,8 +309,9 @@
                     </div>
                     <div class="row col-12 col-md-2">
                         <div class="col-12 block row justify-content-center m-0 p-0">
-                            <div class="circle">
-                                <p>{{i.similarity}}%</p>
+                            <div>
+                                <img src="static/images/Oval.png" alt="oval" style="width:100%; position: relative;">
+                                <div class="centered font-weight-bold" style="color: black;">{{i.similarity}}%</div>
                             </div>
                         </div>
                     </div>
