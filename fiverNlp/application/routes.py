@@ -112,16 +112,13 @@ class_colors = load_classColors()
 
 sentence_model = SentenceTransformer('distilbert-base-nli-stsb-mean-tokens')
 
-files = glob.glob('static/excel/*')
-for f in files:
-    os.remove(f)
 
-
-@tl.job(interval=datetime.timedelta(minutes=1))
+@tl.job(interval=datetime.timedelta(minutes=300))
 def day():
     files = glob.glob('static/excel/*')
     for f in files:
         os.remove(f)
+
     work('Day')
     report_word('Daily')
 
