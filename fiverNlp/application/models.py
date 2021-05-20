@@ -19,6 +19,9 @@ class CompanyDocumentModel(db.Model):
     query_score = db.Column(db.Text)
     run_query_score = db.Column(db.Boolean)
     date_created = db.Column(db.DateTime(), index=True, default=datetime.datetime.now(tz))
+    # sentiment = db.Column(db.Float)
+    # polarity = db.Column(db.String(30))
+    # emotions = db.Column(db.Text)
 
     @classmethod
     def get_rows(cls):
@@ -41,9 +44,6 @@ class CompanyDocumentModel(db.Model):
 class SearchQueryDocumentModel(db.Model):
     __tablename__ = 'searchquerydocument'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    # __table_args__ = (
-    #     db.UniqueConstraint('url', 'f_title'),
-    # )
     title = db.Column(db.String(255))
     clean_text = db.Column(db.Text)
     classified_sentences = db.Column(db.Text)
@@ -53,8 +53,10 @@ class SearchQueryDocumentModel(db.Model):
     image_url = db.Column(db.Text)
     date = db.Column(db.String(255))
     f_title = db.Column(db.String(255))
-    # new
     date_created = db.Column(db.DateTime(), index=True, default=datetime.datetime.now(tz))
+    sentiment = db.Column(db.Float)
+    polarity = db.Column(db.String(30))
+    emotions = db.Column(db.Text)
 
     @classmethod
     def deleteall(cls, f_title):
@@ -90,6 +92,10 @@ class ArbitraryDocumentModel(db.Model):
     industry_tags = db.Column(db.String(250))
     # new
     date_created = db.Column(db.DateTime(), index=True, default=datetime.datetime.now(tz))
+
+    # sentiment = db.Column(db.Float)
+    # polarity = db.Column(db.String(30))
+    # emotions = db.Column(db.Text)
 
     @classmethod
     def delete(cls, title):
@@ -175,7 +181,9 @@ class SentenceTextModel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     f_id = db.Column(db.Integer)
     sentence = db.Column(db.Text)
-
+    sentiment = db.Column(db.Float)
+    polarity = db.Column(db.String(30))
+    emotions = db.Column(db.Text)
     @classmethod
     def delete(cls, f_id):
         try:

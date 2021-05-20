@@ -2,6 +2,8 @@ import traceback
 import random
 import openpyxl
 import glob
+from textblob import TextBlob
+import text2emotion as te
 
 from dateutil.relativedelta import relativedelta
 from flask import Flask, render_template, request, url_for, flash, send_from_directory, send_file, jsonify
@@ -112,6 +114,55 @@ class_colors = load_classColors()
 
 sentence_model = SentenceTransformer('distilbert-base-nli-stsb-mean-tokens')
 
+
+def get_sentiment(text):
+    blob = TextBlob(text)
+    sentiment = blob.sentiment.polarity
+    if sentiment > .1:
+        polarity = "Positive"
+    elif sentiment < -.1:
+        polarity = "Negative"
+    else:
+        polarity = "Neutral"
+    return polarity, sentiment
+
+fl = 0
+
+@tl.job(interval=datetime.timedelta(seconds=10))
+def mints():
+    global fl
+    print(fl)
+    if fl == 0:
+        fl = 1
+        docs = SearchQueryDocumentModel.query.all()
+        for d in docs:
+            if d.clean_text:
+                polarity, sentiment = get_sentiment(d.clean_text)
+                temp_emotions = te.get_emotion(d.clean_text)
+                emotions = {}
+                if temp_emotions:
+                    for key in temp_emotions:
+                        if temp_emotions[key] != 0.0:
+                            emotions[key] = temp_emotions[key]
+                d.sentiment = sentiment
+                d.polarity = polarity
+                d.emotions = str(emotions)
+                print(polarity)
+        sentences = SentenceTextModel.query.all()
+        for s in sentences:
+            if s.sentence:
+                polarity, sentiment = get_sentiment(s.sentence)
+                temp_emotions = te.get_emotion(s.sentence)
+                emotions = {}
+                if temp_emotions:
+                    for key in temp_emotions:
+                        if temp_emotions[key] != 0.0:
+                            emotions[key] = temp_emotions[key]
+                s.sentiment = sentiment
+                s.polarity = polarity
+                s.emotions = str(emotions)
+                print(polarity)
+        db.session.commit()
 
 @tl.job(interval=datetime.timedelta(minutes=300))
 def day():
@@ -353,6 +404,7 @@ def train_model(retrain):
         return "indexError"
     except Exception as e:
         print(e)
+
 
 @app.route("/restrat_model", methods=[POST])
 def restart_model():
@@ -649,24 +701,41 @@ def export_result():
             sentences = SentenceModel.query.filter_by(f_id=report.id).all()
             sentence_text = {}
             for i in SentenceTextModel.query.filter_by(f_id=report.id).all():
-                sentence_text[i.id] = i.sentence
+                if not i.sentence:
+                    continue
+                try:
+                    polarity, sentiment = get_sentiment(i.sentence)
+                    temp_emotions = te.get_emotion(i.sentence)
+                    emotions = {}
+                    if temp_emotions:
+                        for key in temp_emotions:
+                            if temp_emotions[key] != 0.0:
+                                emotions[key] = temp_emotions[key]
+                    sentence_text[i.id] = {'text': i.sentence, 'polarity': polarity, 'emotions': emotions}
+                except Exception as e:
+                    print(e)
             if (report.type == 'vscompany'):
+                c1 = CompanyDocumentModel.query.filter_by(title=report.first).first()
+                c2 = CompanyDocumentModel.query.filter_by(title=report.second).first()
                 for s in sentences:
-                    c1 = CompanyDocumentModel.query.filter_by(title=report.first).first()
-                    c2 = CompanyDocumentModel.query.filter_by(title=report.second).first()
                     if c1 and c2:
                         try:
-                            data.append({'s1': {'text': sentence_text.get(int(s.sentence1)), 'parent_title': c1.title
-                                , 'parent_url': url_for('edit_company', title=c1.title, _external=True)}
-                                            ,
-                                         's2': {'text': sentence_text.get(int(s.sentence2)), 'parent_title': c2.title
-                                             , 'parent_url': url_for('edit_company', title=c2.title, _external=True)}
-                                            , 'similarity_dimension': s.dimension, 'similarity': s.similarity})
+                            s1 = sentence_text.get(int(s.sentence1))
+                            s2 = sentence_text.get(int(s.sentence2))
+                            data.append({'s1': {'text': s1.get('text'),
+                                                'polarity': s1.get('polarity'),
+                                                'emotions': s1.get('emotions'),
+                                                'parent_title': c1.title,
+                                                'parent_url': url_for('edit_company', title=c1.title, _external=True)},
+                                         's2': {'text': s2.get('text'), 'polarity': s2.get('polarity'),
+                                                'emotions': s2.get('emotions'), 'parent_title': c2.title,
+                                                'parent_url': url_for('edit_company', title=c2.title, _external=True)},
+                                         'similarity_dimension': s.dimension, 'similarity': s.similarity})
                         except:
                             pass
             elif report.type == 'vssearchquery':
+                c1 = CompanyDocumentModel.query.filter_by(title=report.first).first()
                 for s in sentences:
-                    c1 = CompanyDocumentModel.query.filter_by(title=report.first).first()
                     c2 = NewDocumentModel.query.filter_by(f_id=s.id2).first()
                     if date_checkbox:
                         if c1 and c2:
@@ -677,10 +746,12 @@ def export_result():
                                 continue
                             if published and start_date <= published <= end_date:
                                 try:
+                                    s1 = sentence_text.get(int(s.sentence1))
+                                    s2 = sentence_text.get(int(s.sentence2))
                                     data.append(
-                                        {'s1': {'text': sentence_text.get(int(s.sentence1)), 'parent_title': c1.title
+                                        {'s1': {'text': s1.get('text'), 'polarity': s1.get('polarity'), 'emotions': s1.get('emotions'), 'parent_title': c1.title
                                             , 'parent_url': url_for('edit_company', title=c1.title, _external=True)}
-                                            , 's2': {'text': sentence_text.get(int(s.sentence2)), 'url': c2.url,
+                                            , 's2': {'text': s2.get('text'), 'polarity': s2.get('polarity'), 'emotions': s2.get('emotions'), 'url': c2.url,
                                                      'parent_title': c2.title
                                             , 'parent_url': url_for('edit_search_query_document', id=s.id2,
                                                                     _external=True)
@@ -694,10 +765,12 @@ def export_result():
                     else:
                         if c1 and c2:
                             try:
+                                s1 = sentence_text.get(int(s.sentence1))
+                                s2 = sentence_text.get(int(s.sentence2))
                                 data.append(
-                                    {'s1': {'text': sentence_text.get(int(s.sentence1)), 'parent_title': c1.title
+                                    {'s1': {'text': s1.get('text'), 'polarity': s1.get('polarity'), 'emotions': s1.get('emotions'), 'parent_title': c1.title
                                         , 'parent_url': url_for('edit_company', title=c1.title, _external=True)}
-                                        , 's2': {'text': sentence_text.get(int(s.sentence2)), 'url': c2.url,
+                                        , 's2': {'text': s2.get('text'), 'polarity': s2.get('polarity'), 'emotions': s2.get('emotions'), 'url': c2.url,
                                                  'parent_title': c2.title
                                         , 'parent_url': url_for('edit_search_query_document', id=s.id2, _external=True)
                                         , 'parent_date': c2.published, 'parent_site': c2.site
@@ -707,17 +780,19 @@ def export_result():
                                 pass
 
             elif report.type == 'vstag':
+                c1 = CompanyDocumentModel.query.filter_by(title=report.first).first()
                 for s in sentences:
-                    c1 = CompanyDocumentModel.query.filter_by(title=report.first).first()
                     c2 = CompanyDocumentModel.query.filter_by(title=s.title2).first()
                     if (c2):
                         if c1 and c2:
                             try:
+                                s1 = sentence_text.get(int(s.sentence1))
+                                s2 = sentence_text.get(int(s.sentence2))
                                 data.append(
-                                    {'s1': {'text': sentence_text.get(int(s.sentence1)), 'parent_title': c1.title
+                                    {'s1': {'text': s1.get('text'), 'polarity': s1.get('polarity'), 'emotions': s1.get('emotions'), 'parent_title': c1.title
                                         , 'parent_url': url_for('edit_company', title=c1.title, _external=True)}
                                         ,
-                                     's2': {'text': sentence_text.get(int(s.sentence2)), 'parent_title': c2.title
+                                     's2': {'text': s2.get('text'), 'polarity': s2.get('polarity'), 'emotions': s2.get('emotions'), 'parent_title': c2.title
                                          , 'parent_url': url_for('edit_company', title=c2.title, _external=True)}
                                         , 'similarity_dimension': s.dimension,
                                      'similarity': s.similarity})
@@ -728,11 +803,13 @@ def export_result():
                         c2 = ArbitraryDocumentModel.query.filter_by(title=s.title2).first()
                         if c1 and c2:
                             try:
+                                s1 = sentence_text.get(int(s.sentence1))
+                                s2 = sentence_text.get(int(s.sentence2))
                                 data.append(
-                                    {'s1': {'text': sentence_text.get(int(s.sentence1)), 'parent_title': c1.title
+                                    {'s1': {'text': s1.get('text'), 'polarity': s1.get('polarity'), 'emotions': s1.get('emotions'), 'parent_title': c1.title
                                         , 'parent_url': url_for('edit_company', title=c1.title, _external=True)}
                                         ,
-                                     's2': {'text': sentence_text.get(int(s.sentence2)), 'parent_title': c2.title
+                                     's2': {'text': s2.get('text'), 'polarity': s2.get('polarity'), 'emotions': s2.get('emotions'), 'parent_title': c2.title
                                          , 'parent_url': url_for('edit_arbitrary_document', title=c2.title,
                                                                  _external=True),
                                             'url': c2.url
@@ -857,6 +934,7 @@ def get_doc_data(documents, field_checkbox, form, date_checkbox, start_date, end
         result_flat = []
         for i in data:
             for j in i:
+                print(j)
                 result_flat.append(j)
         largest = 0
         largest_index = None
@@ -868,9 +946,9 @@ def get_doc_data(documents, field_checkbox, form, date_checkbox, start_date, end
             return 'empty'
         wb = openpyxl.Workbook()
         sheet = wb.active
-
         column_map = {}
         for count, i in enumerate(result_flat[largest_index], 1):
+            print(i)
             row_1 = sheet.cell(row=1, column=count)
             row_1.value = i
             column_map[i] = count
@@ -895,12 +973,21 @@ def get_doc_data(documents, field_checkbox, form, date_checkbox, start_date, end
 
 
 def get_doc_sub(document, field_checkbox, search_p, attributes, format):
+    print(1)
+    polarity, sentiment = get_sentiment(document.text)
+    temp_emotions = te.get_emotion(document.text)
+    emotions = {}
+    if temp_emotions:
+        for key in temp_emotions:
+            if temp_emotions[key] != 0.0:
+                emotions[key] = temp_emotions[key]
     temp = {'search_query': document.f_title, 'title': document.title, 'author': document.author
         , 'publish_date': document.published, 'site': document.site,
             'site_type': document.site_type
         , 'url': document.url, 'main_image': document.main_image,
             'country': document.country
-        , 'text': document.text}
+        , 'text': document.text, 'polarity': polarity}
+    print(2)
     if field_checkbox:
         if search_p:
             if search_p not in document.title and search_p not in document.text:
@@ -908,6 +995,7 @@ def get_doc_sub(document, field_checkbox, search_p, attributes, format):
         for attr in attributes:
             if attributes[attr] is None:
                 temp.pop(attr, None)
+    print(3)
     d_persons = NewDocumentPersonsModel.query.filter_by(f_id=document.id).all()
     d_locations = NewDocumentLocationsModel.query.filter_by(f_id=document.id).all()
     d_organizations = NewDocumentOrganizationsModel.query.filter_by(f_id=document.id).all()
@@ -916,31 +1004,52 @@ def get_doc_sub(document, field_checkbox, search_p, attributes, format):
     organizations = []
     if format == 'flat_json' or format == 'excel':
         result = []
-        temp['reach_per_million'] = document.reach_per_m
-        temp['page_views_per_million'] = document.reach_views_per_m
-        temp['page_views_per_user'] = document.reach_views_per_u
+        # temp['reach_per_million'] = document.reach_per_m
+        # temp['page_views_per_million'] = document.reach_views_per_m
+        # temp['page_views_per_user'] = document.reach_views_per_u
         if not d_persons and not d_locations and not d_organizations:
             result.append(temp.copy())
         else:
             for i in d_persons:
-                t = temp.copy()
-                t['entity'] = i.name
-                t['sentiment'] = i.sentiment
-                result.append(t.copy())
-                # persons.append({'name': i.name, 'sentiment': i.sentiment})
-
+                if emotions:
+                    for j in emotions:
+                        t = temp.copy()
+                        t['entity'] = i.name
+                        t['sentiment'] = i.sentiment
+                        t['emotion'] = j
+                        result.append(t.copy())
+                else:
+                    t = temp.copy()
+                    t['entity'] = i.name
+                    t['sentiment'] = i.sentiment
+                    result.append(t.copy())
             for i in d_locations:
-                t = temp.copy()
-                t['entity'] = i.name
-                t['sentiment'] = i.sentiment
-                result.append(t.copy())
-                # locations.append({'name': i.name, 'sentiment': i.sentiment})
-
+                if emotions:
+                    for j in emotions:
+                        t = temp.copy()
+                        t['entity'] = i.name
+                        t['sentiment'] = i.sentiment
+                        t['emotion'] = j
+                        result.append(t.copy())
+                else:
+                    t = temp.copy()
+                    t['entity'] = i.name
+                    t['sentiment'] = i.sentiment
+                    result.append(t.copy())
             for i in d_organizations:
-                t = temp.copy()
-                t['entity'] = i.name
-                t['sentiment'] = i.sentiment
-                result.append(t.copy())
+                if emotions:
+                    for j in emotions:
+                        t = temp.copy()
+                        t['entity'] = i.name
+                        t['sentiment'] = i.sentiment
+                        t['emotion'] = j
+                        result.append(t.copy())
+                else:
+                    t = temp.copy()
+                    t['entity'] = i.name
+                    t['sentiment'] = i.sentiment
+                    result.append(t.copy())
+        print(4)
         return result
     elif format == 'json':
         for i in d_persons:
@@ -950,8 +1059,10 @@ def get_doc_sub(document, field_checkbox, search_p, attributes, format):
         for i in d_organizations:
             organizations.append({'name': i.name, 'sentiment': i.sentiment})
         temp['entities'] = {'persons': persons, 'organizations': organizations, 'locations': locations}
-        temp['reach'] = {'per_million': document.reach_per_m, 'page_views': {'per_million': document.reach_views_per_m
-            , 'per_user': document.reach_views_per_u}}
+        temp['emotions'] = emotions
+        # temp['reach'] = {'per_million': document.reach_per_m, 'page_views': {'per_million': document.reach_views_per_m
+        #     , 'per_user': document.reach_views_per_u}}
+        print(4)
         return temp
     else:
         return 'error'
@@ -1313,7 +1424,7 @@ def classifier(type):
     temp_colors = ClassColors.query.filter_by(id=1).first()
     if temp_colors:
         colors = {'purpose': temp_colors.purpose, 'craftsmanship': temp_colors.craftsmanship,
-                  'aesthetic': temp_colors.aesthetic, 'narrative':temp_colors.narrative}
+                  'aesthetic': temp_colors.aesthetic, 'narrative': temp_colors.narrative}
     else:
         colors = {'purpose': '', 'craftsmanship': '',
                   'aesthetic': '', 'narrative': ''}
@@ -1382,6 +1493,7 @@ def classifier(type):
     return render_template('classifier.html', sentences=sentences, dimensions=dimensions, title=title,
                            highlight_sentence=highlight_sentence, class_colors=colors, id=id,
                            clean_text=clean_text)
+
 
 @app.route('/industrytags/')
 def industry_tags_route():
@@ -1614,17 +1726,12 @@ def save_search_query_document():
     try:
         result = request.form
         clean_text = result.get('clean_text')
-        # if(clean_text):
-        #     clean_text = re.sub(r"(\r\n|\r|\n)","",clean_text)
-        #     clean_text = re.sub(r"([^0-9]\.)",r"\1 ",clean_text)
         searchquerydocument = SearchQueryDocumentModel(title=result.get('title'), clean_text=clean_text,
                                                        date=result.get('date'), author=result.get('author'),
                                                        provider=result.get('provider'), url=result.get('url'),
                                                        image_url=result.get('image_url'))
         old_title = result.get('old_title')
         id = result.get('id')
-        # if(searchquerydocument.title is None or searchquerydocument.title==''):
-        #     return "title cannot be empty"
         if (id is None or id == ''):
             return "Error"
         if (searchquerydocument.clean_text == '' or searchquerydocument.clean_text == 'None'):
@@ -1639,6 +1746,13 @@ def save_search_query_document():
                 searchquerydocument.classified_sentences = None
         else:
             searchquerydocument.classified_sentences = None
+        polarity, sentiment = get_sentiment(clean_text)
+        temp_emotions = te.get_emotion(clean_text)
+        emotions = {}
+        if temp_emotions:
+            for key in temp_emotions:
+                if temp_emotions[key] != 0.0:
+                    emotions[key] = temp_emotions[key]
         edit_document = SearchQueryDocumentModel.query.filter_by(id=id).first()
         edit_document.title = searchquerydocument.title
         edit_document.clean_text = searchquerydocument.clean_text
@@ -1648,6 +1762,9 @@ def save_search_query_document():
         edit_document.provider = searchquerydocument.provider
         edit_document.url = searchquerydocument.url
         edit_document.image_url = searchquerydocument.image_url
+        edit_document.sentiment = sentiment
+        edit_document.polarity = polarity
+        edit_document.emotions = str(emotions)
         # SearchQueryDocumentModel.query.filter_by(title = old_title).update(dict(title=searchquerydocument.title,clean_text=searchquerydocument.clean_text,classified_sentences=str(searchquerydocument.classified_sentences),date=searchquerydocument.date,author=searchquerydocument.author,provider=searchquerydocument.provider,url=searchquerydocument.url,image_url=searchquerydocument.image_url))
         db.session.commit()
         return redirect(url_for('search_query_documents', title=SearchQueryDocumentModel.query.filter_by(
@@ -1998,7 +2115,8 @@ def save_arbitrary_document():
                 dict(title=arbitrarydocument.title, clean_text=arbitrarydocument.clean_text,
                      classified_sentences=str(arbitrarydocument.classified_sentences), date=arbitrarydocument.date,
                      author=arbitrarydocument.author, provider=arbitrarydocument.provider, url=arbitrarydocument.url,
-                     image_url=arbitrarydocument.image_url, industry_tags=arbitrarydocument.industry_tags))
+                     image_url=arbitrarydocument.image_url, industry_tags=arbitrarydocument.industry_tags),
+            )
             db.session.commit()
         else:
             db.session.add(arbitrarydocument)
@@ -2359,11 +2477,20 @@ def search_query_documents_background(id):
                         site = i.get('thread').get('site')
                     else:
                         site = ''
+                    polarity, sentiment = get_sentiment(i.get('text'))
+                    temp_emotions = te.get_emotion(i.get('text'))
+                    emotions = {}
+                    if temp_emotions:
+                        for key in temp_emotions:
+                            if temp_emotions[key] != 0.0:
+                                emotions[key] = temp_emotions[key]
                     searchquerydocument = SearchQueryDocumentModel(f_title=f_title, title=i.get('title'),
                                                                    author=str(i.get('author')),
                                                                    provider=str(site),
                                                                    url=i.get('url'), image_url=image,
-                                                                   date=i.get('published'), clean_text=i.get('text'))
+                                                                   date=i.get('published'), clean_text=i.get('text'),
+                                                                   polarity=polarity, sentiment=sentiment,
+                                                                   emotions=str(emotions))
                     if (SearchQueryDocumentModel.query.filter_by(f_title=f_title,
                                                                  url=searchquerydocument.url).first() is None):
                         if len(searchquerydocument.clean_text) > 50000:
@@ -2416,7 +2543,6 @@ def update_report():
     try:
         result = request.form
         print(result, file=sys.stderr)
-        # dimensions = {'aesthetic':0,'craftsmanship':0,'purpose':0,'narrative':0, 'all':0}
         dimensions = {'aesthetic': 0, 'craftsmanship': 0, 'purpose': 0, 'narrative': 0}
         id = result.get('id')
         title = result.get('title')
@@ -2664,7 +2790,8 @@ def report_company_test():
         tags = IndustryTags.query.all()
         temp_colors = ClassColors.query.filter_by(id=1).first()
         if temp_colors:
-            colors = {'overall': temp_colors.overall,'purpose': temp_colors.purpose, 'craftsmanship': temp_colors.craftsmanship,
+            colors = {'overall': temp_colors.overall, 'purpose': temp_colors.purpose,
+                      'craftsmanship': temp_colors.craftsmanship,
                       'aesthetic': temp_colors.aesthetic, 'narrative': temp_colors.narrative}
         else:
             colors = {'overall': '', 'purpose': '', 'craftsmanship': '',
@@ -2797,7 +2924,7 @@ def report_company_test():
         return render_template(page_url, companydocuments=companydocuments, report=report, dimensions=dimensions,
                                sentences=result_sentences, searchqueries=searchqueries, tags=tags, score1=score1,
                                score2=score2, providers=providers, tagdata=tag_data, chartdimension=chartdimension
-                               , date_from=date_from, date_to=date_to,color=colors)
+                               , date_from=date_from, date_to=date_to, color=colors)
 
     # except Exception as e:
     #     print(e,file=sys.stderr)
@@ -3097,12 +3224,26 @@ def get_scores(sentence1, sentence2, dimension, id, sen_pro_author):
     for s in sentence1:
         f = SentenceTextModel.query.filter_by(f_id=id, sentence=s).first()
         if (f is None):
-            s = SentenceTextModel(f_id=id, sentence=s)
+            polarity, sentiment = get_sentiment(s)
+            temp_emotions = te.get_emotion(s)
+            emotions = {}
+            if temp_emotions:
+                for key in temp_emotions:
+                    if temp_emotions[key] != 0.0:
+                        emotions[key] = temp_emotions[key]
+            s = SentenceTextModel(f_id=id, sentence=s, polarity=polarity, sentiment=sentiment, emotions=str(emotions))
             db.session.add(s)
             db.session.commit()
     for s in sentence2:
         if (SentenceTextModel.query.filter_by(f_id=id, sentence=s[0]).first() is None):
-            s = SentenceTextModel(f_id=id, sentence=s[0])
+            polarity, sentiment = get_sentiment(s[0])
+            temp_emotions = te.get_emotion(s[0])
+            emotions = {}
+            if temp_emotions:
+                for key in temp_emotions:
+                    if temp_emotions[key] != 0.0:
+                        emotions[key] = temp_emotions[key]
+            s = SentenceTextModel(f_id=id, sentence=s[0], polarity=polarity, sentiment=sentiment, emotions=str(emotions))
             db.session.add(s)
             db.session.commit()
 
