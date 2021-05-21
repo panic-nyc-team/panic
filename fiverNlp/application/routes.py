@@ -137,6 +137,7 @@ def mints():
         docs = SearchQueryDocumentModel.query.all()
         c = 1
         for d in docs:
+            print(d.polarity)
             if d.polarity:
                 continue
                 c += 1
