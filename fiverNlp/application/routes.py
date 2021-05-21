@@ -135,6 +135,7 @@ def mints():
     if fl == 0:
         fl = 1
         docs = SearchQueryDocumentModel.query.all()
+        c = 1
         for d in docs:
             if d.clean_text:
                 polarity, sentiment = get_sentiment(d.clean_text)
@@ -147,21 +148,22 @@ def mints():
                 d.sentiment = sentiment
                 d.polarity = polarity
                 d.emotions = str(emotions)
-                print(polarity)
-        sentences = SentenceTextModel.query.all()
-        for s in sentences:
-            if s.sentence:
-                polarity, sentiment = get_sentiment(s.sentence)
-                temp_emotions = te.get_emotion(s.sentence)
-                emotions = {}
-                if temp_emotions:
-                    for key in temp_emotions:
-                        if temp_emotions[key] != 0.0:
-                            emotions[key] = temp_emotions[key]
-                s.sentiment = sentiment
-                s.polarity = polarity
-                s.emotions = str(emotions)
-                print(polarity)
+                print(c)
+                c += 1
+        # sentences = SentenceTextModel.query.all()
+        # for s in sentences:
+        #     if s.sentence:
+        #         polarity, sentiment = get_sentiment(s.sentence)
+        #         temp_emotions = te.get_emotion(s.sentence)
+        #         emotions = {}
+        #         if temp_emotions:
+        #             for key in temp_emotions:
+        #                 if temp_emotions[key] != 0.0:
+        #                     emotions[key] = temp_emotions[key]
+        #         s.sentiment = sentiment
+        #         s.polarity = polarity
+        #         s.emotions = str(emotions)
+        #         print(polarity)
         db.session.commit()
 
 @tl.job(interval=datetime.timedelta(minutes=300))
