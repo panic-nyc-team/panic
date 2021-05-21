@@ -137,6 +137,8 @@ def mints():
         docs = SearchQueryDocumentModel.query.all()
         c = 1
         for d in docs:
+            if d.polarity:
+                continue
             if d.clean_text:
                 polarity, sentiment = get_sentiment(d.clean_text)
                 temp_emotions = te.get_emotion(d.clean_text)
@@ -150,6 +152,7 @@ def mints():
                 d.emotions = str(emotions)
                 print(c)
                 c += 1
+                db.session.commit()
         # sentences = SentenceTextModel.query.all()
         # for s in sentences:
         #     if s.sentence:
@@ -164,7 +167,6 @@ def mints():
         #         s.polarity = polarity
         #         s.emotions = str(emotions)
         #         print(polarity)
-        db.session.commit()
 
 @tl.job(interval=datetime.timedelta(minutes=300))
 def day():
