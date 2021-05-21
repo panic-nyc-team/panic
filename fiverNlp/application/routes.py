@@ -137,10 +137,9 @@ def mints():
         docs = SearchQueryDocumentModel.query.all()
         c = 1
         for d in docs:
-            print(d.polarity)
             if d.polarity:
-                continue
                 c += 1
+                continue
             if d.clean_text:
                 polarity, sentiment = get_sentiment(d.clean_text)
                 temp_emotions = te.get_emotion(d.clean_text)
