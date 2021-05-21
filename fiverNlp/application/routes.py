@@ -139,6 +139,7 @@ def mints():
         for d in docs:
             if d.polarity:
                 continue
+                c += 1
             if d.clean_text:
                 polarity, sentiment = get_sentiment(d.clean_text)
                 temp_emotions = te.get_emotion(d.clean_text)
