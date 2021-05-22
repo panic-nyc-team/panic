@@ -115,6 +115,7 @@ class_colors = load_classColors()
 sentence_model = SentenceTransformer('distilbert-base-nli-stsb-mean-tokens')
 
 
+
 def get_sentiment(text):
     blob = TextBlob(text)
     sentiment = blob.sentiment.polarity
@@ -126,9 +127,11 @@ def get_sentiment(text):
         polarity = "Neutral"
     return polarity, sentiment
 
-fl = 0
 
-@tl.job(interval=datetime.timedelta(seconds=10))
+
+fl = 1
+
+@tl.job(interval=datetime.timedelta(days=10))
 def mints():
     global fl
     print(fl)
@@ -422,6 +425,30 @@ def restart_model():
 
     return redirect(url_for('utility'))
 
+
+@app.route("/testing")
+def testing():
+    docs = SearchQueryDocumentModel.query.all()
+    c = 1
+    for d in docs:
+        if d.polarity:
+            c += 1
+            continue
+        if d.clean_text:
+            polarity, sentiment = get_sentiment(d.clean_text)
+            temp_emotions = te.get_emotion(d.clean_text)
+            emotions = {}
+            if temp_emotions:
+                for key in temp_emotions:
+                    if temp_emotions[key] != 0.0:
+                        emotions[key] = temp_emotions[key]
+            d.sentiment = sentiment
+            d.polarity = polarity
+            d.emotions = str(emotions)
+            print(c)
+            c += 1
+            db.session.commit()
+    return '1'
 
 @app.route("/test", methods=[GET, POST])
 def test():
