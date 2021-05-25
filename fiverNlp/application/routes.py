@@ -996,7 +996,7 @@ def get_doc_sub(document, field_checkbox, search_p, attributes, format):
     #     for key in temp_emotions:
     #         if temp_emotions[key] != 0.0:
     #             emotions[key] = temp_emotions[key]
-    d = SearchQueryDocumentModel.query.filter_by(id=document.id).first()
+    d = SearchQueryDocumentModel.query.filter_by(id=document.f_id).first()
     temp = {'search_query': document.f_title, 'title': document.title, 'author': document.author
         , 'publish_date': document.published, 'site': document.site,
             'site_type': document.site_type
