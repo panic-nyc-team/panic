@@ -129,54 +129,55 @@ def get_sentiment(text):
 
 
 
-fl = 0
-
-@tl.job(interval=datetime.timedelta(minutes=1))
-def mints():
-    global fl
-    print(fl)
-    if fl == 0:
-        fl = 1
-        docs = SearchQueryDocumentModel.query.all()
-        c = 1
-        # for d in docs:
-        #     if d.polarity:
+# fl = 1
+#
+# @tl.job(interval=datetime.timedelta(seconds=10))
+# def mints():
+#     global fl
+#     print(fl)
+#     if fl == 0:
+#         fl = 1
+#         docs = SearchQueryDocumentModel.query.all()
+#         c = 1
+#         for d in docs:
+#             if d.polarity:
+#                 c += 1
+#                 continue
+#             if d.clean_text:
+#                 polarity, sentiment = get_sentiment(d.clean_text)
+#                 temp_emotions = te.get_emotion(d.clean_text)
+#                 emotions = {}
+#                 if temp_emotions:
+#                     for key in temp_emotions:
+#                         if temp_emotions[key] != 0.0:
+#                             emotions[key] = temp_emotions[key]
+#                 d.sentiment = sentiment
+#                 d.polarity = polarity
+#                 d.emotions = str(emotions)
+#                 print(c)
+#                 c += 1
+#                 db.session.commit()
+#         print('finish')
+        # sentences = SentenceTextModel.query.all()
+        # for s in sentences:
+        #     if s.polarity:
         #         c += 1
         #         continue
-        #     if d.clean_text:
-        #         polarity, sentiment = get_sentiment(d.clean_text)
-        #         temp_emotions = te.get_emotion(d.clean_text)
+        #     if s.sentence:
+        #         polarity, sentiment = get_sentiment(s.sentence)
+        #         temp_emotions = te.get_emotion(s.sentence)
         #         emotions = {}
         #         if temp_emotions:
         #             for key in temp_emotions:
         #                 if temp_emotions[key] != 0.0:
         #                     emotions[key] = temp_emotions[key]
-        #         d.sentiment = sentiment
-        #         d.polarity = polarity
-        #         d.emotions = str(emotions)
+        #         s.sentiment = sentiment
+        #         s.polarity = polarity
+        #         s.emotions = str(emotions)
+        #         # print(polarity)
         #         # print(c)
         #         c += 1
         #         db.session.commit()
-        sentences = SentenceTextModel.query.all()
-        for s in sentences:
-            if s.polarity:
-                c += 1
-                continue
-            if s.sentence:
-                polarity, sentiment = get_sentiment(s.sentence)
-                temp_emotions = te.get_emotion(s.sentence)
-                emotions = {}
-                if temp_emotions:
-                    for key in temp_emotions:
-                        if temp_emotions[key] != 0.0:
-                            emotions[key] = temp_emotions[key]
-                s.sentiment = sentiment
-                s.polarity = polarity
-                s.emotions = str(emotions)
-                # print(polarity)
-                # print(c)
-                c += 1
-                db.session.commit()
 
 @tl.job(interval=datetime.timedelta(minutes=300))
 def day():
@@ -673,7 +674,7 @@ def seeBin():
 def export():
     reports = ReportModel.query.all()
     search_queries = SuperSearchQueryModel.query.all()
-    attributes = ['search_query', 'title', 'author', 'publish_date', 'site', 'site_type', 'url', 'main_image',
+    attributes = ['title', 'author', 'publish_date', 'site', 'site_type', 'url', 'main_image',
                   'country', 'text']
     return render_template('export.html', reports=reports, search_queries=search_queries, attributes=attributes)
 
@@ -718,14 +719,14 @@ def export_result():
                 if not i.sentence:
                     continue
                 try:
-                    polarity, sentiment = get_sentiment(i.sentence)
-                    temp_emotions = te.get_emotion(i.sentence)
-                    emotions = {}
-                    if temp_emotions:
-                        for key in temp_emotions:
-                            if temp_emotions[key] != 0.0:
-                                emotions[key] = temp_emotions[key]
-                    sentence_text[i.id] = {'text': i.sentence, 'polarity': polarity, 'emotions': emotions}
+                    # polarity, sentiment = get_sentiment(i.sentence)
+                    # temp_emotions = te.get_emotion(i.sentence)
+                    # emotions = {}
+                    # if temp_emotions:
+                    #     for key in temp_emotions:
+                    #         if temp_emotions[key] != 0.0:
+                    #             emotions[key] = temp_emotions[key]
+                    sentence_text[i.id] = {'text': i.sentence, 'polarity': i.polarity, 'emotions': i.emotions}
                 except Exception as e:
                     print(e)
             if (report.type == 'vscompany'):
@@ -913,7 +914,7 @@ def get_doc_data(documents, field_checkbox, form, date_checkbox, start_date, end
     attributes = {}
     format = form.get('format')
     if field_checkbox:
-        attributes = {'search_query': None, 'title': None, 'author': None, 'publish_date': None, 'site': None
+        attributes = {'title': None, 'author': None, 'publish_date': None, 'site': None
             , 'site_type': None, 'url': None, 'main_image': None, 'country': None, 'text': None}
         for attr in attributes:
             if form.get(attr):
@@ -988,19 +989,28 @@ def get_doc_data(documents, field_checkbox, form, date_checkbox, start_date, end
 
 def get_doc_sub(document, field_checkbox, search_p, attributes, format):
     print(1)
-    polarity, sentiment = get_sentiment(document.text)
-    temp_emotions = te.get_emotion(document.text)
-    emotions = {}
-    if temp_emotions:
-        for key in temp_emotions:
-            if temp_emotions[key] != 0.0:
-                emotions[key] = temp_emotions[key]
+    # polarity, sentiment = get_sentiment(document.text)
+    # temp_emotions = te.get_emotion(document.text)
+    # emotions = {}
+    # if temp_emotions:
+    #     for key in temp_emotions:
+    #         if temp_emotions[key] != 0.0:
+    #             emotions[key] = temp_emotions[key]
+    d = SearchQueryDocumentModel.query.filter_by(id=document.id).first()
     temp = {'search_query': document.f_title, 'title': document.title, 'author': document.author
         , 'publish_date': document.published, 'site': document.site,
             'site_type': document.site_type
         , 'url': document.url, 'main_image': document.main_image,
             'country': document.country
-        , 'text': document.text, 'polarity': polarity}
+        , 'text': document.text}
+    emotions = None
+    if d:
+        if d.polarity:
+            temp['polarity'] = d.polarity
+        else:
+            temp['polarity'] = ''
+        if d.emotions:
+            emotions = eval(d.emotions)
     print(2)
     if field_checkbox:
         if search_p:
@@ -1073,7 +1083,10 @@ def get_doc_sub(document, field_checkbox, search_p, attributes, format):
         for i in d_organizations:
             organizations.append({'name': i.name, 'sentiment': i.sentiment})
         temp['entities'] = {'persons': persons, 'organizations': organizations, 'locations': locations}
-        temp['emotions'] = emotions
+        if emotions:
+            temp['emotions'] = emotions
+        else:
+            temp['emotions'] = {}
         # temp['reach'] = {'per_million': document.reach_per_m, 'page_views': {'per_million': document.reach_views_per_m
         #     , 'per_user': document.reach_views_per_u}}
         print(4)
