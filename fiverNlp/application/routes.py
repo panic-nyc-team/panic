@@ -1,3 +1,6 @@
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 import traceback
 import random
 import openpyxl
@@ -7,7 +10,6 @@ import text2emotion as te
 
 from dateutil.relativedelta import relativedelta
 from flask import Flask, render_template, request, url_for, flash, send_from_directory, send_file, jsonify
-# from flask import current_app as app
 from werkzeug.utils import secure_filename, redirect
 import json
 import inspect, nltk
@@ -3326,6 +3328,41 @@ def temp_azure(tmp):
 
     return d
 
+
+
+def send_email(content):
+    mail_content = content
+    sender_address = 'saadcheemaa545@gmail.com'
+    sender_pass = 'vtrxlybjsutiphgz'
+    receiver_address = 'metalindustries8@gmail.com'
+    message = MIMEMultipart()
+    message['From'] = sender_address
+    message['To'] = receiver_address
+    message['Subject'] = 'PakMetalIndustries New Order'
+    message.attach(MIMEText(mail_content, 'plain'))
+    mail_session = smtplib.SMTP('smtp.gmail.com', 587)
+    mail_session.starttls()
+    mail_session.login(sender_address, sender_pass)
+    text = message.as_string()
+    mail_session.sendmail(sender_address, receiver_address, text)
+    mail_session.quit()
+    print('Mail Sent')
+
+@app.route("/sendmail", methods=[POST])
+def sendmail():
+    try:
+        result = request.form
+        name = result.get('name')
+        address = result.get('address')
+        contact = result.get('contact')
+        itemscount = result.get('itemscount')
+        items = result.get('items')
+        text = f'You got a new order. Here are the details:\nName: {name}\nAddress: {address}\nContact: {contact}\n' \
+               f'ItemsCount: {itemscount}\nitems: {items}'
+        send_email(text)
+        return 'sent'
+    except:
+        return 'error'
 
 if __name__ == '__main__':
     from waitress import serve
