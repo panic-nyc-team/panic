@@ -1022,69 +1022,46 @@ def get_doc_sub(document, field_checkbox, search_p, attributes, format):
             if attributes[attr] is None:
                 temp.pop(attr, None)
     print(3)
-    d_persons = NewDocumentPersonsModel.query.filter_by(f_id=document.id).all()
-    d_locations = NewDocumentLocationsModel.query.filter_by(f_id=document.id).all()
-    d_organizations = NewDocumentOrganizationsModel.query.filter_by(f_id=document.id).all()
+    # d_persons = NewDocumentPersonsModel.query.filter_by(f_id=document.id).all()
+    # d_locations = NewDocumentLocationsModel.query.filter_by(f_id=document.id).all()
+    # d_organizations = NewDocumentOrganizationsModel.query.filter_by(f_id=document.id).all()
     persons = []
     locations = []
     organizations = []
     if format == 'flat_json' or format == 'excel':
         result = []
-        # temp['reach_per_million'] = document.reach_per_m
-        # temp['page_views_per_million'] = document.reach_views_per_m
-        # temp['page_views_per_user'] = document.reach_views_per_u
-        if not d_persons and not d_locations and not d_organizations:
+        # if not d_persons and not d_locations and not d_organizations:
+        #     result.append(temp.copy())
+        if not emotions:
             result.append(temp.copy())
         else:
-            for i in d_persons:
-                if emotions:
-                    for j in emotions:
-                        t = temp.copy()
-                        t['entity'] = i.name
-                        t['sentiment'] = i.sentiment
-                        t['emotion'] = j
-                        result.append(t.copy())
-                else:
-                    t = temp.copy()
-                    t['entity'] = i.name
-                    t['sentiment'] = i.sentiment
-                    result.append(t.copy())
-            for i in d_locations:
-                if emotions:
-                    for j in emotions:
-                        t = temp.copy()
-                        t['entity'] = i.name
-                        t['sentiment'] = i.sentiment
-                        t['emotion'] = j
-                        result.append(t.copy())
-                else:
-                    t = temp.copy()
-                    t['entity'] = i.name
-                    t['sentiment'] = i.sentiment
-                    result.append(t.copy())
-            for i in d_organizations:
-                if emotions:
-                    for j in emotions:
-                        t = temp.copy()
-                        t['entity'] = i.name
-                        t['sentiment'] = i.sentiment
-                        t['emotion'] = j
-                        result.append(t.copy())
-                else:
-                    t = temp.copy()
-                    t['entity'] = i.name
-                    t['sentiment'] = i.sentiment
-                    result.append(t.copy())
+            for i in emotions:
+                t = temp.copy()
+                t['emotion'] = i
+                result.append(t.copy())
+            # for i in d_organizations:
+            #     if emotions:
+            #         for j in emotions:
+            #             t = temp.copy()
+            #             t['entity'] = i.name
+            #             t['sentiment'] = i.sentiment
+            #             t['emotion'] = j
+            #             result.append(t.copy())
+            #     else:
+            #         t = temp.copy()
+            #         t['entity'] = i.name
+            #         t['sentiment'] = i.sentiment
+            #         result.append(t.copy())
         print(4)
         return result
     elif format == 'json':
-        for i in d_persons:
-            persons.append({'name': i.name, 'sentiment': i.sentiment})
-        for i in d_locations:
-            locations.append({'name': i.name, 'sentiment': i.sentiment})
-        for i in d_organizations:
-            organizations.append({'name': i.name, 'sentiment': i.sentiment})
-        temp['entities'] = {'persons': persons, 'organizations': organizations, 'locations': locations}
+        # for i in d_persons:
+        #     persons.append({'name': i.name, 'sentiment': i.sentiment})
+        # for i in d_locations:
+        #     locations.append({'name': i.name, 'sentiment': i.sentiment})
+        # for i in d_organizations:
+        #     organizations.append({'name': i.name, 'sentiment': i.sentiment})
+        # temp['entities'] = {'persons': persons, 'organizations': organizations, 'locations': locations}
         if emotions:
             temp['emotions'] = emotions
         else:
