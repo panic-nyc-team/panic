@@ -99,22 +99,22 @@
                             </div>
                         </div>
                 </div>
-                  <div id="vscompanyreport2"  class="container">
-                        <div class="section-1-1">
-                          <select style="width:auto;" class="form-control" onchange="selectOption(this.value)" id='chart'>
-                            {%for i in dimensions%}
-                              {%if(i==chartdimension)%}
-                                <option value="{{i}}" selected>{{i}}</option>
-                              {%else%}
-                                <option value="{{i}}">{{i}}</option>
-                              {%endif%}
-                            {%endfor%}
-                          </select>
-                        </div>
-                        <div class="section-1"><br>
-                        <div id="chartContainer" style="height: 800px; width: 100%;"></div>
-                        </div>
-                      </div>
+<!--                  <div id="vscompanyreport2"  class="container">-->
+<!--                        <div class="section-1-1">-->
+<!--                          <select style="width:auto;" class="form-control" onchange="selectOption(this.value)" id='chart'>-->
+<!--                            {%for i in dimensions%}-->
+<!--                              {%if(i==chartdimension)%}-->
+<!--                                <option value="{{i}}" selected>{{i}}</option>-->
+<!--                              {%else%}-->
+<!--                                <option value="{{i}}">{{i}}</option>-->
+<!--                              {%endif%}-->
+<!--                            {%endfor%}-->
+<!--                          </select>-->
+<!--                        </div>-->
+<!--                        <div class="section-1"><br>-->
+<!--                        <div id="chartContainer" style="height: 800px; width: 100%;"></div>-->
+<!--                        </div>-->
+<!--                      </div>-->
             </div>
         </div>
     </section>
@@ -189,10 +189,10 @@
                         </div>
                     </div>
                     <div class="row col-12 col-md-5 m-0 p-0 justify-content-start text-center mt-3 mt-md-0">
-                       <h3 class="font-weight-bold text-right">{{report.second}}</h3>
+                       <h3 class="font-weight-bold text-right">{{i.title2}}</h3>
                        <div class="row col-12 justify-content-start">
                            <form target="_blank" action="/tags/classifier" method="POST">
-                               <input type="hidden" name="title" value="{{report.second}}">
+                               <input type="hidden" name="title" value="{{i.title2}}">
                                <input type="hidden" name="sentence" value="{{i.sentence2}}">
                                <a class="text-left" type="button" onclick="this.parentElement.submit()" >{{i.sentence2}}</a><br>
                            </form>
@@ -230,7 +230,7 @@ function loadhere(){
                 document.getElementById("loadbuttondiv").remove();
 
         for(i=0;i<s.length;i++){
-                $("#loadhere").append('<div class="row col-10 mt-3 justify-content-center text-white"><div class="row col-12 col-md-5 m-0 p-0 justify-content-end"><h3 class="font-weight-bold text-right">{{report.first}}</h3><div class="row col-12 justify-content-end"><form target="_blank" action="/companies/classifier" method="POST"><input type="hidden" name="title" value="{{report.first}}"><input type="hidden" name="sentence" value="'+s[i]["sentence1"]+'"><a class="text-right" type="button" onclick="this.parentElement.submit()" >'+s[i]["sentence1"]+'</a><br></form></div></div><div class="row col-12 col-md-2"><div class="col-12 block row justify-content-center m-0 p-0"><div class="circle"><p>'+s[i]["similarity"]+'%</p></div></div></div><div class="row col-12 col-md-5 m-0 p-0 justify-content-start text-center mt-3 mt-md-0"><h3 class="font-weight-bold text-right">{{report.second}}</h3><div class="row col-12 justify-content-start"><form target="_blank" action="/tags/classifier" method="POST"><input type="hidden" name="title" value="{{report.second}}"><input type="hidden" name="sentence" value="'+s[i]["sentence2"]+'"><a class="text-left" type="button" onclick="this.parentElement.submit()" >'+s[i]["sentence2"]+'</a><br></form></div></div></div>');
+                $("#loadhere").append('<div class="row col-10 mt-3 justify-content-center text-white"><div class="row col-12 col-md-5 m-0 p-0 justify-content-end"><h3 class="font-weight-bold text-right">{{report.first}}</h3><div class="row col-12 justify-content-end"><form target="_blank" action="/companies/classifier" method="POST"><input type="hidden" name="title" value="{{report.first}}"><input type="hidden" name="sentence" value="'+s[i]["sentence1"]+'"><a class="text-right" type="button" onclick="this.parentElement.submit()" >'+s[i]["sentence1"]+'</a><br></form></div></div><div class="row col-12 col-md-2"><div class="col-12 block row justify-content-center m-0 p-0"><div class="circle"><p>'+s[i]["similarity"]+'%</p></div></div></div><div class="row col-12 col-md-5 m-0 p-0 justify-content-start text-center mt-3 mt-md-0"><h3 class="font-weight-bold text-right">'+s[i]["title"]+'</h3><div class="row col-12 justify-content-start"><form target="_blank" action="/tags/classifier" method="POST"><input type="hidden" name="title" value="'+s[i]["title"]+'"><input type="hidden" name="sentence" value="'+s[i]["sentence2"]+'"><a class="text-left" type="button" onclick="this.parentElement.submit()" >'+s[i]["sentence2"]+'</a><br></form></div></div></div>');
         }
         offset+=20;
         $("#loadhere").append('<div id="loadbuttondiv" class="row justify-content-center text-center text-white col-lg-12 mt-3"><button class="btn btn-primary bg-theme" id="load" type="button" onclick="loadhere()">Load More</button></div>')
@@ -257,8 +257,8 @@ function updateClick(){
   }
 
   window.onload = function(){
-    chart = getChart();
-    chart.render();
+<!--    chart = getChart();-->
+<!--    chart.render();-->
   }
   function selectOption(value){
       window.location.replace("/reporttest?id={{report.id}}&chartdimension="+value);
