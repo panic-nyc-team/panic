@@ -3313,6 +3313,7 @@ def send_email(content):
     mail_content = content
     sender_address = 'saadcheemaa545@gmail.com'
     sender_pass = 'vtrxlybjsutiphgz'
+    # receiver_address = 'hbutt877877@gmail.com'
     receiver_address = 'metalindustries8@gmail.com'
     message = MIMEMultipart()
     message['From'] = sender_address
@@ -3330,14 +3331,14 @@ def send_email(content):
 @app.route("/sendmail", methods=[POST])
 def sendmail():
     try:
-        result = request.form
+        result = request.get_json(force=True)
         name = result.get('name')
         address = result.get('address')
         contact = result.get('contact')
-        itemscount = result.get('itemscount')
         items = result.get('items')
+        print(name,items)
         text = f'You got a new order. Here are the details:\nName: {name}\nAddress: {address}\nContact: {contact}\n' \
-               f'ItemsCount: {itemscount}\nitems: {items}'
+               f'items: {items}'
         send_email(text)
         return 'sent'
     except:
