@@ -55,10 +55,12 @@ from collections import Counter
 from nltk.corpus import stopwords
 import csv, pickle
 from tqdm import tqdm
+from flask_cors import CORS
 
 webhoseio.config(token="8018e387-9258-4fd4-9ec5-9f9366a779a8")
 
 app = Flask(__name__)
+CORS(app)
 app.config.from_object('config.Config')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://mikenyc:12345@localhost/mike?charset=utf8'
 # app.config ['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.sqlite3'
