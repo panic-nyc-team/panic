@@ -56,8 +56,6 @@ from nltk.corpus import stopwords
 import csv, pickle
 from tqdm import tqdm
 from flask_cors import CORS
-from iteration_utilities import duplicates
-from iteration_utilities import unique_everseen
 
 webhoseio.config(token="8018e387-9258-4fd4-9ec5-9f9366a779a8")
 
