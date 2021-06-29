@@ -133,6 +133,13 @@ def startup():
         else:
             search_query.current_number = 0
             search_query.total = 0
+    reports = ReportModel.query.all()
+    for report in reports:
+        report.running = False
+        if not report.total:
+            report.total = 0
+        if not report.current_number:
+            report.current_number = 0
     db.session.commit()
 
 app.before_first_request(startup)
@@ -2475,6 +2482,7 @@ def kill_search_query():
     else:
         search_query.current_number = 0
         search_query.total = 0
+    search_query.date_completed = datetime.datetime.now()
     db.session.commit()
     return redirect(url_for('processes'))
 
@@ -2588,9 +2596,10 @@ def search_query_documents_background(id):
                         db.session.add(searchquerydocument)
                     else:
                         print('Already in database', file=sys.stderr)
-                        super_query.total -= 1
-                        super_query.current_number -= 1
-                        db.session.commit()
+                        if super_query.running:
+                            super_query.total -= 1
+                            super_query.current_number -= 1
+                            db.session.commit()
                         db.session.close()
                         continue
                     db.session.flush()
@@ -3201,6 +3210,7 @@ def kill_report():
         return 'report not found error'
     report.running = False
     report.status = 'killed'
+    report.date_completed = datetime.datetime.now()
     db.session.commit()
     return redirect(url_for('processes'))
 
@@ -3491,9 +3501,11 @@ def processes():
         recent = []
         last_hour = datetime.datetime.now() - datetime.timedelta(hours=1)
         for r in ReportModel.query.filter_by(running=False).all():
+            print(1)
             if r.date_completed and r.date_completed > last_hour:
                 recent.append(r)
         for s in SuperSearchQueryModel.query.filter_by(running=False).all():
+            print(1)
             if s.date_completed and s.date_completed > last_hour:
                 recent.append(s)
         for s in searchqueries:
