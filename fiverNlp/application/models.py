@@ -113,7 +113,10 @@ class SuperSearchQueryModel(db.Model):
     title = db.Column(db.String(255), unique=True)
     fetch_frequency = db.Column(db.String(20))
     status = db.Column(db.String(20))
-
+    total = db.Column(db.Integer)
+    current_number = db.Column(db.Integer)
+    running = db.Column(db.Boolean)
+    date_completed = db.Column(db.DateTime())
 
 class SearchQueryModel(db.Model):
     __tablename__ = 'searchquery'
@@ -128,7 +131,6 @@ class SearchQueryModel(db.Model):
     freshness = db.Column(db.String(20))
     # fetch_frequency = db.Column(db.String(20))
     f_id = db.Column(db.Integer)
-
     date_created = db.Column(db.DateTime(), index=True, default=datetime.datetime.now(tz))
 
     @classmethod
@@ -165,7 +167,10 @@ class ReportModel(db.Model):
     date_from = db.Column(db.DateTime())
     date_to = db.Column(db.DateTime())
     date_created = db.Column(db.DateTime(), index=True, default=datetime.datetime.now(tz))
-
+    total = db.Column(db.Integer)
+    current_number = db.Column(db.Integer, default=0)
+    running = db.Column(db.Boolean)
+    date_completed = db.Column(db.DateTime())
     @classmethod
     def delete(cls, id):
         try:

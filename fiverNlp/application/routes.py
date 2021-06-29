@@ -56,6 +56,8 @@ from nltk.corpus import stopwords
 import csv, pickle
 from tqdm import tqdm
 from flask_cors import CORS
+from iteration_utilities import duplicates
+from iteration_utilities import unique_everseen
 
 webhoseio.config(token="8018e387-9258-4fd4-9ec5-9f9366a779a8")
 
@@ -119,6 +121,21 @@ class_colors = load_classColors()
 sentence_model = SentenceTransformer('distilbert-base-nli-stsb-mean-tokens')
 
 
+
+def startup():
+    search_queries = SuperSearchQueryModel.query.all()
+    for search_query in search_queries:
+        search_query.running = False
+        docs = SearchQueryDocumentModel.query.filter_by(f_title=search_query.title).all()
+        if docs:
+            search_query.current_number = len(docs)
+            search_query.total = len(docs)
+        else:
+            search_query.current_number = 0
+            search_query.total = 0
+    db.session.commit()
+
+app.before_first_request(startup)
 
 def get_sentiment(text):
     blob = TextBlob(text)
@@ -242,7 +259,6 @@ def report_word(frequency):
 def shutdown_session(exception=None):
     db.session.expunge_all()
     db.session.remove()
-
 
 @app.route("/homeold", methods=[GET])
 def homeold():
@@ -585,11 +601,12 @@ def getSimlarity(sentence1, sentence2):
         s1.append(i)
     for i in sentence2:
         s2.append(i[0])
+
     embeddings1 = sentence_model.encode(s1, convert_to_tensor=True)
     embeddings2 = sentence_model.encode(s2, convert_to_tensor=True)
-
     # Compute cosine-similarits
     cosine_scores = util.pytorch_cos_sim(embeddings1, embeddings2)
+
     # Output the pairs with their score
     d = {}
     for i in range(len(sentence1)):
@@ -600,7 +617,6 @@ def getSimlarity(sentence1, sentence2):
             # s.append("{:.2f}".format(cosine_scores[i][j]))
             dd[sentence2[j][0]] = {'similarity': "{:.2f}".format(cosine_scores[i][j]), 'id': sentence2[j][1],
                                    'type': sentence2[j][2], 'title': sentence2[j][3]}
-        # print(dd)
         d[sentence1[i]] = dd
     return d
 
@@ -2015,8 +2031,10 @@ def savesearchquery():
         super_search_query = SuperSearchQueryModel.query.filter_by(title=old_title).first()
         if super_search_query:
             super_search_query.title = title
+            super_search_query.running = True
         else:
-            t = SuperSearchQueryModel(title=title, fetch_frequency=fetch_frequency, status='playing')
+            t = SuperSearchQueryModel(title=title, fetch_frequency=fetch_frequency, status='playing', total=0,
+                                      current_number=0, running=True)
             db.session.add(t)
         db.session.commit()
 
@@ -2309,7 +2327,7 @@ def savecompany():
                     report = ReportModel(first=title, second=reference_to_search_query, frequency='Weekly',
                                          type='vssearchquery', status='running', title='default: ' + title,
                                          up_to_date=True, range_from=0, range_to=100, dimension='all', descending=True
-                                         , date_from=default_date_from, date_to=default_date_to)
+                                         , date_from=default_date_from, date_to=default_date_to, total=0, current_number=0, running=True)
                     db.session.add(report)
                     db.session.commit()
                     executor.submit(report_background, report.id, 'vssearchquery', title, reference_to_search_query, 0,
@@ -2441,10 +2459,61 @@ def newdocumentadd(i, f_title, f_id):
         db.session.commit()
 
 
+@app.route('/killsearchquery')
+def kill_search_query():
+    id = request.args.get('id')
+    if not id:
+        return 'id error'
+    search_query = SuperSearchQueryModel.query.filter_by(id=id).first()
+    if not search_query:
+        return 'search query not found error'
+    search_query.running = False
+    docs = SearchQueryDocumentModel.query.filter_by(f_title=search_query.title).all()
+    if docs:
+        search_query.current_number = len(docs)
+        search_query.total = len(docs)
+    else:
+        search_query.current_number = 0
+        search_query.total = 0
+    db.session.commit()
+    return redirect(url_for('processes'))
+
+
 def search_query_documents_background(id):
     f_title = SuperSearchQueryModel.query.filter_by(id=id).first().title
     search_queries = SearchQueryModel.query.filter_by(f_id=id).all()
     db.session.expunge_all()
+    for searchquery in search_queries:
+        try:
+            today = datetime.datetime.utcnow().date()
+            epoch = (today - datetime.timedelta(days=int(searchquery.freshness))).strftime('%s')
+            l = ' language:' + str(searchquery.market_language_code)
+            c = ' thread.country:' + str(searchquery.country_code)
+            ch = ' num_chars:>' + str(searchquery.characters)
+            s = ' site:' + str(searchquery.site)
+
+            if (not searchquery.market_language_code or searchquery.market_language_code == ''):
+                l = ''
+            if (not searchquery.country_code or searchquery.country_code == ''):
+                c = ''
+            if (not searchquery.characters or searchquery.characters == ''):
+                ch = ''
+            if (not searchquery.site or searchquery.site == ''):
+                s = ''
+            query_params = {"q": "{}{}{}{}{}".format(searchquery.query_string, l, c, ch, s),
+                            "ts": epoch,
+                            "sort": "crawled"}
+            output = webhoseio.query("filterWebContent", query_params)
+            super_query = SuperSearchQueryModel.query.filter_by(id=id).first()
+            if not super_query.running:
+                print('killed')
+                return
+            if not super_query.total:
+                super_query.total = 0
+            super_query.total += output['totalResults']
+            db.session.commit()
+        except Exception as e:
+            print(e, 1)
     for searchquery in search_queries:
         try:
             today = datetime.datetime.utcnow().date()
@@ -2477,6 +2546,12 @@ def search_query_documents_background(id):
         while True:
             for i in output['posts']:
                 try:
+                    super_query = SuperSearchQueryModel.query.filter_by(id=id).first()
+                    if not super_query.running:
+                        print('killed')
+                        return
+                    super_query.current_number += 1
+                    db.session.commit()
                     try:
                         image = i.get('thread').get('main_image')
                     except:
@@ -2513,6 +2588,9 @@ def search_query_documents_background(id):
                         db.session.add(searchquerydocument)
                     else:
                         print('Already in database', file=sys.stderr)
+                        super_query.total -= 1
+                        super_query.current_number -= 1
+                        db.session.commit()
                         db.session.close()
                         continue
                     db.session.flush()
@@ -2529,6 +2607,10 @@ def search_query_documents_background(id):
                 break
         db.session.commit()
 
+    super_query = SuperSearchQueryModel.query.filter_by(id=id).first()
+    super_query.running = False
+    super_query.date_completed = datetime.datetime.now()
+    db.session.commit()
     db.session.close()
     print('end')
 
@@ -2693,7 +2775,7 @@ def new_report():
 
             report = ReportModel(first=first, second=second, frequency=frequency, type=type, status='running',
                                  title=title, up_to_date=up_to_date, range_from=0, range_to=100, dimension='all',
-                                 descending=True, date_from=date_from, date_to=date_to)
+                                 descending=True, date_from=date_from, date_to=date_to, total=0, current_number=0, running=True)
             db.session.add(report)
             db.session.commit()
             executor.submit(report_background, report.id, type, first, second, 0, 100)
@@ -2952,23 +3034,23 @@ def report_company_test():
             else:
                 up_to_date = True
             dimension = result.get('dimensions')
-            if (dimension is None):
-                if (first is None):
-                    return 'error'
-                report = ReportModel(first=first, second=second, frequency=frequency, type=type, status='incomplete',
-                                     up_to_date=up_to_date)
-                companydocuments = CompanyDocumentModel.query.all()
-                searchqueries = SuperSearchQueryModel.query.all()
-                if (type == 'vscompany'):
-                    return render_template('reportcompanytest.html', companydocuments=companydocuments, report=report,
-                                           new=True, dimensions=dimensions)
-                elif (type == 'vssearchquery'):
-                    return render_template('reportsearchquerytest.html', companydocuments=companydocuments,
-                                           searchqueries=searchqueries, report=report, new=True, dimensions=dimensions)
-                elif (type == 'vstag'):
-                    pass
-                else:
-                    return 'error'
+            # if (dimension is None):
+            #     if (first is None):
+            #         return 'error'
+            #     report = ReportModel(first=first, second=second, frequency=frequency, type=type, status='incomplete',
+            #                          up_to_date=up_to_date, total=0, current_number=0)
+            #     companydocuments = CompanyDocumentModel.query.all()
+            #     searchqueries = SuperSearchQueryModel.query.all()
+            #     if (type == 'vscompany'):
+            #         return render_template('reportcompanytest.html', companydocuments=companydocuments, report=report,
+            #                                new=True, dimensions=dimensions)
+            #     elif (type == 'vssearchquery'):
+            #         return render_template('reportsearchquerytest.html', companydocuments=companydocuments,
+            #                                searchqueries=searchqueries, report=report, new=True, dimensions=dimensions)
+            #     elif (type == 'vstag'):
+            #         pass
+            #     else:
+            #         return 'error'
             title = result.get('title')
             descending = result.get('descending')
             range_from = result.get('range_from')
@@ -3009,7 +3091,8 @@ def report_company_test():
                 report = ReportModel(first=first, second=second, frequency=frequency, type=type, status='running',
                                      dimension=dimension
                                      , descending=descending, range_from=range_from, range_to=range_to, title=title,
-                                     up_to_date=up_to_date, date_from=default_date_from, date_to=default_date_to)
+                                     up_to_date=up_to_date, date_from=default_date_from, date_to=default_date_to,
+                                     total=0, current_number=0, running=True)
                 db.session.add(report)
                 db.session.commit()
                 executor.submit(report_background, report.id, type, first, second, range_from, range_to)
@@ -3020,7 +3103,7 @@ def report_company_test():
                     dict(first=first, second=second, frequency=frequency, type=type, status='running',
                          dimension=dimension
                          , descending=descending, range_from=range_from, range_to=range_to, title=title,
-                         up_to_date=up_to_date, date_from=date_from, date_to=date_to))
+                         up_to_date=up_to_date, date_from=date_from, date_to=date_to, total=0, current_number=0, running=True))
                 db.session.commit()
                 executor.submit(report_background, id, type, first, second, range_from, range_to)
                 return redirect(url_for('reports'))
@@ -3030,6 +3113,96 @@ def report_company_test():
         except Exception as e:
             print(traceback.format_exc())
             return 'error'
+
+
+
+
+def report_work_score(type, first, second, report, dimension, all_sentence2s, all_sen_pro_authors):
+    sentence2 = []
+    sen_pro_author = {}
+    if (type == 'vscompany'):
+        print("entered vscompany condition")
+        second_company = CompanyDocumentModel.query.filter_by(title=second).first()
+        print("second company: ", second_company)
+        if (second_company.classified_sentences):
+            dict_company = eval(second_company.classified_sentences)
+            # print("dict_company: ", dict_company)
+        for i in dict_company:
+            if (dict_company[i] == dimension):
+                ##sentence2.append(i)
+                if (len(re.findall(r'\w+', i)) > 3):
+                    sentence2.append([i, second_company.id, 'company', second_company.title])
+            if (len(re.findall(r'\w+', i)) > 3):
+                all_sentence2s.append([i, second_company.id, 'company', second_company.title])
+    elif (type == 'vssearchquery'):
+        print('entered search query')
+        temp_date = SearchQueryDocumentModel.query.filter_by(f_title=second).all()
+        second_searchquery = []
+        for query in temp_date:
+            try:
+                published = datetime.datetime.strptime(query.date.split('T')[0], '%Y-%m-%d')
+            except:
+                continue
+            if published:
+                if report.date_from <= published <= report.date_to:
+                    second_searchquery.append(query)
+                # else:
+                    # print(query.title, 'removed')
+        for querydocument in second_searchquery:
+            dict_query = []
+            if (querydocument.classified_sentences):
+                dict_query = eval(querydocument.classified_sentences)
+            for i in dict_query:
+                if (dict_query[i] == dimension):
+                    ##sentence2.append(i)
+                    ##sen_pro_author[i] = {'provider':querydocument.provider,'author':querydocument.author}
+                    if len(re.findall(r'\w+', i)) > 3:
+                        sentence2.append([i, querydocument.id, 'searchquery', querydocument.title])
+                        sen_pro_author[i] = {'provider': querydocument.provider, 'author': querydocument.author}
+                if len(re.findall(r'\w+', i)) > 3:
+                    all_sentence2s.append([i, querydocument.id, 'searchquery', querydocument.title])
+                    all_sen_pro_authors[i] = {'provider': querydocument.provider,
+                                              'author': querydocument.author}
+    elif (type == 'vstag'):
+        companies_tagged = CompanyDocumentModel.query.all()
+        documents_tagged = ArbitraryDocumentModel.query.all()
+        both = []
+        if (documents_tagged):
+            for i in documents_tagged:
+                if (i.industry_tags and second in i.industry_tags):
+                    both.append(i)
+        if (companies_tagged):
+            for i in companies_tagged:
+                if (i.industry_tags and second in i.industry_tags):
+                    both.append(i)
+        if (first in both):
+            both.remove(first)
+        for querydocument in both:
+            if (querydocument.classified_sentences):
+                d = eval(querydocument.classified_sentences)
+            for i in d:
+                if (d[i] == dimension):
+                    ##sentence2.append(i)
+                    if (len(re.findall(r'\w+', i)) > 3):
+                        sentence2.append([i, querydocument.id, 'tag', querydocument.title])
+                if (len(re.findall(r'\w+', i)) > 3):
+                    all_sentence2s.append([i, querydocument.id, 'tag', querydocument.title])
+    return sentence2, sen_pro_author
+
+
+
+@app.route('/killreport')
+def kill_report():
+    id = request.args.get('id')
+    if not id:
+        return 'id error'
+    report = ReportModel.query.filter_by(id=id).first()
+    if not report:
+        return 'report not found error'
+    report.running = False
+    report.status = 'killed'
+    db.session.commit()
+    return redirect(url_for('processes'))
 
 
 def report_background(id, type, first, second, range_from, range_to):
@@ -3051,15 +3224,42 @@ def report_background(id, type, first, second, range_from, range_to):
                 pass
             else:
                 print('delete error', file=sys.stderr)
+
+        process_s1_total = []
+        process_s2_total = []
+        process_all_sen_pro_authors = {}
+        process_total = 0
+        for dimension in dimensions:
+            process_s1 = []
+            for i in dict_company_A:
+                if (dict_company_A[i] == dimension):
+                    ##sentence1.append(i)
+                    if (len(re.findall(r'\w+', i)) > 3):
+                        process_s1.append(i)
+                if (len(re.findall(r'\w+', i)) > 3):
+                    process_s1_total.append(i)
+            process_s2, sen_pro_author = report_work_score(type, first, second, report, dimension, process_s2_total, process_all_sen_pro_authors)
+            s2 = []
+            for i in process_s2:
+                s2.append(i[0])
+            process_total += (len(list(dict.fromkeys(process_s1))) * len(list(dict.fromkeys(s2))))
+        s2 = []
+        for i in process_s2_total:
+            s2.append(i[0])
+        process_total += (len(list(dict.fromkeys(process_s1_total))) * len(list(dict.fromkeys(s2))))
+        print(process_total)
+        report.total = process_total
+        db.session.commit()
+
         all_sentence1s = []
         all_sentence2s = []
-        # note this all_sentences solution to 'all' results in duplicate calculation, but I believe not duplicate database entries
         all_sen_pro_authors = {}
         for dimension in dimensions:
-            # dict_query = eval(companydocument_b.classified_sentences)
+
+            if not ReportModel.query.filter_by(id=id).first().running:
+                print('killed')
+                return
             sentence1 = []
-            sentence2 = []
-            sen_pro_author = {}
             for i in dict_company_A:
                 if (dict_company_A[i] == dimension):
                     ##sentence1.append(i)
@@ -3067,77 +3267,7 @@ def report_background(id, type, first, second, range_from, range_to):
                         sentence1.append(i)
                 if (len(re.findall(r'\w+', i)) > 3):
                     all_sentence1s.append(i)
-            # print(1,sentence1,file=sys.stderr)
-            if (type == 'vscompany'):
-                print("entered vscompany condition")
-                second_company = CompanyDocumentModel.query.filter_by(title=second).first()
-                print("second company: ", second_company)
-                if (second_company.classified_sentences):
-                    dict_company = eval(second_company.classified_sentences)
-                    # print("dict_company: ", dict_company)
-                for i in dict_company:
-                    if (dict_company[i] == dimension):
-                        ##sentence2.append(i)
-                        if (len(re.findall(r'\w+', i)) > 3):
-                            sentence2.append([i, second_company.id, 'company', second_company.title])
-                    if (len(re.findall(r'\w+', i)) > 3):
-                        all_sentence2s.append([i, second_company.id, 'company', second_company.title])
-            elif (type == 'vssearchquery'):
-                print('entered search query')
-                temp_date = SearchQueryDocumentModel.query.filter_by(f_title=second).all()
-                second_searchquery = []
-                for query in temp_date:
-                    try:
-                        published = datetime.datetime.strptime(query.date.split('T')[0], '%Y-%m-%d')
-                    except:
-                        continue
-                    if published:
-                        if report.date_from <= published <= report.date_to:
-                            second_searchquery.append(query)
-                        else:
-                            print(query.title, 'removed')
-
-                for querydocument in second_searchquery:
-                    dict_query = []
-                    if (querydocument.classified_sentences):
-                        dict_query = eval(querydocument.classified_sentences)
-                    for i in dict_query:
-                        if (dict_query[i] == dimension):
-                            ##sentence2.append(i)
-                            ##sen_pro_author[i] = {'provider':querydocument.provider,'author':querydocument.author}
-                            if len(re.findall(r'\w+', i)) > 3:
-                                sentence2.append([i, querydocument.id, 'searchquery', querydocument.title])
-                                sen_pro_author[i] = {'provider': querydocument.provider, 'author': querydocument.author}
-                        if len(re.findall(r'\w+', i)) > 3:
-                            all_sentence2s.append([i, querydocument.id, 'searchquery', querydocument.title])
-                            all_sen_pro_authors[i] = {'provider': querydocument.provider,
-                                                      'author': querydocument.author}
-            elif (type == 'vstag'):
-                companies_tagged = CompanyDocumentModel.query.all()
-                documents_tagged = ArbitraryDocumentModel.query.all()
-                both = []
-                if (documents_tagged):
-                    for i in documents_tagged:
-                        if (i.industry_tags and second in i.industry_tags):
-                            both.append(i)
-                if (companies_tagged):
-                    for i in companies_tagged:
-                        if (i.industry_tags and second in i.industry_tags):
-                            both.append(i)
-                if (first in both):
-                    both.remove(first)
-                for querydocument in both:
-                    if (querydocument.classified_sentences):
-                        d = eval(querydocument.classified_sentences)
-                    for i in d:
-                        if (d[i] == dimension):
-                            ##sentence2.append(i)
-                            if (len(re.findall(r'\w+', i)) > 3):
-                                sentence2.append([i, querydocument.id, 'tag', querydocument.title])
-                        if (len(re.findall(r'\w+', i)) > 3):
-                            all_sentence2s.append([i, querydocument.id, 'tag', querydocument.title])
-            else:
-                return 'error'
+            sentence2, sen_pro_author = report_work_score(type, first, second, report, dimension, all_sentence2s, all_sen_pro_authors)
             if (len(sentence1) == 0 or len(sentence2) == 0):
                 continue
             # print(dimension,sentence1,sentence2,file=sys.stderr)
@@ -3152,6 +3282,9 @@ def report_background(id, type, first, second, range_from, range_to):
 
         # scoring for comparing all sentences
         if len(all_sentence1s) > 0 and len(all_sentence2s) > 0:
+            if not ReportModel.query.filter_by(id=id).first().running:
+                print('killed')
+                return
             dimension = 'all'
             temp_all_score = get_scores(all_sentence1s, all_sentence2s, dimension, id,
                                         sen_pro_author=all_sen_pro_authors)
@@ -3164,12 +3297,12 @@ def report_background(id, type, first, second, range_from, range_to):
                     pass
                 ReportModel.query.filter_by(id=id).update(dict(score=str(dimensions)))
                 first.query_score = str(dimensions)
-        ReportModel.query.filter_by(id=id).update(dict(status='done'))
+        ReportModel.query.filter_by(id=id).update(dict(status='done', running=False, date_completed=datetime.datetime.now()))
         db.session.commit()
 
     except Exception as e:
         print(traceback.format_exc(), file=sys.stderr)
-        ReportModel.query.filter_by(id=id).update(dict(status='done'))
+        ReportModel.query.filter_by(id=id).update(dict(status='error', running=False, date_completed=datetime.datetime.now()))
         db.session.commit()
 
 
@@ -3264,10 +3397,13 @@ def get_scores(sentence1, sentence2, dimension, id, sen_pro_author):
     # print(s)
     num = 0
     total = 0
-
+    report_temp = ReportModel.query.filter_by(id=id).first()
+    counter = report_temp.current_number
+    if not counter:
+        counter = 0
     for i in res_dict:
-        # print(i,s.get(i))
         for j in res_dict[i]:
+            counter += 1
             if not s.get(j) or not s.get(i):
                 continue
             total += 1
@@ -3275,21 +3411,24 @@ def get_scores(sentence1, sentence2, dimension, id, sen_pro_author):
             if score >= value:
                 num += 1
                 if (sen_pro_author == {}):
-                    t.append(SentenceModel(sentence1=s.get(i), sentence2=s.get(j), similarity=int(score), f_id=id,
+                    db.session.add(SentenceModel(sentence1=s.get(i), sentence2=s.get(j), similarity=int(score), f_id=id,
                                            dimension=dimension, title2=res_dict[i][j]['title'],
                                            id2=res_dict[i][j]['id'],
                                            type=res_dict[i][j]['type']))
                 else:
-                    t.append(SentenceModel(sentence1=s.get(i), sentence2=s.get(j), similarity=int(score), f_id=id,
+                    db.session.add(SentenceModel(sentence1=s.get(i), sentence2=s.get(j), similarity=int(score), f_id=id,
                                            dimension=dimension, title2=res_dict[i][j]['title'],
                                            id2=res_dict[i][j]['id'],
                                            type=res_dict[i][j]['type'], provider=sen_pro_author.get(j).get('provider'),
                                            author=sen_pro_author.get(j).get('author')))
-    try:
-        db.session.add_all(list(dict.fromkeys(t)))
+        report_temp.current_number = counter
         db.session.commit()
-    except Exception as e:
-        print(e, file=sys.stderr)
+        print(counter)
+    # try:
+    #     db.session.add_all(list(dict.fromkeys(t)))
+    #     db.session.commit()
+    # except Exception as e:
+    #     print(e, file=sys.stderr)
     if total > 0:
         return {'num': num, 'total': total}
     else:
@@ -3342,6 +3481,28 @@ def sendmail():
         send_email(text)
         return 'sent'
     except:
+        return 'error'
+@app.route("/processes", methods=[GET,POST])
+def processes():
+    try:
+        processes = []
+        searchqueries = SuperSearchQueryModel.query.filter_by(running=True).all()
+        reports = ReportModel.query.filter_by(running=True).all()
+        recent = []
+        last_hour = datetime.datetime.now() - datetime.timedelta(hours=1)
+        for r in ReportModel.query.filter_by(running=False).all():
+            if r.date_completed and r.date_completed > last_hour:
+                recent.append(r)
+        for s in SuperSearchQueryModel.query.filter_by(running=False).all():
+            if s.date_completed and s.date_completed > last_hour:
+                recent.append(s)
+        for s in searchqueries:
+            processes.append(s)
+        for r in reports:
+            processes.append(r)
+        return render_template('processes.html', processes=processes, recent=recent)
+    except Exception as e:
+        print(e)
         return 'error'
 
 if __name__ == '__main__':
