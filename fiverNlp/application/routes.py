@@ -1935,9 +1935,8 @@ def search_queries():
                 dates.append(temp)
             else:
                 dates.append(None)
-
         total = []
-        yesterday = datetime.datetime.now(tz) - datetime.timedelta(days=1)
+        yesterday = datetime.datetime.now() - datetime.timedelta(days=1)
         new_documents = []
         for i in searchqueries:
             total.append(len(SearchQueryDocumentModel.query.filter_by(f_title=i.title).all()))
@@ -2332,7 +2331,8 @@ def savecompany():
                     report = ReportModel(first=title, second=reference_to_search_query, frequency='Weekly',
                                          type='vssearchquery', status='running', title='default: ' + title,
                                          up_to_date=True, range_from=0, range_to=100, dimension='all', descending=True
-                                         , date_from=default_date_from, date_to=default_date_to, total=0, current_number=0, running=True)
+                                         , date_from=default_date_from, date_to=default_date_to, total=0, current_number=0,
+                                         running=True, date_created=datetime.datetime.now(tz))
                     db.session.add(report)
                     db.session.commit()
                     executor.submit(report_background, report.id, 'vssearchquery', title, reference_to_search_query, 0,
@@ -2558,6 +2558,7 @@ def search_query_documents_background(id):
                         return
                     super_query.current_number += 1
                     db.session.commit()
+                    print(super_query.current_number)
                     try:
                         image = i.get('thread').get('main_image')
                     except:
@@ -2579,7 +2580,7 @@ def search_query_documents_background(id):
                                                                    url=i.get('url'), image_url=image,
                                                                    date=i.get('published'), clean_text=i.get('text'),
                                                                    polarity=polarity, sentiment=sentiment,
-                                                                   emotions=str(emotions))
+                                                                   emotions=str(emotions), date_created=datetime.datetime.now())
                     if (SearchQueryDocumentModel.query.filter_by(f_title=f_title,
                                                                  url=searchquerydocument.url).first() is None):
                         if len(searchquerydocument.clean_text) > 50000:
@@ -2696,7 +2697,7 @@ def update_report():
             print(dimensions, file=sys.stderr)
         ReportModel.query.filter_by(id=id).update(
             dict(dimension=dimension, descending=descending, range_from=range_from, range_to=range_to,
-                 up_to_date=up_to_date, title=title))
+                 up_to_date=up_to_date, title=title, date_created=datetime.datetime.now(tz)))
         # ReportModel.query.filter_by(id=id).update(dict(score=str(dimensions),dimension=dimension,descending=descending,range_from=range_from,range_to=range_to,up_to_date=up_to_date,title=title))
         # if('default: ' in report.title):
         #     default_company.query_score = str(dimensions)
@@ -2782,7 +2783,8 @@ def new_report():
 
             report = ReportModel(first=first, second=second, frequency=frequency, type=type, status='running',
                                  title=title, up_to_date=up_to_date, range_from=0, range_to=100, dimension='all',
-                                 descending=True, date_from=date_from, date_to=date_to, total=0, current_number=0, running=True)
+                                 descending=True, date_from=date_from, date_to=date_to, total=0, current_number=0,
+                                 running=True, date_created=datetime.datetime.now(tz))
             db.session.add(report)
             db.session.commit()
             executor.submit(report_background, report.id, type, first, second, 0, 100)
@@ -3099,7 +3101,7 @@ def report_company_test():
                                      dimension=dimension
                                      , descending=descending, range_from=range_from, range_to=range_to, title=title,
                                      up_to_date=up_to_date, date_from=default_date_from, date_to=default_date_to,
-                                     total=0, current_number=0, running=True)
+                                     total=0, current_number=0, running=True, date_created=datetime.datetime.now(tz))
                 db.session.add(report)
                 db.session.commit()
                 executor.submit(report_background, report.id, type, first, second, range_from, range_to)
@@ -3110,7 +3112,8 @@ def report_company_test():
                     dict(first=first, second=second, frequency=frequency, type=type, status='running',
                          dimension=dimension
                          , descending=descending, range_from=range_from, range_to=range_to, title=title,
-                         up_to_date=up_to_date, date_from=date_from, date_to=date_to, total=0, current_number=0, running=True))
+                         up_to_date=up_to_date, date_from=date_from, date_to=date_to, total=0, current_number=0,
+                         running=True, date_created=datetime.datetime.now(tz)))
                 db.session.commit()
                 executor.submit(report_background, id, type, first, second, range_from, range_to)
                 return redirect(url_for('reports'))
@@ -3499,11 +3502,9 @@ def processes():
         recent = []
         last_hour = datetime.datetime.now() - datetime.timedelta(hours=1)
         for r in ReportModel.query.filter_by(running=False).all():
-            print(1)
             if r.date_completed and r.date_completed > last_hour:
                 recent.append(r)
         for s in SuperSearchQueryModel.query.filter_by(running=False).all():
-            print(1)
             if s.date_completed and s.date_completed > last_hour:
                 recent.append(s)
         for s in searchqueries:
