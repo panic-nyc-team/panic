@@ -2585,10 +2585,10 @@ def search_query_documents_background(id):
                                                                  url=searchquerydocument.url).first() is None):
                         if len(searchquerydocument.clean_text) > 50000:
                             if super_query.running:
+                                print('>50000')
                                 super_query.total -= 1
                                 super_query.current_number -= 1
                                 db.session.commit()
-                            db.session.close()
                             db.session.close()
                             continue
                         res = requests.post('http://13.82.225.206:5000/predict',
@@ -2628,6 +2628,10 @@ def search_query_documents_background(id):
     super_query = SuperSearchQueryModel.query.filter_by(id=id).first()
     super_query.running = False
     super_query.date_completed = datetime.datetime.now()
+    docs = SearchQueryDocumentModel.query.filter_by(f_title=super_query.title).all()
+    if docs:
+        search_query.current_number = len(docs)
+        search_query.total = len(docs)
     db.session.commit()
     db.session.close()
     print('end')
