@@ -2078,6 +2078,7 @@ def arbitrary_documents():
         documents = ArbitraryDocumentModel.query.all()
     except Exception as e:
         print(e, file=sys.stderr)
+        documents = []
     return render_template('arbitrarydocuments.html', documents=documents)
 
 
@@ -2332,17 +2333,17 @@ def savecompany():
                                          type='vssearchquery', status='running', title='default: ' + title,
                                          up_to_date=True, range_from=0, range_to=100, dimension='all', descending=True
                                          , date_from=default_date_from, date_to=default_date_to, total=0, current_number=0,
-                                         running=True, date_created=datetime.datetime.now(tz))
+                                         running=False, date_created=datetime.datetime.now(tz))
                     db.session.add(report)
                     db.session.commit()
-                    executor.submit(report_background, report.id, 'vssearchquery', title, reference_to_search_query, 0,
-                                    100)
+                    # executor.submit(report_background, report.id, 'vssearchquery', title, reference_to_search_query, 0,
+                    #                 100)
                 else:
                     report.second = reference_to_search_query
-                    report.status = 'running'
+                    # report.status = 'running'
                     db.session.commit()
-                    executor.submit(report_background, report.id, 'vssearchquery', title, reference_to_search_query, 0,
-                                    100)
+                    # executor.submit(report_background, report.id, 'vssearchquery', title, reference_to_search_query, 0,
+                    #                 100)
         else:
             try:
                 CompanyDocumentModel.query.filter_by(title=old_title).update(dict(query_score=None))
@@ -2723,7 +2724,6 @@ def update_report():
     except Exception as e:
         print(e, file=sys.stderr)
         return 'error'
-        db.session.rollback()
 
 
 @app.route('/deletereport')
@@ -2801,7 +2801,7 @@ def new_report():
                                  running=True, date_created=datetime.datetime.now(tz))
             db.session.add(report)
             db.session.commit()
-            executor.submit(report_background, report.id, type, first, second, 0, 100)
+            # executor.submit(report_background, report.id, type, first, second, 0, 100)
             return redirect(url_for('reports'))
 
         except Exception as e:
@@ -3148,6 +3148,7 @@ def report_work_score(type, first, second, report, dimension, all_sentence2s, al
         print("entered vscompany condition")
         second_company = CompanyDocumentModel.query.filter_by(title=second).first()
         print("second company: ", second_company)
+        dict_company = []
         if (second_company.classified_sentences):
             dict_company = eval(second_company.classified_sentences)
             # print("dict_company: ", dict_company)
@@ -3202,6 +3203,7 @@ def report_work_score(type, first, second, report, dimension, all_sentence2s, al
         if (first in both):
             both.remove(first)
         for querydocument in both:
+            d = []
             if (querydocument.classified_sentences):
                 d = eval(querydocument.classified_sentences)
             for i in d:
