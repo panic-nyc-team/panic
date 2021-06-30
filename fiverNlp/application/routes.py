@@ -2630,8 +2630,8 @@ def search_query_documents_background(id):
     super_query.date_completed = datetime.datetime.now()
     docs = SearchQueryDocumentModel.query.filter_by(f_title=super_query.title).all()
     if docs:
-        search_query.current_number = len(docs)
-        search_query.total = len(docs)
+        super_query.current_number = len(docs)
+        super_query.total = len(docs)
     db.session.commit()
     db.session.close()
     print('end')
