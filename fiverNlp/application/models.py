@@ -45,8 +45,8 @@ class SearchQueryDocumentModel(db.Model):
     __tablename__ = 'searchquerydocument'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     title = db.Column(db.String(255))
-    clean_text = db.Column(db.Blob)
-    classified_sentences = db.Column(db.Blob)
+    clean_text = db.Column(db.BLOB)
+    classified_sentences = db.Column(db.BLOB)
     author = db.Column(db.String(255))
     provider = db.Column(db.String(255))
     url = db.Column(db.Text)
@@ -185,7 +185,7 @@ class SentenceTextModel(db.Model):
     __tablename__ = 'sentencetexts'
     id = db.Column(db.Integer, primary_key=True)
     f_id = db.Column(db.Integer)
-    sentence = db.Column(db.Blob)
+    sentence = db.Column(db.BLOB)
     sentiment = db.Column(db.Float)
     polarity = db.Column(db.String(30))
     emotions = db.Column(db.Text)
@@ -269,7 +269,7 @@ class NewDocumentModel(db.Model):
     section_title = db.Column(db.Text)
     language = db.Column(db.String(50))
     author = db.Column(db.String(250))
-    text = db.Column(db.Blob)
+    text = db.Column(db.BLOB)
     url = db.Column(db.Text)
     site = db.Column(db.String(255))
     title = db.Column(db.Text)
