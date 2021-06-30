@@ -212,7 +212,7 @@ class SentenceModel(db.Model):
     dimension = db.Column(db.String(30))
     provider = db.Column(db.String(250))
     author = db.Column(db.Text)
-
+    url = db.Column(db.Text)
     @classmethod
     def delete(cls, f_id):
         try:
