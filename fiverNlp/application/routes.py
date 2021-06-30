@@ -2558,7 +2558,7 @@ def search_query_documents_background(id):
                         return
                     super_query.current_number += 1
                     db.session.commit()
-                    print(super_query.current_number)
+                    print(super_query.total)
                     try:
                         image = i.get('thread').get('main_image')
                     except:
@@ -2584,6 +2584,11 @@ def search_query_documents_background(id):
                     if (SearchQueryDocumentModel.query.filter_by(f_title=f_title,
                                                                  url=searchquerydocument.url).first() is None):
                         if len(searchquerydocument.clean_text) > 50000:
+                            if super_query.running:
+                                super_query.total -= 1
+                                super_query.current_number -= 1
+                                db.session.commit()
+                            db.session.close()
                             db.session.close()
                             continue
                         res = requests.post('http://13.82.225.206:5000/predict',
