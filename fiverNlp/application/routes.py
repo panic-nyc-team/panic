@@ -121,11 +121,6 @@ sentence_model = SentenceTransformer('distilbert-base-nli-stsb-mean-tokens')
 
 
 def startup():
-    docs = SearchQueryDocumentModel.query.all()
-    for d in docs:
-        if not NewDocumentModel.query.filter_by(f_id=d.id).first():
-            print(d.id)
-    print('startup')
     search_queries = SuperSearchQueryModel.query.all()
     for search_query in search_queries:
         search_query.running = False
