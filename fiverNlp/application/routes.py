@@ -3549,7 +3549,10 @@ def get_search_query_sentence_percentage(f_title):
             return None
         score = {'aesthetic': 0, 'craftsmanship': 0, 'narrative': 0, 'purpose': 0}
         for d in docs:
-            sentences = eval(d.classified_sentences)
+            try:
+                sentences = eval(d.classified_sentences)
+            except:
+                continue
             for s in sentences:
                 dimension = sentences[s]
                 if dimension == 'narrative':
