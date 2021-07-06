@@ -3544,6 +3544,7 @@ def get_search_query_sentence_percentage(f_title):
     try:
         docs = SearchQueryDocumentModel.query.filter_by(f_title=f_title).all()
         if not docs:
+            print('not docs')
             return None
         score = {'aesthetic': 0, 'craftsmanship': 0, 'narrative': 0, 'purpose': 0}
         for d in docs:
@@ -3560,6 +3561,7 @@ def get_search_query_sentence_percentage(f_title):
                     score['aesthetic'] += 1
         total = score['aesthetic']+score['craftsmanship']+score['narrative']+score['purpose']
         if total == 0:
+            print('total 0')
             return None
         score['aesthetic'] = round(score['aesthetic']*100/total, 2)
         score['craftsmanship'] = round(score['craftsmanship']*100/total, 2)
