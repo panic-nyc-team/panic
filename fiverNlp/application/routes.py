@@ -119,7 +119,6 @@ class_colors = load_classColors()
 sentence_model = SentenceTransformer('distilbert-base-nli-stsb-mean-tokens')
 
 
-
 def startup():
     search_queries = SuperSearchQueryModel.query.all()
     for search_query in search_queries:
@@ -140,7 +139,9 @@ def startup():
             report.current_number = 0
     db.session.commit()
 
+
 app.before_first_request(startup)
+
 
 def get_sentiment(text):
     blob = TextBlob(text)
@@ -152,7 +153,6 @@ def get_sentiment(text):
     else:
         polarity = "Neutral"
     return polarity, sentiment
-
 
 
 # fl = 1
@@ -184,26 +184,26 @@ def get_sentiment(text):
 #                 c += 1
 #                 db.session.commit()
 #         print('finish')
-        # sentences = SentenceTextModel.query.all()
-        # for s in sentences:
-        #     if s.polarity:
-        #         c += 1
-        #         continue
-        #     if s.sentence:
-        #         polarity, sentiment = get_sentiment(s.sentence)
-        #         temp_emotions = te.get_emotion(s.sentence)
-        #         emotions = {}
-        #         if temp_emotions:
-        #             for key in temp_emotions:
-        #                 if temp_emotions[key] != 0.0:
-        #                     emotions[key] = temp_emotions[key]
-        #         s.sentiment = sentiment
-        #         s.polarity = polarity
-        #         s.emotions = str(emotions)
-        #         # print(polarity)
-        #         # print(c)
-        #         c += 1
-        #         db.session.commit()
+# sentences = SentenceTextModel.query.all()
+# for s in sentences:
+#     if s.polarity:
+#         c += 1
+#         continue
+#     if s.sentence:
+#         polarity, sentiment = get_sentiment(s.sentence)
+#         temp_emotions = te.get_emotion(s.sentence)
+#         emotions = {}
+#         if temp_emotions:
+#             for key in temp_emotions:
+#                 if temp_emotions[key] != 0.0:
+#                     emotions[key] = temp_emotions[key]
+#         s.sentiment = sentiment
+#         s.polarity = polarity
+#         s.emotions = str(emotions)
+#         # print(polarity)
+#         # print(c)
+#         c += 1
+#         db.session.commit()
 
 @tl.job(interval=datetime.timedelta(minutes=300))
 def day():
@@ -212,32 +212,19 @@ def day():
         os.remove(f)
 
     work('Day')
-    report_word('Daily')
-
-    # reports = ReportModel.query.filter_by(frequency='Daily',up_to_date=True).all()
-    # if(len(reports)>0):
-    #     for i in reports:
-    #         report_background(i.id,i.type,i.first,i.second,i.range_from,i.range_to)
+    # report_word('Daily')
 
 
 @tl.job(interval=datetime.timedelta(days=7))
 def week():
     work('Week')
-    report_word('Weekly')
-    # reports = ReportModel.query.filter_by(frequency='Weekly',up_to_date=True).all()
-    # if(len(reports)>0):
-    #     for i in reports:
-    #         report_background(i.id,i.type,i.first,i.second,i.range_from,i.range_to)
+    # report_word('Weekly')
 
 
 @tl.job(interval=datetime.timedelta(days=30))
 def month():
     work('Month')
-    report_word('Monthly')
-    # reports = ReportModel.query.filter_by(frequency='Monthly',up_to_date=True).all()
-    # if(len(reports)>0):
-    #     for i in reports:
-    #         report_background(i.id,i.type,i.first,i.second,i.range_from,i.range_to)
+    # report_word('Monthly')
 
 
 def work(fetch_frequency):
@@ -264,6 +251,7 @@ def report_word(frequency):
 def shutdown_session(exception=None):
     db.session.expunge_all()
     db.session.remove()
+
 
 @app.route("/homeold", methods=[GET])
 def homeold():
@@ -621,7 +609,7 @@ def getSimlarity(sentence1, sentence2):
             # print(sentence1[i],sentence2[j])
             # s.append("{:.2f}".format(cosine_scores[i][j]))
             dd[sentence2[j][0]] = {'similarity': "{:.2f}".format(cosine_scores[i][j]), 'id': sentence2[j][1],
-                                   'type': sentence2[j][2], 'title': sentence2[j][3]}
+                                   'type': sentence2[j][2], 'title': sentence2[j][3], 'url': sentence2[j][4]}
         d[sentence1[i]] = dd
     return d
 
@@ -789,9 +777,11 @@ def export_result():
                                     s1 = sentence_text.get(int(s.sentence1))
                                     s2 = sentence_text.get(int(s.sentence2))
                                     data.append(
-                                        {'s1': {'text': s1.get('text'), 'polarity': s1.get('polarity'), 'emotions': s1.get('emotions'), 'parent_title': c1.title
+                                        {'s1': {'text': s1.get('text'), 'polarity': s1.get('polarity'),
+                                                'emotions': s1.get('emotions'), 'parent_title': c1.title
                                             , 'parent_url': url_for('edit_company', title=c1.title, _external=True)}
-                                            , 's2': {'text': s2.get('text'), 'polarity': s2.get('polarity'), 'emotions': s2.get('emotions'), 'url': c2.url,
+                                            , 's2': {'text': s2.get('text'), 'polarity': s2.get('polarity'),
+                                                     'emotions': s2.get('emotions'), 'url': c2.url,
                                                      'parent_title': c2.title
                                             , 'parent_url': url_for('edit_search_query_document', id=s.id2,
                                                                     _external=True)
@@ -808,9 +798,11 @@ def export_result():
                                 s1 = sentence_text.get(int(s.sentence1))
                                 s2 = sentence_text.get(int(s.sentence2))
                                 data.append(
-                                    {'s1': {'text': s1.get('text'), 'polarity': s1.get('polarity'), 'emotions': s1.get('emotions'), 'parent_title': c1.title
+                                    {'s1': {'text': s1.get('text'), 'polarity': s1.get('polarity'),
+                                            'emotions': s1.get('emotions'), 'parent_title': c1.title
                                         , 'parent_url': url_for('edit_company', title=c1.title, _external=True)}
-                                        , 's2': {'text': s2.get('text'), 'polarity': s2.get('polarity'), 'emotions': s2.get('emotions'), 'url': c2.url,
+                                        , 's2': {'text': s2.get('text'), 'polarity': s2.get('polarity'),
+                                                 'emotions': s2.get('emotions'), 'url': c2.url,
                                                  'parent_title': c2.title
                                         , 'parent_url': url_for('edit_search_query_document', id=s.id2, _external=True)
                                         , 'parent_date': c2.published, 'parent_site': c2.site
@@ -829,10 +821,12 @@ def export_result():
                                 s1 = sentence_text.get(int(s.sentence1))
                                 s2 = sentence_text.get(int(s.sentence2))
                                 data.append(
-                                    {'s1': {'text': s1.get('text'), 'polarity': s1.get('polarity'), 'emotions': s1.get('emotions'), 'parent_title': c1.title
+                                    {'s1': {'text': s1.get('text'), 'polarity': s1.get('polarity'),
+                                            'emotions': s1.get('emotions'), 'parent_title': c1.title
                                         , 'parent_url': url_for('edit_company', title=c1.title, _external=True)}
                                         ,
-                                     's2': {'text': s2.get('text'), 'polarity': s2.get('polarity'), 'emotions': s2.get('emotions'), 'parent_title': c2.title
+                                     's2': {'text': s2.get('text'), 'polarity': s2.get('polarity'),
+                                            'emotions': s2.get('emotions'), 'parent_title': c2.title
                                          , 'parent_url': url_for('edit_company', title=c2.title, _external=True)}
                                         , 'similarity_dimension': s.dimension,
                                      'similarity': s.similarity})
@@ -846,10 +840,12 @@ def export_result():
                                 s1 = sentence_text.get(int(s.sentence1))
                                 s2 = sentence_text.get(int(s.sentence2))
                                 data.append(
-                                    {'s1': {'text': s1.get('text'), 'polarity': s1.get('polarity'), 'emotions': s1.get('emotions'), 'parent_title': c1.title
+                                    {'s1': {'text': s1.get('text'), 'polarity': s1.get('polarity'),
+                                            'emotions': s1.get('emotions'), 'parent_title': c1.title
                                         , 'parent_url': url_for('edit_company', title=c1.title, _external=True)}
                                         ,
-                                     's2': {'text': s2.get('text'), 'polarity': s2.get('polarity'), 'emotions': s2.get('emotions'), 'parent_title': c2.title
+                                     's2': {'text': s2.get('text'), 'polarity': s2.get('polarity'),
+                                            'emotions': s2.get('emotions'), 'parent_title': c2.title
                                          , 'parent_url': url_for('edit_arbitrary_document', title=c2.title,
                                                                  _external=True),
                                             'url': c2.url
@@ -1099,12 +1095,12 @@ def get_doc_sub(document, field_checkbox, search_p, attributes, format):
 
 @app.route('/highlight', methods=['POST'])
 def highlight():
-    id = request.form.get('id')
+    # id = request.form.get('id')
+    url = request.form.get('url')
     sentence = request.form.get('sentence')
-    print(id, sentence)
-    search_query_document = SearchQueryDocumentModel.query.filter_by(id=id).first()
-    if (search_query_document):
-        url = search_query_document.url
+    print(url, sentence)
+    # search_query_document = SearchQueryDocumentModel.query.filter_by(id=id).first()
+    if (url):
         url = url + '#:~:text=' + urllib.parse.quote(sentence)
         return url
     else:
@@ -2223,14 +2219,13 @@ def edit_company():
         return 'no company found'
     try:
         companydocument = CompanyDocumentModel.get_row_by_title(title)
-        searchqueries = SuperSearchQueryModel.query.all()
-        report = ReportModel.query.filter_by(title='default: ' + title).first()
+        # searchqueries = SuperSearchQueryModel.query.all()
+        # report = ReportModel.query.filter_by(title='default: ' + title).first()
         industrytags = IndustryTags.query.all()
-        score = companydocument.query_score
-        if (score):
-            score = eval(score)
-        return render_template('addeditcompanies.html', report=report, companydocument=companydocument,
-                               searchqueries=searchqueries, industrytags=industrytags, score=score)
+        # score = companydocument.query_score
+        # if (score):
+        #     score = eval(score)
+        return render_template('addeditcompanies.html', companydocument=companydocument, industrytags=industrytags)
     except Exception as e:
         print(e, file=sys.stderr)
         return 'error'
@@ -2243,10 +2238,10 @@ def delete_company():
         return 'no company found'
     try:
         if (CompanyDocumentModel.delete(title=title)):
-            if (ReportModel.query.filter_by(title='default: ' + title).first()):
-                print(11111, file=sys.stderr)
-                ReportModel.query.filter_by(title='default: ' + title).delete()
-                db.session.commit()
+            # if (ReportModel.query.filter_by(title='default: ' + title).first()):
+            #     print(11111, file=sys.stderr)
+            #     ReportModel.query.filter_by(title='default: ' + title).delete()
+            db.session.commit()
             return redirect(url_for('companies'))
         else:
             return 'error'
@@ -2275,8 +2270,8 @@ def savecompany():
         title = result.get('title')
         clean_text = result.get('clean_text')
         industry_tags = result.get('industry_tags')
-        reference_to_search_query = result.get('reference_to_search_query')
-        run_query_score = result.get('run_query_score')
+        # reference_to_search_query = result.get('reference_to_search_query')
+        # run_query_score = result.get('run_query_score')
         if (title is None or title == ''):
             return "title cannot be empty"
         if (clean_text is None or clean_text == ''):
@@ -2286,14 +2281,14 @@ def savecompany():
 
         # if(industry_tags is None or industry_tags==''):
         #     return "industry tags cannot be empty"
-        if (reference_to_search_query is None or reference_to_search_query == ''):
-            return "reference_to_search_query cannot be empty"
-        if (reference_to_search_query == 'empty'):
-            reference_to_search_query = None
-        if (run_query_score == 'yes'):
-            run_query_score = True
-        else:
-            run_query_score = False
+        # if (reference_to_search_query is None or reference_to_search_query == ''):
+        #     return "reference_to_search_query cannot be empty"
+        # if (reference_to_search_query == 'empty'):
+        #     reference_to_search_query = None
+        # if (run_query_score == 'yes'):
+        #     run_query_score = True
+        # else:
+        #     run_query_score = False
         # temp_clean_text = re.sub(r'[\n]',' ',clean_text)
         # clean_text = re.sub(r'[^a-zA-Z0-9. ]','',temp_clean_text)
 
@@ -2306,54 +2301,53 @@ def savecompany():
         # companydocument = CompanyDocumentModel(title=title,clean_text=clean_text,classified_sentences=str(classified_sentences),industry_tags=industry_tags,reference_to_search_query=reference_to_search_query)
         companydocument = CompanyDocumentModel(title=title, clean_text=clean_text,
                                                classified_sentences=str(classified_sentences),
-                                               reference_to_search_query=reference_to_search_query,
-                                               industry_tags=industry_tags, run_query_score=run_query_score)
+                                               industry_tags=industry_tags)
         if (old_title is not None and old_title != ''):
             # CompanyDocumentModel.query.filter_by(title = old_title).update(dict(title=title,clean_text=clean_text,classified_sentences=str(classified_sentences),industry_tags=industry_tags,reference_to_search_query=reference_to_search_query))
             CompanyDocumentModel.query.filter_by(title=old_title).update(
                 dict(title=title, clean_text=clean_text, classified_sentences=str(classified_sentences),
-                     reference_to_search_query=reference_to_search_query, industry_tags=industry_tags,
-                     run_query_score=run_query_score))
+                     industry_tags=industry_tags))
             db.session.commit()
         else:
             db.session.add(companydocument)
             db.session.commit()
-        report = ReportModel.query.filter_by(title='default: ' + title).first()
-        if (reference_to_search_query is not None):
-            if (run_query_score):
-                if (report is None):
-                    now = datetime.datetime.now(tz)
-                    one_month_ago = now - relativedelta(months=1)
-                    dt_string = now.strftime('%Y-%m-%d')
-                    one_month_ago = one_month_ago.strftime('%Y-%m-%d')
-                    default_date_from = datetime.datetime.strptime(one_month_ago, '%Y-%m-%d').date()
-                    default_date_to = datetime.datetime.strptime(dt_string, '%Y-%m-%d').date()
-
-                    report = ReportModel(first=title, second=reference_to_search_query, frequency='Weekly',
-                                         type='vssearchquery', status='running', title='default: ' + title,
-                                         up_to_date=True, range_from=0, range_to=100, dimension='all', descending=True
-                                         , date_from=default_date_from, date_to=default_date_to, total=0, current_number=0,
-                                         running=False, date_created=datetime.datetime.now(tz))
-                    db.session.add(report)
-                    db.session.commit()
-                    # executor.submit(report_background, report.id, 'vssearchquery', title, reference_to_search_query, 0,
-                    #                 100)
-                else:
-                    report.second = reference_to_search_query
-                    # report.status = 'running'
-                    db.session.commit()
-                    # executor.submit(report_background, report.id, 'vssearchquery', title, reference_to_search_query, 0,
-                    #                 100)
-        else:
-            try:
-                CompanyDocumentModel.query.filter_by(title=old_title).update(dict(query_score=None))
-                if (report):
-                    ReportModel.query.filter_by(title='default: ' + title).delete()
-                    SentenceModel.delete(f_id=report.id)
-                    SentenceTextModel.delete(f_id=report.id)
-                db.session.commit()
-            except:
-                print('no delete', file=sys.stderr)
+        # report = ReportModel.query.filter_by(title='default: ' + title).first()
+        # if (reference_to_search_query is not None):
+        #     if (run_query_score):
+        #         if (report is None):
+        #             now = datetime.datetime.now(tz)
+        #             one_month_ago = now - relativedelta(months=1)
+        #             dt_string = now.strftime('%Y-%m-%d')
+        #             one_month_ago = one_month_ago.strftime('%Y-%m-%d')
+        #             default_date_from = datetime.datetime.strptime(one_month_ago, '%Y-%m-%d').date()
+        #             default_date_to = datetime.datetime.strptime(dt_string, '%Y-%m-%d').date()
+        #
+        #             report = ReportModel(first=title, second=reference_to_search_query, frequency='Weekly',
+        #                                  type='vssearchquery', status='running', title='default: ' + title,
+        #                                  up_to_date=True, range_from=0, range_to=100, dimension='all', descending=True
+        #                                  , date_from=default_date_from, date_to=default_date_to, total=0, current_number=0,
+        #                                  running=True, date_created=datetime.datetime.now(tz))
+        #             db.session.add(report)
+        #             db.session.commit()
+        #             executor.submit(report_background, report.id, 'vssearchquery', title, reference_to_search_query, 0,
+        #                             100)
+        #         else:
+        #             report.second = reference_to_search_query
+        #             report.status = 'running'
+        #             report.running = True
+        #             db.session.commit()
+        #             executor.submit(report_background, report.id, 'vssearchquery', title, reference_to_search_query, 0,
+        #                             100)
+        # else:
+        #     try:
+        #         CompanyDocumentModel.query.filter_by(title=old_title).update(dict(query_score=None))
+        #         if (report):
+        #             ReportModel.query.filter_by(title='default: ' + title).delete()
+        #             SentenceModel.delete(f_id=report.id)
+        #             SentenceTextModel.delete(f_id=report.id)
+        #         db.session.commit()
+        #     except:
+        #         print('no delete', file=sys.stderr)
         return redirect(url_for('companies'))
 
     except Exception as e:
@@ -2581,7 +2575,8 @@ def search_query_documents_background(id):
                                                                    url=i.get('url'), image_url=image,
                                                                    date=i.get('published'), clean_text=i.get('text'),
                                                                    polarity=polarity, sentiment=sentiment,
-                                                                   emotions=str(emotions), date_created=datetime.datetime.now())
+                                                                   emotions=str(emotions),
+                                                                   date_created=datetime.datetime.now())
                     if (SearchQueryDocumentModel.query.filter_by(f_title=f_title,
                                                                  url=searchquerydocument.url).first() is None):
                         if len(searchquerydocument.clean_text) > 50000:
@@ -2656,7 +2651,7 @@ def update_report():
     try:
         result = request.form
         print(result, file=sys.stderr)
-        dimensions = {'aesthetic': 0, 'craftsmanship': 0, 'purpose': 0, 'narrative': 0}
+        # dimensions = {'aesthetic': 0, 'craftsmanship': 0, 'purpose': 0, 'narrative': 0}
         id = result.get('id')
         title = result.get('title')
         descending = result.get('descending')
@@ -2678,9 +2673,9 @@ def update_report():
         if (report is None):
             return 'no report found'
 
-        if ('default: ' in report.title):
-            default_company = report.title[9:]
-            default_company = CompanyDocumentModel.query.filter_by(title=default_company).first()
+        # if ('default: ' in report.title):
+        #     default_company = report.title[9:]
+        #     default_company = CompanyDocumentModel.query.filter_by(title=default_company).first()
         if (descending == 'true'):
             descending = True
         else:
@@ -2689,30 +2684,30 @@ def update_report():
             up_to_date = True
         else:
             up_to_date = False
-        sentences = SentenceModel.query.filter_by(f_id=id).all()
-        if (sentences is None or sentences == []):
-            pass
-        else:
-            for dim in dimensions:
-                num = 0
-                total = 0
-                for sentence in sentences:
-                    if (dim != sentence.dimension):
-                        continue
-                    total += 1
-                    score = sentence.similarity
-                    if (score >= range_from and score <= range_to):
-                        num += 1
-                if (total > 0):
-                    dimensions[dim] = (num / total) * 100
-                else:
-                    dimensions[dim] = 0
-            dimensions['overall'] = (dimensions['aesthetic'] + dimensions['craftsmanship'] + dimensions['purpose'] +
-                                     dimensions['narrative']) / 4
-            print(dimensions, file=sys.stderr)
+        # sentences = SentenceModel.query.filter_by(f_id=id).all()
+        # if (sentences is None or sentences == []):
+        #     pass
+        # else:
+        #     for dim in dimensions:
+        #         num = 0
+        #         total = 0
+        #         for sentence in sentences:
+        #             if (dim != sentence.dimension):
+        #                 continue
+        #             total += 1
+        #             score = sentence.similarity
+        #             if (score >= range_from and score <= range_to):
+        #                 num += 1
+        #         if (total > 0):
+        #             dimensions[dim] = (num / total) * 100
+        #         else:
+        #             dimensions[dim] = 0
+        #     dimensions['overall'] = (dimensions['aesthetic'] + dimensions['craftsmanship'] + dimensions['purpose'] +
+        #                              dimensions['narrative']) / 4
+        # print(dimensions, file=sys.stderr)
         ReportModel.query.filter_by(id=id).update(
-            dict(dimension=dimension, descending=descending, range_from=range_from, range_to=range_to,
-                 up_to_date=up_to_date, title=title, date_created=datetime.datetime.now(tz)))
+            dict(dimension=dimension, descending=descending, range_from=range_from,
+                 range_to=range_to, up_to_date=up_to_date, title=title, date_created=datetime.datetime.now(tz)))
         # ReportModel.query.filter_by(id=id).update(dict(score=str(dimensions),dimension=dimension,descending=descending,range_from=range_from,range_to=range_to,up_to_date=up_to_date,title=title))
         # if('default: ' in report.title):
         #     default_company.query_score = str(dimensions)
@@ -2801,7 +2796,7 @@ def new_report():
                                  running=True, date_created=datetime.datetime.now(tz))
             db.session.add(report)
             db.session.commit()
-            # executor.submit(report_background, report.id, type, first, second, 0, 100)
+            executor.submit(report_background, report.id, type, first, second, 0, 100)
             return redirect(url_for('reports'))
 
         except Exception as e:
@@ -2874,7 +2869,7 @@ def load_more():
                 d.append(
                     {'sentence1': s.get(int(i.sentence1)), 'similarity': i.similarity,
                      'sentence2': s.get(int(i.sentence2)),
-                     'title': i.title2, 'id': i.id2, 'provider': i.provider})
+                     'title': i.title2, 'id': i.id2, 'provider': i.provider, 'url': i.url})
                 if len(d) >= 20:
                     break
             except:
@@ -2921,6 +2916,8 @@ def report_company_test():
         page_url = ''
         score1 = None
         score2 = None
+        score = None
+        sentences_score = None
         providers = None
         chartdata = None
         both = []
@@ -2928,37 +2925,38 @@ def report_company_test():
         # authors = []
         if (type == 'vscompany'):
             page_url = 'reportcompanytest.html'
-            first_default = ReportModel.query.filter_by(title='default: ' + report.first).first()
-            second_default = ReportModel.query.filter_by(title='default: ' + report.second).first()
+            # first_default = ReportModel.query.filter_by(title='default: ' + report.first).first()
+            # second_default = ReportModel.query.filter_by(title='default: ' + report.second).first()
             providers = []
-            if (first_default):
-                c1 = CompanyDocumentModel.query.filter_by(title=report.first).first()
-                if (c1 and c1.query_score):
-                    score1 = eval(c1.query_score)
-                result1 = get_providers(id=first_default.id, range_from=first_default.range_from,
-                                        range_to=first_default.range_to)
-                if (result1 == 'error'):
-                    providers.append([])
-                else:
-                    providers.append(result1)
-            if (second_default):
-                c2 = CompanyDocumentModel.query.filter_by(title=report.second).first()
-                if (c2 and c2.query_score):
-                    score2 = eval(c2.query_score)
-                result2 = get_providers(id=second_default.id, range_from=second_default.range_from,
-                                        range_to=second_default.range_to)
-                if (result2 == 'error'):
-                    providers.append([])
-                else:
-                    providers.append(result2)
-            print(providers)
+            # if (first_default):
+            #     c1 = CompanyDocumentModel.query.filter_by(title=report.first).first()
+            #     if (c1 and c1.query_score):
+            #         score1 = eval(c1.query_score)
+            #     result1 = get_providers(id=first_default.id, range_from=first_default.range_from,
+            #                             range_to=first_default.range_to)
+            #     if (result1 == 'error'):
+            #         providers.append([])
+            #     else:
+            #         providers.append(result1)
+            # if (second_default):
+            #     c2 = CompanyDocumentModel.query.filter_by(title=report.second).first()
+            #     if (c2 and c2.query_score):
+            #         score2 = eval(c2.query_score)
+            #     result2 = get_providers(id=second_default.id, range_from=second_default.range_from,
+            #                             range_to=second_default.range_to)
+            #     if (result2 == 'error'):
+            #         providers.append([])
+            #     else:
+            #         providers.append(result2)
+            # print(providers)
         elif (type == 'vssearchquery'):
             page_url = 'reportsearchquerytest.html'
             providers = []
-            if (ReportModel.query.filter_by(title='default: ' + report.first).first()):
-                c1 = CompanyDocumentModel.query.filter_by(title=report.first).first()
-                if (c1 and c1.query_score):
-                    score1 = eval(c1.query_score)
+            if (report.score):
+                # c1 = CompanyDocumentModel.query.filter_by(title=report.first).first()
+                # if (c1 and c1.query_score):
+                #     score1 = eval(c1.query_score)
+                score = eval(report.score)
             # temp_sen = SentenceModel.query.filter(SentenceModel.f_id==report.id,SentenceModel.similarity>=report.range_from,SentenceModel.similarity<=report.range_to).all()
             # temp_sen = SentenceModel.query.filter(SentenceModel.f_id==report.id).all()
             temp_sen = []
@@ -2985,7 +2983,8 @@ def report_company_test():
             providers = sorted(providers, key=lambda x: x[1], reverse=True)
             providers = providers[:5]
             print(4)
-
+            sentences_score = get_search_query_sentence_percentage(report.second)
+            print(sentences_score)
             # for key,value in a.items():
             #     authors.append([key,value/length_sen])
             # authors = sorted(authors, key=lambda x: x[1],reverse=True)
@@ -2993,26 +2992,26 @@ def report_company_test():
             # print(authors,file=sys.stderr)
         elif (type == 'vstag'):
             page_url = 'reporttagtest.html'
-            # page_url = 'test.html'
-            companies_tagged = CompanyDocumentModel.query.all()
-            documents_tagged = ArbitraryDocumentModel.query.all()
-            both_temp = CompanyDocumentModel.query.filter_by(title=report.first).first()
-            if (both_temp and companies_tagged):
-                if (both_temp in companies_tagged):
-                    companies_tagged.remove(both_temp)
-                companies_tagged.insert(0, both_temp)
-            else:
-                return 'error'
-            if (companies_tagged):
-                for i in companies_tagged:
-                    if (i.industry_tags and report.second in i.industry_tags) or (i.title == report.first):
-                        if (i.query_score):
-                            dict_query_score = eval(i.query_score)
-                            if dict_query_score:
-                                for j in dict_query_score:
-                                    dict_query_score[j] = round(dict_query_score[j]['score'], 2)
-                            tag_data.append({'query_score': dict_query_score, 'title': i.title})
-                            both.append(i)
+            # # page_url = 'test.html'
+            # companies_tagged = CompanyDocumentModel.query.all()
+            # documents_tagged = ArbitraryDocumentModel.query.all()
+            # both_temp = CompanyDocumentModel.query.filter_by(title=report.first).first()
+            # if (both_temp and companies_tagged):
+            #     if (both_temp in companies_tagged):
+            #         companies_tagged.remove(both_temp)
+            #     companies_tagged.insert(0, both_temp)
+            # else:
+            #     return 'error'
+            # if (companies_tagged):
+            #     for i in companies_tagged:
+            #         if (i.industry_tags and report.second in i.industry_tags) or (i.title == report.first):
+            #             if (i.query_score):
+            #                 dict_query_score = eval(i.query_score)
+            #                 if dict_query_score:
+            #                     for j in dict_query_score:
+            #                         dict_query_score[j] = round(dict_query_score[j]['score'], 2)
+            #                 tag_data.append({'query_score': dict_query_score, 'title': i.title})
+            #                 both.append(i)
         else:
             'error'
         s = {}
@@ -3036,8 +3035,9 @@ def report_company_test():
             date_to = None
         return render_template(page_url, companydocuments=companydocuments, report=report, dimensions=dimensions,
                                sentences=result_sentences, searchqueries=searchqueries, tags=tags, score1=score1,
-                               score2=score2, providers=providers, tagdata=tag_data, chartdimension=chartdimension
-                               , date_from=date_from, date_to=date_to, color=colors)
+                               score2=score2, providers=providers, tagdata=tag_data, chartdimension=chartdimension,
+                               date_from=date_from, date_to=date_to, color=colors, score=score,
+                               sentences_score=sentences_score)
 
     # except Exception as e:
     #     print(e,file=sys.stderr)
@@ -3139,8 +3139,6 @@ def report_company_test():
             return 'error'
 
 
-
-
 def report_work_score(type, first, second, report, dimension, all_sentence2s, all_sen_pro_authors):
     sentence2 = []
     sen_pro_author = {}
@@ -3156,9 +3154,9 @@ def report_work_score(type, first, second, report, dimension, all_sentence2s, al
             if (dict_company[i] == dimension):
                 ##sentence2.append(i)
                 if (len(re.findall(r'\w+', i)) > 3):
-                    sentence2.append([i, second_company.id, 'company', second_company.title])
+                    sentence2.append([i, second_company.id, 'company', second_company.title, None])
             if (len(re.findall(r'\w+', i)) > 3):
-                all_sentence2s.append([i, second_company.id, 'company', second_company.title])
+                all_sentence2s.append([i, second_company.id, 'company', second_company.title, None])
     elif (type == 'vssearchquery'):
         print('entered search query')
         temp_date = SearchQueryDocumentModel.query.filter_by(f_title=second).all()
@@ -3172,7 +3170,7 @@ def report_work_score(type, first, second, report, dimension, all_sentence2s, al
                 if report.date_from <= published <= report.date_to:
                     second_searchquery.append(query)
                 # else:
-                    # print(query.title, 'removed')
+                # print(query.title, 'removed')
         for querydocument in second_searchquery:
             dict_query = []
             if (querydocument.classified_sentences):
@@ -3182,10 +3180,10 @@ def report_work_score(type, first, second, report, dimension, all_sentence2s, al
                     ##sentence2.append(i)
                     ##sen_pro_author[i] = {'provider':querydocument.provider,'author':querydocument.author}
                     if len(re.findall(r'\w+', i)) > 3:
-                        sentence2.append([i, querydocument.id, 'searchquery', querydocument.title])
+                        sentence2.append([i, querydocument.id, 'searchquery', querydocument.title, querydocument.url])
                         sen_pro_author[i] = {'provider': querydocument.provider, 'author': querydocument.author}
                 if len(re.findall(r'\w+', i)) > 3:
-                    all_sentence2s.append([i, querydocument.id, 'searchquery', querydocument.title])
+                    all_sentence2s.append([i, querydocument.id, 'searchquery', querydocument.title, querydocument.url])
                     all_sen_pro_authors[i] = {'provider': querydocument.provider,
                                               'author': querydocument.author}
     elif (type == 'vstag'):
@@ -3210,11 +3208,10 @@ def report_work_score(type, first, second, report, dimension, all_sentence2s, al
                 if (d[i] == dimension):
                     ##sentence2.append(i)
                     if (len(re.findall(r'\w+', i)) > 3):
-                        sentence2.append([i, querydocument.id, 'tag', querydocument.title])
+                        sentence2.append([i, querydocument.id, 'tag', querydocument.title, None])
                 if (len(re.findall(r'\w+', i)) > 3):
-                    all_sentence2s.append([i, querydocument.id, 'tag', querydocument.title])
+                    all_sentence2s.append([i, querydocument.id, 'tag', querydocument.title, None])
     return sentence2, sen_pro_author
-
 
 
 @app.route('/killreport')
@@ -3241,9 +3238,9 @@ def report_background(id, type, first, second, range_from, range_to):
                       'all': {'num': 0, 'total': 0, 'score': 0},
                       'narrative': {'num': 0, 'total': 0, 'score': 0}}
         report = ReportModel.query.filter_by(id=id).first()
-        default_flag = False
-        if 'default: ' in report.title:
-            default_flag = True
+        # default_flag = False
+        # if 'default: ' in report.title:
+        #     default_flag = True
         first = CompanyDocumentModel.query.filter_by(title=first).first()
         dict_company_A = eval(first.classified_sentences)
         if (SentenceModel.query.filter_by(f_id=id).first() is not None):
@@ -3265,7 +3262,8 @@ def report_background(id, type, first, second, range_from, range_to):
                         process_s1.append(i)
                 if (len(re.findall(r'\w+', i)) > 3):
                     process_s1_total.append(i)
-            process_s2, sen_pro_author = report_work_score(type, first, second, report, dimension, process_s2_total, process_all_sen_pro_authors)
+            process_s2, sen_pro_author = report_work_score(type, first, second, report, dimension, process_s2_total,
+                                                           process_all_sen_pro_authors)
             s2 = []
             for i in process_s2:
                 s2.append(i[0])
@@ -3294,12 +3292,14 @@ def report_background(id, type, first, second, range_from, range_to):
                         sentence1.append(i)
                 if (len(re.findall(r'\w+', i)) > 3):
                     all_sentence1s.append(i)
-            sentence2, sen_pro_author = report_work_score(type, first, second, report, dimension, all_sentence2s, all_sen_pro_authors)
+            sentence2, sen_pro_author = report_work_score(type, first, second, report, dimension, all_sentence2s,
+                                                          all_sen_pro_authors)
             if (len(sentence1) == 0 or len(sentence2) == 0):
                 continue
             # print(dimension,sentence1,sentence2,file=sys.stderr)
             temp_score = get_scores(sentence1, sentence2, dimension, id, sen_pro_author)
-            if temp_score and default_flag:
+            # if temp_score and default_flag:
+            if temp_score:
                 num = temp_score.get('num')
                 total = temp_score.get('total')
                 try:
@@ -3315,7 +3315,8 @@ def report_background(id, type, first, second, range_from, range_to):
             dimension = 'all'
             temp_all_score = get_scores(all_sentence1s, all_sentence2s, dimension, id,
                                         sen_pro_author=all_sen_pro_authors)
-            if temp_all_score and default_flag:
+            # if temp_all_score and default_flag:
+            if temp_all_score:
                 num = temp_all_score.get('num')
                 total = temp_all_score.get('total')
                 try:
@@ -3323,13 +3324,15 @@ def report_background(id, type, first, second, range_from, range_to):
                 except:
                     pass
                 ReportModel.query.filter_by(id=id).update(dict(score=str(dimensions)))
-                first.query_score = str(dimensions)
-        ReportModel.query.filter_by(id=id).update(dict(status='done', running=False, date_completed=datetime.datetime.now()))
+                # first.query_score = str(dimensions)
+        ReportModel.query.filter_by(id=id).update(
+            dict(status='done', running=False, date_completed=datetime.datetime.now()))
         db.session.commit()
 
     except Exception as e:
         print(traceback.format_exc(), file=sys.stderr)
-        ReportModel.query.filter_by(id=id).update(dict(status='error', running=False, date_completed=datetime.datetime.now()))
+        ReportModel.query.filter_by(id=id).update(
+            dict(status='error', running=False, date_completed=datetime.datetime.now()))
         db.session.commit()
 
 
@@ -3340,8 +3343,8 @@ def update_score(update_id):
                   'all': {'num': 0, 'total': 0, 'score': 0},
                   'narrative': {'num': 0, 'total': 0, 'score': 0}}
     report = ReportModel.query.filter_by(id=update_id).first()
-    if 'default: ' not in report.title:
-        return None
+    # if 'default: ' not in report.title:
+    #     return None
     first = CompanyDocumentModel.query.filter_by(title=report.first).first()
     thresh = Threshold.query.filter_by(id=1).first()
     if thresh:
@@ -3377,9 +3380,9 @@ def update_score(update_id):
 
     report.score = str(dimensions)
     db.session.commit()
-    if ('default: ' in ReportModel.query.filter_by(id=update_id).first().title):
-        first.query_score = str(dimensions)
-        db.session.commit()
+    # if ('default: ' in ReportModel.query.filter_by(id=update_id).first().title):
+    #     first.query_score = str(dimensions)
+    #     db.session.commit()
 
 
 def get_scores(sentence1, sentence2, dimension, id, sen_pro_author):
@@ -3411,7 +3414,8 @@ def get_scores(sentence1, sentence2, dimension, id, sen_pro_author):
                 for key in temp_emotions:
                     if temp_emotions[key] != 0.0:
                         emotions[key] = temp_emotions[key]
-            s = SentenceTextModel(f_id=id, sentence=s[0], polarity=polarity, sentiment=sentiment, emotions=str(emotions))
+            s = SentenceTextModel(f_id=id, sentence=s[0], polarity=polarity, sentiment=sentiment,
+                                  emotions=str(emotions))
             db.session.add(s)
             db.session.commit()
 
@@ -3439,15 +3443,16 @@ def get_scores(sentence1, sentence2, dimension, id, sen_pro_author):
                 num += 1
                 if (sen_pro_author == {}):
                     db.session.add(SentenceModel(sentence1=s.get(i), sentence2=s.get(j), similarity=int(score), f_id=id,
-                                           dimension=dimension, title2=res_dict[i][j]['title'],
-                                           id2=res_dict[i][j]['id'],
-                                           type=res_dict[i][j]['type']))
+                                                 dimension=dimension, title2=res_dict[i][j]['title'],
+                                                 id2=res_dict[i][j]['id'],
+                                                 type=res_dict[i][j]['type'], url=res_dict[i][j]['url']))
                 else:
                     db.session.add(SentenceModel(sentence1=s.get(i), sentence2=s.get(j), similarity=int(score), f_id=id,
-                                           dimension=dimension, title2=res_dict[i][j]['title'],
-                                           id2=res_dict[i][j]['id'],
-                                           type=res_dict[i][j]['type'], provider=sen_pro_author.get(j).get('provider'),
-                                           author=sen_pro_author.get(j).get('author')))
+                                                 dimension=dimension, title2=res_dict[i][j]['title'],
+                                                 id2=res_dict[i][j]['id'],
+                                                 type=res_dict[i][j]['type'],
+                                                 provider=sen_pro_author.get(j).get('provider'),
+                                                 author=sen_pro_author.get(j).get('author'), url=res_dict[i][j]['url']))
         report_temp.current_number = counter
         db.session.commit()
         print(counter)
@@ -3474,7 +3479,6 @@ def temp_azure(tmp):
     return d
 
 
-
 def send_email(content):
     mail_content = content
     sender_address = 'saadcheemaa545@gmail.com'
@@ -3494,6 +3498,7 @@ def send_email(content):
     mail_session.quit()
     print('Mail Sent')
 
+
 @app.route("/sendmail", methods=[POST])
 def sendmail():
     try:
@@ -3502,14 +3507,16 @@ def sendmail():
         address = result.get('address')
         contact = result.get('contact')
         items = result.get('items')
-        print(name,items)
+        print(name, items)
         text = f'You got a new order. Here are the details:\nName: {name}\nAddress: {address}\nContact: {contact}\n' \
                f'items: {items}'
         send_email(text)
         return 'sent'
     except:
         return 'error'
-@app.route("/processes", methods=[GET,POST])
+
+
+@app.route("/processes", methods=[GET, POST])
 def processes():
     try:
         processes = []
@@ -3532,6 +3539,32 @@ def processes():
         print(e)
         return 'error'
 
+
+def get_search_query_sentence_percentage(f_title):
+    docs = SearchQueryDocumentModel.query.filter_by(f_title=f_title).all()
+    if not docs:
+        return None
+    score = {'aesthetic': 0, 'craftsmanship': 0, 'narrative': 0, 'purpose': 0}
+    for d in docs:
+        sentences = eval(d.classified_sentences)
+        for s in sentences:
+            dimension = sentences[s]
+            if dimension == 'narrative':
+                score['narrative'] += 1
+            elif dimension == 'purpose':
+                score['purpose'] += 1
+            elif dimension == 'craftsmanship':
+                score['craftsmanship'] += 1
+            elif dimension == 'aesthetic':
+                score['aesthetic'] += 1
+    total = score['aesthetic']+score['craftsmanship']+score['narrative']+score['purpose']
+    if total == 0:
+        return None
+    score['aesthetic'] = round(score['aesthetic']*100/total, 2)
+    score['craftsmanship'] = round(score['craftsmanship']*100/total, 2)
+    score['narrative'] = round(score['narrative']*100/total, 2)
+    score['purpose'] = round(score['purpose']*100/total, 2)
+    return score
 if __name__ == '__main__':
     from waitress import serve
 

@@ -112,40 +112,40 @@
                         </div>
                 </div>
                 <div class="row col-12 mt-3 justify-content-center text-white pt-5">
-                    <div class="row col-12 col-md-6 m-0 p-0 justify-content-center">
+                    <div class="row col-12 col-md-4 m-0 p-0 justify-content-center">
                         <div class="row col-12 justify-content-center">
-                            <h5 class="font-weight-bold pb-3 text-center">Effective Scores (vs Default media)</h5>
+                            <h5 class="font-weight-bold pb-3 mr-5 text-center">Effective Scores</h5>
                         </div>
-                    {%if score1:%}
-                        <div class="row col-6 m-0 p-0">
+                    {%if score:%}
+                        <div class="row col-10 m-0 p-0">
                             <div class="row col-10 justify-content-end text-secondary mb-2">
                                 <div class="row col-12 justify-content-center">
-                                    <p style="color: {{color['overall']}}" class="m-0 p-0 font-weight-bold">Overall: {{"{:.1f}".format(score1.get('all').get('score'))}} %</p>
+                                    <p style="color: {{color['overall']}}" class="m-0 p-0 font-weight-bold">Overall: {{"{:.1f}".format(score.get('all').get('score'))}} %</p>
                                 </div>
                             </div>
                             <div class="col-4"></div>
                             <div class="row col-10 justify-content-end text-secondary mb-2">
                                 <div class="row col-12 justify-content-center">
-                                    <p style="color: {{color['purpose']}}" class="m-0 p-0 font-weight-bold">Purpose: {{"{:.1f}".format(score1.get('purpose').get('score'))}} %</p>
+                                    <p style="color: {{color['purpose']}}" class="m-0 p-0 font-weight-bold">Purpose: {{"{:.1f}".format(score.get('purpose').get('score'))}} %</p>
                                 </div>
                             </div>
                             <div class="col-4"></div>
                             <div class="row col-10 justify-content-end text-secondary mb-2">
                                 <div class="row col-12 justify-content-center">
-                                    <p style="color: {{color['craftsmanship']}}" class="m-0 p-0 font-weight-bold">Craftsmanship: {{"{:.1f}".format(score1.get('craftsmanship').get('score'))}} %</p>
+                                    <p style="color: {{color['craftsmanship']}}" class="m-0 p-0 font-weight-bold">Craftsmanship: {{"{:.1f}".format(score.get('craftsmanship').get('score'))}} %</p>
                                 </div>
                             </div>
                             <div class="col-4"></div>
                             <div class="row col-10 justify-content-end text-secondary mb-2">
                                 <div class="row col-12 justify-content-center">
-                                    <p style="color: {{color['aesthetic']}}" class="m-0 p-0 font-weight-bold">Aesthetic: {{"{:.1f}".format(score1.get('aesthetic').get('score'))}} %</p>
+                                    <p style="color: {{color['aesthetic']}}" class="m-0 p-0 font-weight-bold">Aesthetic: {{"{:.1f}".format(score.get('aesthetic').get('score'))}} %</p>
                                 </div>
                             </div>
                             <div class="col-4"></div>
                             <div class="row col-10 justify-content-end text-secondary mb-2">
                                 <div class="row col-12 justify-content-center">
-                                    <p style="color: {{color['narrative']}}" class="m-0 p-0 font-weight-bold">Narrative: {{"{:.1f}".format(score1.get('narrative').get('score'))}} %</p>
-<!--                                     ({{score1.get('narrative').get('num')}}/{{score1.get('narrative').get('total')}})-->
+                                    <p style="color: {{color['narrative']}}" class="m-0 p-0 font-weight-bold">Narrative: {{"{:.1f}".format(score.get('narrative').get('score'))}} %</p>
+<!--                                     ({{score.get('narrative').get('num')}}/{{score.get('narrative').get('total')}})-->
                                 </div>
                             </div>
                             <div class="col-4"></div>
@@ -154,25 +154,61 @@
 
                     </div>
 
-                    <div class="row col-12 col-md-6 m-0 p-0 justify-content-center">
-                        <div class="row col-10 justify-content-center">
+                    {%if sentences_score:%}
+                    <div class="row col-12 col-md-4 m-0 p-0 justify-content-center">
+                        <div class="row col-12 justify-content-center">
+                            <h5 class="font-weight-bold pb-3 text-center">Sentences Percentage</h5>
+                        </div>
+                        <div class="row col-10 m-0 p-0">
+                            <div class="col-4"></div>
+                            <div class="row col-10 justify-content-end text-secondary mb-2">
+                                <div class="row col-12 justify-content-center">
+                                    <p style="color: {{color['purpose']}}" class="m-0 p-0 font-weight-bold">Purpose: {{sentences_score.get('purpose')}} %</p>
+                                </div>
+                            </div>
+                            <div class="col-4"></div>
+                            <div class="row col-10 justify-content-end text-secondary mb-2">
+                                <div class="row col-12 justify-content-center">
+                                    <p style="color: {{color['craftsmanship']}}" class="m-0 p-0 font-weight-bold">Craftsmanship: {{sentences_score['craftsmanship']}} %</p>
+                                </div>
+                            </div>
+                            <div class="col-4"></div>
+                            <div class="row col-10 justify-content-end text-secondary mb-2">
+                                <div class="row col-12 justify-content-center">
+                                    <p style="color: {{color['aesthetic']}}" class="m-0 p-0 font-weight-bold">Aesthetic: {{sentences_score['aesthetic']}} %</p>
+                                </div>
+                            </div>
+                            <div class="col-4"></div>
+                            <div class="row col-10 justify-content-end text-secondary mb-2">
+                                <div class="row col-12 justify-content-center">
+                                    <p style="color: {{color['narrative']}}" class="m-0 p-0 font-weight-bold">Narrative: {{sentences_score['narrative']}} %</p>
+                                </div>
+                            </div>
+                            <div class="col-4"></div>
+                        </div>
+                    </div>
+                    {%endif%}
+
+
+                    <div class="row col-12 col-md-4 m-0 p-0 justify-content-center">
+                        <div class="row col-10 mr-4 justify-content-center">
                             <h5 class="font-weight-bold pb-3 text-center">Top Matching Search Media Providers</h5>
                         </div>
                     {%if providers[0]:%}
-                        <div class="row col-6 m-0 p-0">
+                        <div class="row col-10 m-0 p-0">
 <!--                            <div class="row col justify-content-center mb-2">-->
 <!--                                <h4>{{report.first}}</h4>-->
 <!--                            </div>-->
 <!--                            <div class="col-4"></div>-->
                             {%if providers[0:]:%}
                             <div class="row col-10 justify-content-end text-white mb-2">
-                                <div class="row col-12 justify-content-start">
+                                <div class="row col-12 justify-content-center">
                                     <p style="opacity: 1;" class="m-0 p-0 font-weight-bold">{{providers[0][0]}}: {{"{:.1f}".format(providers[0][1])}}%</p>
                                 </div>
                             </div>
                             {%else%}
                             <div class="row col-10 justify-content-end text-white mb-2">
-                                <div class="row col-12 justify-content-start">
+                                <div class="row col-12 justify-content-center">
                                     <p style="opacity: 1;" class="m-0 p-0 font-weight-bold">Not Available</p>
                                 </div>
                             </div>
@@ -180,13 +216,13 @@
                             <div class="col-4"></div>
                             {%if providers[1:]:%}
                             <div class="row col-10 justify-content-end text-white mb-2">
-                                <div class="row col-12 justify-content-start">
+                                <div class="row col-12 justify-content-center">
                                     <p style="opacity: 0.8;" class="m-0 p-0 font-weight-bold">{{providers[1][0]}}: {{"{:.1f}".format(providers[1][1])}}%</p>
                                 </div>
                             </div>
                             {%else%}
                             <div class="row col-10 justify-content-end text-white mb-2">
-                                <div class="row col-12 justify-content-start">
+                                <div class="row col-12 justify-content-center">
                                     <p style="opacity: 0.8;" class="m-0 p-0 font-weight-bold">Not Available</p>
                                 </div>
                             </div>
@@ -194,13 +230,13 @@
                             <div class="col-4"></div>
                             {%if providers[2:]:%}
                             <div class="row col-10 justify-content-end text-white mb-2">
-                                <div class="row col-12 justify-content-start">
+                                <div class="row col-12 justify-content-center">
                                     <p style="opacity: 0.6;" class="m-0 p-0 font-weight-bold">{{providers[2][0]}}: {{"{:.1f}".format(providers[2][1])}}%</p>
                                 </div>
                             </div>
                             {%else%}
                             <div class="row col-10 justify-content-end text-white mb-2">
-                                <div class="row col-12 justify-content-start">
+                                <div class="row col-12 justify-content-center">
                                     <p style="opacity: 0.6;" class="m-0 p-0 font-weight-bold">Not Available</p>
                                 </div>
                             </div>
@@ -208,13 +244,13 @@
                             <div class="col-4"></div>
                             {%if providers[3:]:%}
                             <div class="row col-10 justify-content-end text-white mb-2">
-                                <div class="row col-12 justify-content-start">
+                                <div class="row col-12 justify-content-center">
                                     <p style="opacity: 0.4;" class="m-0 p-0 font-weight-bold">{{providers[3][0]}}: {{"{:.1f}".format(providers[3][1])}}%</p>
                                 </div>
                             </div>
                             {%else%}
                             <div class="row col-10 justify-content-end text-white mb-2">
-                                <div class="row col-12 justify-content-start">
+                                <div class="row col-12 justify-content-center">
                                     <p style="opacity: 0.4;" class="m-0 p-0 font-weight-bold">Not Available</p>
                                 </div>
                             </div>
@@ -222,13 +258,13 @@
                             <div class="col-4"></div>
                             {%if providers[4:]:%}
                             <div class="row col-10 justify-content-end text-white mb-2">
-                                <div class="row col-12 justify-content-start">
+                                <div class="row col-12 justify-content-center">
                                     <p style="opacity: 0.3;" class="m-0 p-0 font-weight-bold">{{providers[4][0]}}: {{"{:.1f}".format(providers[4][1])}}%</p>
                                 </div>
                             </div>
                             {%else%}
                             <div class="row col-10 justify-content-end text-white mb-2">
-                                <div class="row col-12 justify-content-start">
+                                <div class="row col-12 justify-content-center">
                                     <p style="opacity: 0.3;" class="m-0 p-0 font-weight-bold">Not Available</p>
                                 </div>
                             </div>
@@ -316,15 +352,15 @@
                        <input type="hidden" name="id" value="{{i.id2}}">
                       {%if i.title2|length < 5:%}
                           {%if "default:" in report.title%}
-                                <a type="button" onclick="highlight(this,'{{i.id2}}')" id="{{i.sentence2}}"><h5 class="font-weight-bold text-left">NO TITLE FOUND ({{i.provider}})</h5></a>
+                                <a type="button" onclick="highlight(this,'{{i.url}}')" id="{{i.sentence2}}"><h5 class="font-weight-bold text-left">NO TITLE FOUND ({{i.provider}})</h5></a>
                             {%else%}
-                                <a type="button" onclick="highlight(this,'{{i.id2}}')" id="{{i.sentence2}}"><h5 class="font-weight-bold text-left">NO TITLE FOUND</h5></a>
+                                <a type="button" onclick="highlight(this,'{{i.url}}')" id="{{i.sentence2}}"><h5 class="font-weight-bold text-left">NO TITLE FOUND</h5></a>
                             {%endif%}
                       {%else%}
                             {%if "default:" in report.title%}
-                              <a type="button" onclick="highlight(this,'{{i.id2}}')" id="{{i.sentence2}}"><h5 class="font-weight-bold text-left">{{i.title2}} ({{i.provider}})</h5></a>
+                              <a type="button" onclick="highlight(this,'{{i.url}}')" id="{{i.sentence2}}"><h5 class="font-weight-bold text-left">{{i.title2}} ({{i.provider}})</h5></a>
                             {%else%}
-                              <a type="button" onclick="highlight(this,'{{i.id2}}')" id="{{i.sentence2}}"><h5 class="font-weight-bold text-left">{{i.title2}}</h5></a>
+                              <a type="button" onclick="highlight(this,'{{i.url}}')" id="{{i.sentence2}}"><h5 class="font-weight-bold text-left">{{i.title2}}</h5></a>
                             {%endif%}
                       {%endif%}
                        <div class="row col-12 justify-content-start">
@@ -380,10 +416,10 @@ function loadhere(){
 
         for(i=0;i<s.length;i++){
             if(s[i]['title'].length < 5){
-                $("#loadhere").append('<div class="row col-10 mt-3 justify-content-center text-white"><div class="row col-12 col-md-5 m-0 p-0 justify-content-end"><h3 class="font-weight-bold text-right">{{report.first}}</h3><div class="row col-12 justify-content-end"><form target="_blank" action="/companies/classifier" method="POST"><input type="hidden" name="title" value="{{report.first}}"><input type="hidden" name="sentence" value="'+s[i]["sentence1"]+'"><a class="text-right" type="button" onclick="this.parentElement.submit()" >'+s[i]["sentence1"]+'</a><br></form></div></div><div class="row col-12 col-md-2"><div class="col-12 block row justify-content-center m-0 p-0"><div class="circle"><p>'+s[i]["similarity"]+'%</p></div></div></div><div class="row col-12 col-md-5 m-0 p-0 justify-content-start text-center mt-3 mt-md-0"><input type="hidden" name="id" value="'+s[i]["id"]+'">{%if "default:" in report.title%}<a type="button" onclick="highlight(this,\''+s[i]["id"]+'\')" id="'+s[i]["sentence2"]+'"><h5 class="font-weight-bold text-left">NO TITLE FOUND ('+s[i]["provider"]+')</h5></a>{%else%}<a type="button" onclick="highlight(this,\''+s[i]["id"]+'\')" id="'+s[i]["sentence2"]+'"><h5 class="font-weight-bold text-left">NO TITLE FOUND</h5></a>{%endif%}<div class="row col-12 justify-content-start"><form target="_blank" action="/searchquerydocuments/classifier" method="POST"><input type="hidden" name="query_document_id" value="'+s[i]["id"]+'"><input type="hidden" name="sentence" value="'+s[i]["sentence2"]+'"><a class="text-left" type="button" onclick="this.parentElement.submit()" >'+s[i]["sentence2"]+'</a><br></form></div></div></div>');
+                $("#loadhere").append('<div class="row col-10 mt-3 justify-content-center text-white"><div class="row col-12 col-md-5 m-0 p-0 justify-content-end"><h3 class="font-weight-bold text-right">{{report.first}}</h3><div class="row col-12 justify-content-end"><form target="_blank" action="/companies/classifier" method="POST"><input type="hidden" name="title" value="{{report.first}}"><input type="hidden" name="sentence" value="'+s[i]["sentence1"]+'"><a class="text-right" type="button" onclick="this.parentElement.submit()" >'+s[i]["sentence1"]+'</a><br></form></div></div><div class="row col-12 col-md-2"><div class="col-12 block row justify-content-center m-0 p-0"><div class="circle"><p>'+s[i]["similarity"]+'%</p></div></div></div><div class="row col-12 col-md-5 m-0 p-0 justify-content-start text-center mt-3 mt-md-0"><input type="hidden" name="id" value="'+s[i]["id"]+'">{%if "default:" in report.title%}<a type="button" onclick="highlight(this,\''+s[i]["url"]+'\')" id="'+s[i]["sentence2"]+'"><h5 class="font-weight-bold text-left">NO TITLE FOUND ('+s[i]["provider"]+')</h5></a>{%else%}<a type="button" onclick="highlight(this,\''+s[i]["url"]+'\')" id="'+s[i]["sentence2"]+'"><h5 class="font-weight-bold text-left">NO TITLE FOUND</h5></a>{%endif%}<div class="row col-12 justify-content-start"><form target="_blank" action="/searchquerydocuments/classifier" method="POST"><input type="hidden" name="query_document_id" value="'+s[i]["id"]+'"><input type="hidden" name="sentence" value="'+s[i]["sentence2"]+'"><a class="text-left" type="button" onclick="this.parentElement.submit()" >'+s[i]["sentence2"]+'</a><br></form></div></div></div>');
             }
             else{
-                $("#loadhere").append('<div class="row col-10 mt-3 justify-content-center text-white"><div class="row col-12 col-md-5 m-0 p-0 justify-content-end"><h3 class="font-weight-bold text-right">{{report.first}}</h3><div class="row col-12 justify-content-end"><form target="_blank" action="/companies/classifier" method="POST"><input type="hidden" name="title" value="{{report.first}}"><input type="hidden" name="sentence" value="'+s[i]["sentence1"]+'"><a class="text-right" type="button" onclick="this.parentElement.submit()" >'+s[i]["sentence1"]+'</a><br></form></div></div><div class="row col-12 col-md-2"><div class="col-12 block row justify-content-center m-0 p-0"><div class="circle"><p>'+s[i]["similarity"]+'%</p></div></div></div><div class="row col-12 col-md-5 m-0 p-0 justify-content-start text-center mt-3 mt-md-0"><input type="hidden" name="id" value="'+s[i]["id"]+'">{%if "default:" in report.title%}<a type="button" onclick="highlight(this,\''+s[i]["id"]+'\')" id="'+s[i]["sentence2"]+'"><h5 class="font-weight-bold text-left">'+s[i]["title"]+' ('+s[i]["provider"]+')</h5></a>{%else%}<a type="button" onclick="highlight(this,\''+s[i]["id"]+'\')" id="'+s[i]["sentence2"]+'"><h5 class="font-weight-bold text-left">'+s[i]["title"]+'</h5></a>{%endif%}<div class="row col-12 justify-content-start"><form target="_blank" action="/searchquerydocuments/classifier" method="POST"><input type="hidden" name="query_document_id" value="'+s[i]["id"]+'"><input type="hidden" name="sentence" value="'+s[i]["sentence2"]+'"><a class="text-left" type="button" onclick="this.parentElement.submit()" >'+s[i]["sentence2"]+'</a><br></form></div></div></div>');
+                $("#loadhere").append('<div class="row col-10 mt-3 justify-content-center text-white"><div class="row col-12 col-md-5 m-0 p-0 justify-content-end"><h3 class="font-weight-bold text-right">{{report.first}}</h3><div class="row col-12 justify-content-end"><form target="_blank" action="/companies/classifier" method="POST"><input type="hidden" name="title" value="{{report.first}}"><input type="hidden" name="sentence" value="'+s[i]["sentence1"]+'"><a class="text-right" type="button" onclick="this.parentElement.submit()" >'+s[i]["sentence1"]+'</a><br></form></div></div><div class="row col-12 col-md-2"><div class="col-12 block row justify-content-center m-0 p-0"><div class="circle"><p>'+s[i]["similarity"]+'%</p></div></div></div><div class="row col-12 col-md-5 m-0 p-0 justify-content-start text-center mt-3 mt-md-0"><input type="hidden" name="id" value="'+s[i]["id"]+'">{%if "default:" in report.title%}<a type="button" onclick="highlight(this,\''+s[i]["url"]+'\')" id="'+s[i]["sentence2"]+'"><h5 class="font-weight-bold text-left">'+s[i]["title"]+' ('+s[i]["provider"]+')</h5></a>{%else%}<a type="button" onclick="highlight(this,\''+s[i]["url"]+'\')" id="'+s[i]["sentence2"]+'"><h5 class="font-weight-bold text-left">'+s[i]["title"]+'</h5></a>{%endif%}<div class="row col-12 justify-content-start"><form target="_blank" action="/searchquerydocuments/classifier" method="POST"><input type="hidden" name="query_document_id" value="'+s[i]["id"]+'"><input type="hidden" name="sentence" value="'+s[i]["sentence2"]+'"><a class="text-left" type="button" onclick="this.parentElement.submit()" >'+s[i]["sentence2"]+'</a><br></form></div></div></div>');
             }
         }
         offset+=20;
@@ -415,8 +451,8 @@ function updateClick(){
 function opendoc(id) {
   window.location.href = "/searchqueries/editsearchquerydocument?id="+id;
 }
-function highlight(obj,id) {
-    $.post( "/highlight", { id: id,sentence:obj.id }).done(function( data ) {
+function highlight(obj,url) {
+    $.post( "/highlight", { url: url,sentence:obj.id }).done(function( data ) {
       if(data=="error"){
         alert("error");
       }
