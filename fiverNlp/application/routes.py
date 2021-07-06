@@ -3541,30 +3541,34 @@ def processes():
 
 
 def get_search_query_sentence_percentage(f_title):
-    docs = SearchQueryDocumentModel.query.filter_by(f_title=f_title).all()
-    if not docs:
+    try:
+        docs = SearchQueryDocumentModel.query.filter_by(f_title=f_title).all()
+        if not docs:
+            return None
+        score = {'aesthetic': 0, 'craftsmanship': 0, 'narrative': 0, 'purpose': 0}
+        for d in docs:
+            sentences = eval(d.classified_sentences)
+            for s in sentences:
+                dimension = sentences[s]
+                if dimension == 'narrative':
+                    score['narrative'] += 1
+                elif dimension == 'purpose':
+                    score['purpose'] += 1
+                elif dimension == 'craftsmanship':
+                    score['craftsmanship'] += 1
+                elif dimension == 'aesthetic':
+                    score['aesthetic'] += 1
+        total = score['aesthetic']+score['craftsmanship']+score['narrative']+score['purpose']
+        if total == 0:
+            return None
+        score['aesthetic'] = round(score['aesthetic']*100/total, 2)
+        score['craftsmanship'] = round(score['craftsmanship']*100/total, 2)
+        score['narrative'] = round(score['narrative']*100/total, 2)
+        score['purpose'] = round(score['purpose']*100/total, 2)
+        return score
+    except Exception as e:
+        print(e)
         return None
-    score = {'aesthetic': 0, 'craftsmanship': 0, 'narrative': 0, 'purpose': 0}
-    for d in docs:
-        sentences = eval(d.classified_sentences)
-        for s in sentences:
-            dimension = sentences[s]
-            if dimension == 'narrative':
-                score['narrative'] += 1
-            elif dimension == 'purpose':
-                score['purpose'] += 1
-            elif dimension == 'craftsmanship':
-                score['craftsmanship'] += 1
-            elif dimension == 'aesthetic':
-                score['aesthetic'] += 1
-    total = score['aesthetic']+score['craftsmanship']+score['narrative']+score['purpose']
-    if total == 0:
-        return None
-    score['aesthetic'] = round(score['aesthetic']*100/total, 2)
-    score['craftsmanship'] = round(score['craftsmanship']*100/total, 2)
-    score['narrative'] = round(score['narrative']*100/total, 2)
-    score['purpose'] = round(score['purpose']*100/total, 2)
-    return score
 if __name__ == '__main__':
     from waitress import serve
 
