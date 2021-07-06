@@ -3542,9 +3542,10 @@ def processes():
 
 def get_search_query_sentence_percentage(f_title):
     try:
+
         docs = SearchQueryDocumentModel.query.filter_by(f_title=f_title).all()
         if not docs:
-            print('not docs')
+            print('not docs ',f_title)
             return None
         score = {'aesthetic': 0, 'craftsmanship': 0, 'narrative': 0, 'purpose': 0}
         for d in docs:
