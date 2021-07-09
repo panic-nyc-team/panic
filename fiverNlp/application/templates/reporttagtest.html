@@ -66,6 +66,9 @@
                                     </div>
                                 </div>
                                 <button type="submit" class="btn btn-primary btn-sm bg-theme mt-4">Run Now</button>
+                                {%if report and report.status=='done'%}
+                                    <input type="button" onclick="exportLink('{{report.id}}')" class="btn btn-primary btn-sm bg-theme mt-4 ml-4" value="Export Link">
+                                {%endif%}
                             </div>
                         </div>
                 </div>
@@ -301,6 +304,9 @@ function updateClick(){
     	}]
     });
     return chart;
+  }
+  function exportLink(id) {
+  window.location.href = "/edgebundling?report_id="+id;
   }
   function onMouseover(e){
   		alert(  e.dataSeries.type+ ", dataPoint { label:" + e.dataPoint.label + ", y: "+ e.dataPoint.y + " }" );
