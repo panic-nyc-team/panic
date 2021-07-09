@@ -319,12 +319,12 @@ class NewDocumentModel(db.Model):
             return False
 
 
-class NewDocumentPersonsModel(db.Model):
-    __tablename__ = 'newdocumentpersons'
+class NewDocumentEntitiesModel(db.Model):
+    __tablename__ = 'newdocumententities'
     id = db.Column(db.Integer, primary_key=True)
     f_id = db.Column(db.Integer)
     name = db.Column(db.String(100))
-    sentiment = db.Column(db.String(100))
+    count = db.Column(db.Integer)
 
     @classmethod
     def delete(cls, f_id):
@@ -336,38 +336,55 @@ class NewDocumentPersonsModel(db.Model):
             return False
 
 
-class NewDocumentOrganizationsModel(db.Model):
-    __tablename__ = 'newdocumentorganizations'
-    id = db.Column(db.Integer, primary_key=True)
-    f_id = db.Column(db.Integer)
-    name = db.Column(db.String(100))
-    sentiment = db.Column(db.String(100))
-
-    @classmethod
-    def delete(cls, f_id):
-        try:
-            cls.query.filter_by(f_id=f_id).delete()
-            db.session.commit()
-            return True
-        except:
-            return False
-
-
-class NewDocumentLocationsModel(db.Model):
-    __tablename__ = 'newdocumentlocations'
-    id = db.Column(db.Integer, primary_key=True)
-    f_id = db.Column(db.Integer)
-    name = db.Column(db.String(100))
-    sentiment = db.Column(db.String(100))
-
-    @classmethod
-    def delete(cls, f_id):
-        try:
-            cls.query.filter_by(f_id=f_id).delete()
-            db.session.commit()
-            return True
-        except:
-            return False
+# class NewDocumentPersonsModel(db.Model):
+#     __tablename__ = 'newdocumentpersons'
+#     id = db.Column(db.Integer, primary_key=True)
+#     f_id = db.Column(db.Integer)
+#     name = db.Column(db.String(100))
+#     sentiment = db.Column(db.String(100))
+#
+#     @classmethod
+#     def delete(cls, f_id):
+#         try:
+#             cls.query.filter_by(f_id=f_id).delete()
+#             db.session.commit()
+#             return True
+#         except:
+#             return False
+#
+#
+# class NewDocumentOrganizationsModel(db.Model):
+#     __tablename__ = 'newdocumentorganizations'
+#     id = db.Column(db.Integer, primary_key=True)
+#     f_id = db.Column(db.Integer)
+#     name = db.Column(db.String(100))
+#     sentiment = db.Column(db.String(100))
+#
+#     @classmethod
+#     def delete(cls, f_id):
+#         try:
+#             cls.query.filter_by(f_id=f_id).delete()
+#             db.session.commit()
+#             return True
+#         except:
+#             return False
+#
+#
+# class NewDocumentLocationsModel(db.Model):
+#     __tablename__ = 'newdocumentlocations'
+#     id = db.Column(db.Integer, primary_key=True)
+#     f_id = db.Column(db.Integer)
+#     name = db.Column(db.String(100))
+#     sentiment = db.Column(db.String(100))
+#
+#     @classmethod
+#     def delete(cls, f_id):
+#         try:
+#             cls.query.filter_by(f_id=f_id).delete()
+#             db.session.commit()
+#             return True
+#         except:
+#             return False
 
 
 class NewDocumentSiteCategoriesModel(db.Model):

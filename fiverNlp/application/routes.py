@@ -57,6 +57,15 @@ import csv, pickle
 from tqdm import tqdm
 from flask_cors import CORS
 
+import spacy
+from collections import Counter
+import en_core_web_sm
+nlp = en_core_web_sm.load()
+
+
+
+
+
 webhoseio.config(token="8018e387-9258-4fd4-9ec5-9f9366a779a8")
 
 app = Flask(__name__)
@@ -112,7 +121,7 @@ POST = 'POST'
 TEST_STRING = ''
 
 tokenizer = load_tokenizer()
-model = load_model('static/Models/model_under_use.h5')
+model = load_model('./static/Models/model_under_use.h5')
 maxlen = 40
 class_colors = load_classColors()
 
@@ -120,6 +129,27 @@ sentence_model = SentenceTransformer('distilbert-base-nli-stsb-mean-tokens')
 
 
 def startup():
+
+
+
+    docs = NewDocumentModel.query.all()
+    print(len(docs))
+    for d in docs:
+        try:
+            if NewDocumentEntitiesModel.query.filter_by(f_id=d.id).first():
+                continue
+            article = nlp(d.text)
+            items = [x.text for x in article.ents]
+            a = Counter(items)
+            for i in a:
+                n = NewDocumentEntitiesModel(f_id=d.id, name=i, count=a[i])
+                db.session.add(n)
+            print('added', d.title)
+        except:
+            db.session.rollback()
+        finally:
+            db.session.commit()
+
     search_queries = SuperSearchQueryModel.query.all()
     for search_query in search_queries:
         search_query.running = False
@@ -1187,9 +1217,9 @@ def get_webhose(id):
     d_categories = NewDocumentSiteCategoriesModel.query.filter_by(f_id=id).all()
     d_links = NewDocumentExternalLinksModel.query.filter_by(f_id=id).all()
     d_images = NewDocumentExternalImagesModel.query.filter_by(f_id=id).all()
-    d_persons = NewDocumentPersonsModel.query.filter_by(f_id=id).all()
-    d_locations = NewDocumentLocationsModel.query.filter_by(f_id=id).all()
-    d_organizations = NewDocumentOrganizationsModel.query.filter_by(f_id=id).all()
+    # d_persons = NewDocumentPersonsModel.query.filter_by(f_id=id).all()
+    # d_locations = NewDocumentLocationsModel.query.filter_by(f_id=id).all()
+    # d_organizations = NewDocumentOrganizationsModel.query.filter_by(f_id=id).all()
     site_categories = []
     external_links = []
     external_images = []
@@ -1202,13 +1232,13 @@ def get_webhose(id):
         external_links.append(i.url)
     for i in d_images:
         external_images.append(i.url)
-    for i in d_persons:
-        persons.append('{{ name: "{name}",  sentiment: "{sentiment}" }}'.format(name=i.name, sentiment=i.sentiment))
-    for i in d_locations:
-        locations.append('{{ name: "{name}",  sentiment: "{sentiment}" }}'.format(name=i.name, sentiment=i.sentiment))
-    for i in d_organizations:
-        organizations.append(
-            '{{ name: "{name}",  sentiment: "{sentiment}" }}'.format(name=i.name, sentiment=i.sentiment))
+    # for i in d_persons:
+    #     persons.append('{{ name: "{name}",  sentiment: "{sentiment}" }}'.format(name=i.name, sentiment=i.sentiment))
+    # for i in d_locations:
+    #     locations.append('{{ name: "{name}",  sentiment: "{sentiment}" }}'.format(name=i.name, sentiment=i.sentiment))
+    # for i in d_organizations:
+    #     organizations.append(
+    #         '{{ name: "{name}",  sentiment: "{sentiment}" }}'.format(name=i.name, sentiment=i.sentiment))
 
     data = '''
     {{ \n
@@ -1340,16 +1370,6 @@ def get_webhose(id):
 
         external_images: {external_images},
 
-        entities: {{
-
-        persons: {persons}
-
-        organizations: {organizations},
-
-        locations: {locations}
-
-        }} ,
-
         rating: {rating} ,
 
         crawled: "{crawled}" ,
@@ -1376,8 +1396,8 @@ def get_webhose(id):
                    , text=newdocument.text, highlight_text=newdocument.highlight_text,
                    highlight_title=newdocument.highlight_title
                    , highlight_thread_title=newdocument.highlight_thread_title, language=newdocument.language
-                   , external_links=str(external_links), external_images=str(external_images), persons=str(persons)
-                   , organizations=str(organizations), locations=str(locations), rating=newdocument.rating
+                   , external_links=str(external_links), external_images=str(external_images)
+                   , rating=newdocument.rating
                    , crawled=newdocument.crawled, updated=newdocument.updated)
     return data
 
@@ -1776,9 +1796,10 @@ def delete_search_query_document():
         if (SearchQueryDocumentModel.delete(id=id)):
             doc = NewDocumentModel.query.filter_by(f_id=id).first()
             NewDocumentModel.delete(id=doc.id)
-            NewDocumentOrganizationsModel.delete(f_id=doc.id)
-            NewDocumentPersonsModel.delete(f_id=doc.id)
-            NewDocumentLocationsModel.delete(f_id=doc.id)
+            NewDocumentEntitiesModel.delete(f_id=doc.id)
+            # NewDocumentOrganizationsModel.delete(f_id=doc.id)
+            # NewDocumentPersonsModel.delete(f_id=doc.id)
+            # NewDocumentLocationsModel.delete(f_id=doc.id)
             NewDocumentSiteCategoriesModel.delete(f_id=doc.id)
             NewDocumentExternalLinksModel.delete(f_id=doc.id)
             NewDocumentExternalImagesModel.delete(f_id=doc.id)
@@ -2047,9 +2068,10 @@ def delete_search_query():
             doc_list = NewDocumentModel.query.filter_by(f_title=title).all()
             NewDocumentModel.deleteall(f_title=title)
             for doc in doc_list:
-                NewDocumentOrganizationsModel.delete(f_id=doc.id)
-                NewDocumentPersonsModel.delete(f_id=doc.id)
-                NewDocumentLocationsModel.delete(f_id=doc.id)
+                NewDocumentEntitiesModel.delete(f_id=doc.id)
+                # NewDocumentOrganizationsModel.delete(f_id=doc.id)
+                # NewDocumentPersonsModel.delete(f_id=doc.id)
+                # NewDocumentLocationsModel.delete(f_id=doc.id)
                 NewDocumentSiteCategoriesModel.delete(f_id=doc.id)
                 NewDocumentExternalLinksModel.delete(f_id=doc.id)
                 NewDocumentExternalImagesModel.delete(f_id=doc.id)
@@ -2421,18 +2443,18 @@ def newdocumentadd(i, f_title, f_id):
     thread = i.get('thread')
     reach = thread.get('reach')
     social = thread.get('social')
-    entities = i.get('entities')
+    # entities = i.get('entities')
     site_categories = thread.get('site_categories')
     external_links = i.get('external_links')
     external_images = i.get('external_images')
-    persons = None
-    organizations = None
-    locations = None
+    # persons = None
+    # organizations = None
+    # locations = None
 
-    if (entities):
-        persons = entities.get('persons')
-        organizations = entities.get('organizations')
-        locations = entities.get('locations')
+    # if (entities):
+        # persons = entities.get('persons')
+        # organizations = entities.get('organizations')
+        # locations = entities.get('locations')
 
     newdocument = NewDocumentModel(f_id=f_id, thread_uuid=thread.get('uuid'), uuid=i.get('uuid'),
                                    ord_in_thread=i.get('ord_in_thread'), parent_url=i.get('parent_url')
@@ -2485,19 +2507,32 @@ def newdocumentadd(i, f_title, f_id):
     db.session.add(newdocument)
     db.session.flush()
     database = []
-    if (persons):
-        for p in persons:
-            temp_p = NewDocumentPersonsModel(f_id=newdocument.id, name=p.get('name'), sentiment=p.get('sentiment'))
-            database.append(temp_p)
-    if (organizations):
-        for o in organizations:
-            temp_o = NewDocumentOrganizationsModel(f_id=newdocument.id, name=o.get('name'),
-                                                   sentiment=o.get('sentiment'))
-            database.append(temp_o)
-    if (locations):
-        for l in locations:
-            temp_l = NewDocumentLocationsModel(f_id=newdocument.id, name=l.get('name'), sentiment=l.get('sentiment'))
-            database.append(temp_l)
+
+    try:
+        article = nlp(newdocument.text)
+        items = [x.text for x in article.ents]
+        a = Counter(items)
+        for i in a:
+            n = NewDocumentEntitiesModel(f_id=newdocument.id, name=i, count=a[i])
+            db.session.add(n)
+    except:
+        db.session.rollback()
+    finally:
+        db.session.commit()
+
+    # if (persons):
+    #     for p in persons:
+    #         temp_p = NewDocumentPersonsModel(f_id=newdocument.id, name=p.get('name'), sentiment=p.get('sentiment'))
+    #         database.append(temp_p)
+    # if (organizations):
+    #     for o in organizations:
+    #         temp_o = NewDocumentOrganizationsModel(f_id=newdocument.id, name=o.get('name'),
+    #                                                sentiment=o.get('sentiment'))
+    #         database.append(temp_o)
+    # if (locations):
+    #     for l in locations:
+    #         temp_l = NewDocumentLocationsModel(f_id=newdocument.id, name=l.get('name'), sentiment=l.get('sentiment'))
+    #         database.append(temp_l)
     if (site_categories):
         for category in site_categories:
             temp_c = NewDocumentSiteCategoriesModel(f_id=newdocument.id, category=category)
