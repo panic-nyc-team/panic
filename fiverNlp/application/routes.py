@@ -145,10 +145,9 @@ def startup():
                 n = NewDocumentEntitiesModel(f_id=d.id, name=i, count=a[i])
                 db.session.add(n)
             print('added', d.title)
+            db.session.commit()
         except:
             db.session.rollback()
-        finally:
-            db.session.commit()
 
     search_queries = SuperSearchQueryModel.query.all()
     for search_query in search_queries:
