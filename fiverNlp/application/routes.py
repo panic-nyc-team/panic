@@ -143,6 +143,19 @@ def startup():
 app.before_first_request(startup)
 
 
+
+@app.after_request
+def add_header(r):
+    """
+    Add headers to both force latest IE rendering engine or Chrome Frame,
+    and also to cache the rendered page for 10 minutes.
+    """
+    r.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    r.headers["Pragma"] = "no-cache"
+    r.headers["Expires"] = "0"
+    r.headers['Cache-Control'] = 'public, max-age=0'
+    return r
+
 def get_sentiment(text):
     blob = TextBlob(text)
     sentiment = blob.sentiment.polarity
@@ -696,6 +709,11 @@ def export():
 def export_result():
     form = request.form
     print(form)
+    flag_link = form.get('flag_link')
+    if not flag_link:
+        flag_link = False
+    else:
+        flag_link = True
     export_type = form.get('export_type')
     id = form.get('where')
     format = form.get('format')
@@ -857,6 +875,41 @@ def export_result():
 
             else:
                 return 'error'
+            if format == 'flat_json':
+                result_flat = []
+                for d in data:
+                    flat_attrs_temp = {}
+                    temps1 = d.get('s1')
+                    if temps1:
+                        for i in temps1:
+                            if i == 'emotions':
+                                try:
+                                    temp_em = eval(temps1[i])
+                                except:
+                                    continue
+                                if temp_em:
+                                    for j in temp_em:
+                                        flat_attrs_temp[f's1_{i}_{j}'] = temp_em.get(j)
+                            else:
+                                flat_attrs_temp['s1_' + i] = temps1[i]
+
+                    temps2 = d.get('s2')
+                    if temps2:
+                        for i in temps2:
+                            if i == 'emotions':
+                                try:
+                                    temp_em = eval(temps2[i])
+                                except:
+                                    continue
+                                if temp_em:
+                                    for j in temp_em:
+                                        flat_attrs_temp[f's2_{i}_{j}'] = temp_em.get(j)
+                            else:
+                                flat_attrs_temp['s2_' + i] = temps2[i]
+                    flat_attrs_temp['similarity_dimension'] = d.get('similarity_dimension')
+                    flat_attrs_temp['similarity'] = d.get('similarity')
+                    result_flat.append(flat_attrs_temp.copy())
+                return jsonify(result_flat)
             if format == 'excel':
                 flat_attrs = {}
                 wb = openpyxl.Workbook()
@@ -903,6 +956,15 @@ def export_result():
                 wb.save(name)
                 return send_file(name, as_attachment=True)
 
+
+
+            if flag_link:
+                name = f'./static/jsons/report{report.id}.json'
+                # if os.path.exists(name):
+                #     os.remove(name)
+                with open(name, 'w') as f:
+                    json.dump(data, f)
+                return {'report_id': report.id}
             return jsonify(data)
         else:
             return 'report not found'
@@ -3325,6 +3387,16 @@ def report_background(id, type, first, second, range_from, range_to):
                     pass
                 ReportModel.query.filter_by(id=id).update(dict(score=str(dimensions)))
                 # first.query_score = str(dimensions)
+        d_f = report.date_from.strftime('%Y-%m-%d')
+        d_t = report.date_to.strftime('%Y-%m-%d')
+        res = requests.post(url_for('export_result', _external=True),
+                            data=[('export_type', 'report'), ('where', str(report.id)), ('start_date', d_f),
+                                  ('end_date', d_t), ('filter', 'includes'),
+                                  ('search_parameter', ''), ('format', 'json'), ('flag_link', True)])
+        if res.ok:
+            print(res.json())
+        else:
+            print('error')
         ReportModel.query.filter_by(id=id).update(
             dict(status='done', running=False, date_completed=datetime.datetime.now()))
         db.session.commit()
@@ -3515,6 +3587,13 @@ def sendmail():
     except:
         return 'error'
 
+@app.route("/edgebundling", methods=[GET, POST])
+def edge_bundling():
+    report_id = request.args.get('report_id')
+    report_name = f'./static/jsons/report{report_id}.json'
+    if not os.path.exists(report_name):
+        return 'no file exists'
+    return render_template('index.html',report_name=report_name)
 
 @app.route("/processes", methods=[GET, POST])
 def processes():
