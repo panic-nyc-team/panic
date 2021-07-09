@@ -3387,12 +3387,23 @@ def report_background(id, type, first, second, range_from, range_to):
                     pass
                 ReportModel.query.filter_by(id=id).update(dict(score=str(dimensions)))
                 # first.query_score = str(dimensions)
-        d_f = report.date_from.strftime('%Y-%m-%d')
-        d_t = report.date_to.strftime('%Y-%m-%d')
-        res = requests.post(url_for('export_result', _external=True),
-                            data=[('export_type', 'report'), ('where', str(report.id)), ('start_date', d_f),
-                                  ('end_date', d_t), ('filter', 'includes'),
-                                  ('search_parameter', ''), ('format', 'json'), ('flag_link', True)])
+        try:
+            d_f = report.date_from.strftime('%Y-%m-%d')
+            d_t = report.date_to.strftime('%Y-%m-%d')
+        except:
+            d_f = None
+            d_t = None
+        if d_f is None and d_t is None:
+            res = requests.post(url_for('export_result', _external=True),
+                                data=[('export_type', 'report'), ('where', str(report.id)),
+                                      ('filter', 'includes'), ('search_parameter', ''), ('format', 'json'),
+                                      ('flag_link', True)])
+        else:
+            res = requests.post(url_for('export_result', _external=True),
+                                data=[('export_type', 'report'), ('where', str(report.id)), ('date_checkbox', 'date'),
+                                      ('start_date', d_f), ('end_date', d_t), ('filter', 'includes'),
+                                      ('search_parameter', ''), ('format', 'json'), ('flag_link', True)])
+
         if res.ok:
             print(res.json())
         else:
