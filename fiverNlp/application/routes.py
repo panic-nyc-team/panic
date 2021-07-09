@@ -132,22 +132,23 @@ def startup():
 
 
 
-    docs = NewDocumentModel.query.all()
-    print(len(docs))
-    for d in docs:
-        try:
-            if NewDocumentEntitiesModel.query.filter_by(f_id=d.id).first():
-                continue
-            article = nlp(d.text)
-            items = [x.text for x in article.ents]
-            a = Counter(items)
-            for i in a:
-                n = NewDocumentEntitiesModel(f_id=d.id, name=i, count=a[i])
-                db.session.add(n)
-            print('added', d.title)
-            db.session.commit()
-        except:
-            db.session.rollback()
+    # docs = NewDocumentModel.query.all()
+    # print(len(docs))
+    # for d in docs:
+    #     try:
+    #         if NewDocumentEntitiesModel.query.filter_by(f_id=d.id).first():
+    #             continue
+    #         article = nlp(d.text)
+    #         items = [x.text for x in article.ents]
+    #         a = Counter(items)
+    #         for i in a:
+    #             n = NewDocumentEntitiesModel(f_id=d.id, name=i, count=a[i])
+    #             db.session.add(n)
+    #         print('added', d.title)
+    #         db.session.commit()
+    #     except:
+    #         print('1233123')
+    #         db.session.rollback()
 
     search_queries = SuperSearchQueryModel.query.all()
     for search_query in search_queries:
@@ -2514,10 +2515,9 @@ def newdocumentadd(i, f_title, f_id):
         for i in a:
             n = NewDocumentEntitiesModel(f_id=newdocument.id, name=i, count=a[i])
             db.session.add(n)
+        db.session.commit()
     except:
         db.session.rollback()
-    finally:
-        db.session.commit()
 
     # if (persons):
     #     for p in persons:
