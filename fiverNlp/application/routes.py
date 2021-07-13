@@ -3094,7 +3094,7 @@ def report_company_test():
 
             print(sentences_score)
             matplotlib.use('Agg')
-            matplotlib.rcParams.update({'font.size': 16} )
+            matplotlib.rcParams.update({'font.size': 16})
             plt.style.use('dark_background')
             labels = 'Aesthetic', 'Craftsmanship', 'Narrative', 'Purpose'
             if sentences_score:
