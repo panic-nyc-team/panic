@@ -3097,6 +3097,7 @@ def report_company_test():
             matplotlib.rcParams.update({'font.size': 16})
             plt.style.use('dark_background')
             labels = 'Aesthetic', 'Craftsmanship', 'Narrative', 'Purpose'
+
             if sentences_score:
                 sizes = [sentences_score.get('aesthetic'), sentences_score.get('craftsmanship'),
                          sentences_score.get('narrative'), sentences_score.get('purpose')]
@@ -3105,7 +3106,7 @@ def report_company_test():
             fig1, ax1 = plt.subplots()
 
             ax1.pie(sizes, labels=labels, autopct='%1.1f%%',
-                    startangle=90)
+                    startangle=90, textprops={'color':"grey"})
             ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
             path_to_image = f"./static/images/plots/new_plot{random.randint(0, 9999999999999999)}.png"
             while os.path.exists(path_to_image):
