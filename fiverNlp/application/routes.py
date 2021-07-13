@@ -55,7 +55,17 @@ from collections import Counter
 from nltk.corpus import stopwords
 import csv, pickle
 from tqdm import tqdm
+
 from flask_cors import CORS
+
+
+import io
+import base64
+
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from matplotlib.figure import Figure
+import matplotlib.pyplot as plt
+import matplotlib
 
 import spacy
 from collections import Counter
@@ -3016,6 +3026,7 @@ def report_company_test():
         sentences_score = None
         providers = None
         chartdata = None
+        path_to_image = None
         both = []
         tag_data = []
         # authors = []
@@ -3080,7 +3091,25 @@ def report_company_test():
             providers = providers[:5]
             print(4)
             sentences_score = get_search_query_sentence_percentage(report.second)
+
             print(sentences_score)
+            matplotlib.use('Agg')
+            plt.style.use('dark_background')
+            labels = 'Aesthetic', 'Craftsmanship', 'Narrative', 'Purpose'
+            if sentences_score:
+                sizes = [sentences_score.get('aesthetic'), sentences_score.get('craftsmanship'),
+                         sentences_score.get('narrative'), sentences_score.get('purpose')]
+            else:
+                sizes = [0,0,0,0]
+            fig1, ax1 = plt.subplots()
+            ax1.pie(sizes, labels=labels, autopct='%1.1f%%',
+                    startangle=90)
+            ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+            path_to_image = f"./static/images/plots/new_plot{random.randint(0, 9999999999999999)}.png"
+            while os.path.exists(path_to_image):
+                path_to_image = f"./static/images/plots/new_plot{random.randint(0, 9999999999999999)}.png"
+            plt.savefig(path_to_image)
+
             # for key,value in a.items():
             #     authors.append([key,value/length_sen])
             # authors = sorted(authors, key=lambda x: x[1],reverse=True)
@@ -3133,7 +3162,7 @@ def report_company_test():
                                sentences=result_sentences, searchqueries=searchqueries, tags=tags, score1=score1,
                                score2=score2, providers=providers, tagdata=tag_data, chartdimension=chartdimension,
                                date_from=date_from, date_to=date_to, color=colors, score=score,
-                               sentences_score=sentences_score)
+                               sentences_score=sentences_score, path_to_image=path_to_image)
 
     # except Exception as e:
     #     print(e,file=sys.stderr)
@@ -3699,6 +3728,7 @@ def get_search_query_sentence_percentage(f_title):
     except Exception as e:
         print(e)
         return None
+
 if __name__ == '__main__':
     from waitress import serve
 

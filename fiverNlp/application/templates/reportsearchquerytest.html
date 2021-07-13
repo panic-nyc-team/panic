@@ -117,37 +117,37 @@
                 <div class="row col-12 mt-3 justify-content-center text-white pt-5">
                     <div class="row col-12 col-md-4 m-0 p-0 justify-content-center">
                         <div class="row col-12 justify-content-center">
-                            <h5 class="font-weight-bold pb-3 mr-5 text-center">Effective Scores</h5>
+                            <h5 class="font-weight-bold pb-3 mr-5 text-center">Effectiveness Scores</h5>
                         </div>
                     {%if score and score.get('all'):%}
                         <div class="row col-10 m-0 p-0">
                             <div class="row col-10 justify-content-end text-secondary mb-2">
                                 <div class="row col-12 justify-content-center">
-                                    <p style="color: {{color['overall']}}" class="m-0 p-0 font-weight-bold">Overall: {{"{:.1f}".format(score.get('all').get('score'))}} %</p>
+                                    <p style="color: {{color['overall']}}" class="m-0 p-0 font-weight-bold">Overall: {{"{:.1f}".format(score.get('all').get('score')*20)}} %</p>
                                 </div>
                             </div>
                             <div class="col-4"></div>
                             <div class="row col-10 justify-content-end text-secondary mb-2">
                                 <div class="row col-12 justify-content-center">
-                                    <p style="color: {{color['purpose']}}" class="m-0 p-0 font-weight-bold">Purpose: {{"{:.1f}".format(score.get('purpose').get('score'))}} %</p>
+                                    <p style="color: {{color['purpose']}}" class="m-0 p-0 font-weight-bold">Purpose: {{"{:.1f}".format(score.get('purpose').get('score')*20)}} %</p>
                                 </div>
                             </div>
                             <div class="col-4"></div>
                             <div class="row col-10 justify-content-end text-secondary mb-2">
                                 <div class="row col-12 justify-content-center">
-                                    <p style="color: {{color['craftsmanship']}}" class="m-0 p-0 font-weight-bold">Craftsmanship: {{"{:.1f}".format(score.get('craftsmanship').get('score'))}} %</p>
+                                    <p style="color: {{color['craftsmanship']}}" class="m-0 p-0 font-weight-bold">Craftsmanship: {{"{:.1f}".format(score.get('craftsmanship').get('score')*20)}} %</p>
                                 </div>
                             </div>
                             <div class="col-4"></div>
                             <div class="row col-10 justify-content-end text-secondary mb-2">
                                 <div class="row col-12 justify-content-center">
-                                    <p style="color: {{color['aesthetic']}}" class="m-0 p-0 font-weight-bold">Aesthetic: {{"{:.1f}".format(score.get('aesthetic').get('score'))}} %</p>
+                                    <p style="color: {{color['aesthetic']}}" class="m-0 p-0 font-weight-bold">Aesthetic: {{"{:.1f}".format(score.get('aesthetic').get('score')*20)}} %</p>
                                 </div>
                             </div>
                             <div class="col-4"></div>
                             <div class="row col-10 justify-content-end text-secondary mb-2">
                                 <div class="row col-12 justify-content-center">
-                                    <p style="color: {{color['narrative']}}" class="m-0 p-0 font-weight-bold">Narrative: {{"{:.1f}".format(score.get('narrative').get('score'))}} %</p>
+                                    <p style="color: {{color['narrative']}}" class="m-0 p-0 font-weight-bold">Narrative: {{"{:.1f}".format(score.get('narrative').get('score')*20)}} %</p>
 <!--                                     ({{score.get('narrative').get('num')}}/{{score.get('narrative').get('total')}})-->
                                 </div>
                             </div>
@@ -162,32 +162,33 @@
                         <div class="row col-12 justify-content-center">
                             <h5 class="font-weight-bold pb-3 text-center">Sentences Percentage</h5>
                         </div>
-                        <div class="row col-10 m-0 p-0">
-                            <div class="col-4"></div>
-                            <div class="row col-10 justify-content-end text-secondary mb-2">
-                                <div class="row col-12 justify-content-center">
-                                    <p style="color: {{color['purpose']}}" class="m-0 p-0 font-weight-bold">Purpose: {{sentences_score.get('purpose')}} %</p>
-                                </div>
-                            </div>
-                            <div class="col-4"></div>
-                            <div class="row col-10 justify-content-end text-secondary mb-2">
-                                <div class="row col-12 justify-content-center">
-                                    <p style="color: {{color['craftsmanship']}}" class="m-0 p-0 font-weight-bold">Craftsmanship: {{sentences_score['craftsmanship']}} %</p>
-                                </div>
-                            </div>
-                            <div class="col-4"></div>
-                            <div class="row col-10 justify-content-end text-secondary mb-2">
-                                <div class="row col-12 justify-content-center">
-                                    <p style="color: {{color['aesthetic']}}" class="m-0 p-0 font-weight-bold">Aesthetic: {{sentences_score['aesthetic']}} %</p>
-                                </div>
-                            </div>
-                            <div class="col-4"></div>
-                            <div class="row col-10 justify-content-end text-secondary mb-2">
-                                <div class="row col-12 justify-content-center">
-                                    <p style="color: {{color['narrative']}}" class="m-0 p-0 font-weight-bold">Narrative: {{sentences_score['narrative']}} %</p>
-                                </div>
-                            </div>
-                            <div class="col-4"></div>
+                        <div class="row col-14 p-0">
+                        <img src="../{{path_to_image}}" width="400px" height="350px">
+<!--                            <div class="col-4"></div>-->
+<!--                            <div class="row col-10 justify-content-end text-secondary mb-2">-->
+<!--                                <div class="row col-12 justify-content-center">-->
+<!--                                    <p style="color: {{color['purpose']}}" class="m-0 p-0 font-weight-bold">Purpose: {{sentences_score.get('purpose')}} %</p>-->
+<!--                                </div>-->
+<!--                            </div>-->
+<!--                            <div class="col-4"></div>-->
+<!--                            <div class="row col-10 justify-content-end text-secondary mb-2">-->
+<!--                                <div class="row col-12 justify-content-center">-->
+<!--                                    <p style="color: {{color['craftsmanship']}}" class="m-0 p-0 font-weight-bold">Craftsmanship: {{sentences_score['craftsmanship']}} %</p>-->
+<!--                                </div>-->
+<!--                            </div>-->
+<!--                            <div class="col-4"></div>-->
+<!--                            <div class="row col-10 justify-content-end text-secondary mb-2">-->
+<!--                                <div class="row col-12 justify-content-center">-->
+<!--                                    <p style="color: {{color['aesthetic']}}" class="m-0 p-0 font-weight-bold">Aesthetic: {{sentences_score['aesthetic']}} %</p>-->
+<!--                                </div>-->
+<!--                            </div>-->
+<!--                            <div class="col-4"></div>-->
+<!--                            <div class="row col-10 justify-content-end text-secondary mb-2">-->
+<!--                                <div class="row col-12 justify-content-center">-->
+<!--                                    <p style="color: {{color['narrative']}}" class="m-0 p-0 font-weight-bold">Narrative: {{sentences_score['narrative']}} %</p>-->
+<!--                                </div>-->
+<!--                            </div>-->
+<!--                            <div class="col-4"></div>-->
                         </div>
                     </div>
                     {%endif%}
