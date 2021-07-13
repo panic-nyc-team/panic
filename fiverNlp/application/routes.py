@@ -3094,6 +3094,7 @@ def report_company_test():
 
             print(sentences_score)
             matplotlib.use('Agg')
+            matplotlib.rcParams.update({'font.size': 16} )
             plt.style.use('dark_background')
             labels = 'Aesthetic', 'Craftsmanship', 'Narrative', 'Purpose'
             if sentences_score:
@@ -3102,6 +3103,7 @@ def report_company_test():
             else:
                 sizes = [0,0,0,0]
             fig1, ax1 = plt.subplots()
+
             ax1.pie(sizes, labels=labels, autopct='%1.1f%%',
                     startangle=90)
             ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
