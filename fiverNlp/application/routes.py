@@ -3097,21 +3097,28 @@ def report_company_test():
             matplotlib.rcParams.update({'font.size': 16})
             plt.style.use('dark_background')
             labels = 'Aesthetic', 'Craftsmanship', 'Narrative', 'Purpose'
-
+            temp_colors = ClassColors.query.filter_by(id=1).first()
+            if temp_colors:
+                pie_colors = [temp_colors.aesthetic, temp_colors.craftsmanship, temp_colors.narrative, temp_colors.purpose]
             if sentences_score:
                 sizes = [sentences_score.get('aesthetic'), sentences_score.get('craftsmanship'),
                          sentences_score.get('narrative'), sentences_score.get('purpose')]
             else:
                 sizes = [0,0,0,0]
+
             fig1, ax1 = plt.subplots()
 
-            ax1.pie(sizes, labels=labels, autopct='%1.1f%%',
-                    startangle=90, textprops={'color':"grey"})
+            if temp_colors:
+                ax1.pie(sizes, autopct='%1.1f%%',
+                        startangle=90, textprops={'color':"grey"}, colors=pie_colors)
+            else:
+                ax1.pie(sizes, autopct='%1.1f%%',
+                        startangle=90, textprops={'color':"grey"})
             ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
-            path_to_image = f"./static/images/plots/new_plot{random.randint(0, 9999999999999999)}.png"
+            path_to_image = f"./static/images/plots/new_plot{random.randint(0, 999)}.png"
             while os.path.exists(path_to_image):
-                path_to_image = f"./static/images/plots/new_plot{random.randint(0, 9999999999999999)}.png"
-            plt.savefig(path_to_image)
+                path_to_image = f"./static/images/plots/new_plot{random.randint(0, 999)}.png"
+            plt.savefig(path_to_image,transparent=True)
 
             # for key,value in a.items():
             #     authors.append([key,value/length_sen])
