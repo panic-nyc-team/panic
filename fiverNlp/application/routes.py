@@ -3110,10 +3110,10 @@ def report_company_test():
 
             if temp_colors:
                 ax1.pie(sizes, autopct='%1.1f%%',
-                        startangle=90, textprops={'color':"grey"}, colors=pie_colors)
+                        startangle=90, textprops={'color':"black"}, colors=pie_colors)
             else:
                 ax1.pie(sizes, autopct='%1.1f%%',
-                        startangle=90, textprops={'color':"grey"})
+                        startangle=90, textprops={'color':"black"})
             ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
             path_to_image = f"./static/images/plots/new_plot{random.randint(0, 999)}.png"
             while os.path.exists(path_to_image):
