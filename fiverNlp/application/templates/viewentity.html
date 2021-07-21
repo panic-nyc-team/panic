@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+          .switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: green;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+#recalc{
+	padding: 10px;
+	background-color: rgb(0, 128, 255);
+	color: white;
+	border: none;
+	cursor: pointer;
+	border-radius: 2px;
+}
+
+
+    </style>
+
+</head>
+<body>
+    <h1 style="text-align: center;">{{noun_report.title}}</h1>
+    <form action = "/newnounreport" method = "POST">
+			<input type="date" name="date_from" id="date_from">
+			<input type="date" name="date_to" id="date_to">
+			<input type="text" name="title" hidden value="{{noun_report.title}}">
+			<input type="text" name="search_query" hidden value="{{noun_report.search_query_title}}">
+			<input type="text" name="id" hidden value="{{noun_report.id}}">
+			<input type="submit" value="reCalc" id="recalc">
+    </form>
+    <br>
+    <button type="button" onclick="topView(25)" style="{{topstyle[0]}}">top 25</button>
+    <button type="button" onclick="topView(50)" style="{{topstyle[1]}}">top 50</button>
+    <button type="button" onclick="topView(100)" style="{{topstyle[2]}}">top 100</button>
+    <br>
+    <span style="position: absolute;right: 110px; margin-top: 8px; top:85px;">EDIT</span>
+    <label class="switch" style="position: absolute;right: 150px; top:85px;">
+      <input type="checkbox" onchange="toggleChanged()">
+      <span class="slider round"></span>
+    </label>
+    <img src="../{{path_to_image}}">
+</body>
+<script>
+
+    var date = new Date({{date_from}});
+    date ;
+    date.setDate(date.getDate() + 1);
+
+    document.getElementById('date_from').valueAsDate = date;
+
+    var date = new Date({{date_to}});
+    date ;
+    date.setDate(date.getDate() + 1);
+
+    document.getElementById('date_to').valueAsDate = date;
+
+
+    function toggleChanged(){
+        window.location.replace("/editentity?id="+{{noun_report.id}});
+    }
+
+    function topView(num){
+	    window.location.href = "/viewentity?id="+{{noun_report.id}}+"&top="+num;
+    }
+
+</script>
+</html>

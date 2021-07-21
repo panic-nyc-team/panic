@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+	<title>Edit Mode</title>
+	<style>
+		* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+body {
+
+	font-family: 'Roboto', Helvetica, sans-serif;
+}
+h1{
+	color: rgb(88, 88, 88) 	;
+}
+.app {
+	display: flex;
+}
+.one{
+	flex: 1;
+}
+.two{
+	flex: 1;
+}
+.three{
+	flex: 2;
+}
+header {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 60px;
+	margin-bottom: 40px;
+}
+#save-btn{
+	position: absolute;
+	right: 40px;
+	padding: 10px;
+	background-color: rgb(20, 168, 77);
+	color: white;
+	border: none;
+	cursor: pointer;
+	border-radius: 2px;
+}
+#save-btn:hover{
+	background-color: rgb(11, 119, 53);
+}
+
+
+.list {
+	float: left;
+	height: fit-content;
+	width: 200px;
+	border: 1px dashed black;
+	margin: 10px 15px;
+	padding: 8px;
+	transition: all 0.2s linear;
+}
+
+ .container .new-list, .container .ignore-list {
+
+	height: fit-content;
+	width: 200px;
+	min-height: 30px;
+	border: 1px dashed black;
+	margin: 7px 15px;
+	padding: 15px;
+	transition: all 0.2s linear;
+
+ }
+
+
+.list .list-item {
+
+	padding: 5px 0px;
+	margin: 10px 15px;
+}
+
+.container {
+	display: flex;
+	float: left;
+	flex-flow: column;
+}
+
+h3{
+	margin: 10px 15px;
+	color: rgb(88, 88, 88);
+	font-style: italic;
+}
+h2{
+	margin: 10px 15px;
+}
+
+@media only screen and (max-width: 780px) {
+	.app{
+		flex-direction: column;
+	}
+  }
+
+  .switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: green;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+#recalc{
+	padding: 10px;
+	background-color: rgb(0, 128, 255);
+	color: white;
+	border: none;
+	cursor: pointer;
+	border-radius: 2px;
+}
+
+	</style>
+</head>
+
+<body>
+	<header>
+		<h1>{{noun_report.title}}</h1>
+	</header>
+		<button id="save-btn" type="button">Save</button>
+		<span style="position: absolute;right: 110px; margin-top: 8px;">EDIT</span>
+		<label class="switch" style="position: absolute;right: 150px;">
+		  <input type="checkbox" onchange="toggleChanged()" checked>
+		  <span class="slider round"></span>
+		</label>
+		<form action = "/newnounreport" method = "POST">
+			<input type="date" name="date_from" id="date_from">
+			<input type="date" name="date_to" id="date_to">
+			<input type="text" name="title" hidden value="{{noun_report.title}}">
+			<input type="text" name="search_query" hidden value="{{noun_report.search_query_title}}">
+			<input type="text" name="id" hidden value="{{noun_report.id}}">
+			<input type="submit" value="reCalc" id="recalc">
+		</form>
+
+	<div class="app">
+		<div class="one">
+			<div id="entities">
+				<h2>Entities:</h2>
+				<div class="list">
+					{%if entities%}
+						{%for entity in entities%}
+							<div class="list-item" draggable="true">{{entity.name}}--->{{entity.count}}</div>
+						{%endfor%}
+					{%endif%}
+				</div>
+			</div>
+
+		</div>
+
+		<div class="two">
+			<div class="container">
+
+				<h3>New</h3>
+				<div class="new-list">
+
+				</div>
+				<h3>Ignore</h3>
+				<div id="ignore-list" class="list" style="min-height: 30px;">
+					{%if ignored%}
+						{%for entity in ignored%}
+							<div class="list-item" draggable="true" style="display: block;">{{entity.name}}--->{{entity.count}}</div>
+						{%endfor%}
+					{%endif%}
+				</div>
+			</div>
+		</div>
+		<div class="three">
+			<div id="newDivContainer">
+				<h2>Alliases:</h2>
+
+				{%if zipped_aliases%}
+					{%for alias,entities in zipped_aliases%}
+						<div class="list">
+							<p contenteditable="true" style="font-weight: bold; margin-bottom: 10px;">{{alias.name}}</p>
+							<button class="fa fa-trash" onclick="deleteButton(this)"></button>
+							{%for entity in entities%}
+								<div class="list-item" draggable="true" style="display: block;">{{entity.name}}--->{{entity.count}}</div>
+							{%endfor%}
+						</div>
+					{%endfor%}
+				{%endif%}
+
+			</div>
+		</div>
+	</div>
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</body>
+<script>
+
+var date = new Date({{date_from}});
+date ;
+date.setDate(date.getDate() + 1);
+
+document.getElementById('date_from').valueAsDate = date;
+
+var date = new Date({{date_to}});
+date ;
+date.setDate(date.getDate() + 1);
+
+document.getElementById('date_to').valueAsDate = date;
+
+
+
+
+const list_items = document.querySelectorAll('.list-item');
+const lists = document.querySelectorAll('.list');
+const newLists = document.querySelectorAll('.new-list');
+const toSave = document.getElementById("entities");
+const newDivContainer = document.getElementById('newDivContainer');
+const il = document.getElementById('ignore-list');
+
+let draggedItem = null;
+
+
+list_items.forEach((list_item) => {
+	list_item.addEventListener("dragstart", dragStart);
+	list_item.addEventListener("dragend", dragEnd);
+});
+
+function dragStart() {
+	draggedItem = this;
+	setTimeout(() => {
+		this.style.display = "none";
+	}, 0);
+
+}
+
+function dragEnd() {
+	draggedItem = null;
+	setTimeout(() => {
+		this.style.display = "block";
+	}, 0);
+
+}
+
+
+lists.forEach((list) => {
+	list.addEventListener("dragover", dragOver);
+	list.addEventListener("dragenter", dragEnter);
+	list.addEventListener("dragleave", dragLeave);
+	list.addEventListener("drop", dragDrop);
+});
+
+function dragOver(e) {
+	e.preventDefault();
+}
+
+function dragEnter(e) {
+	e.preventDefault();
+}
+
+function dragLeave(e) {
+	e.preventDefault();
+}
+
+function dragDrop() {
+	this.appendChild(draggedItem);
+}
+
+
+const newList = newLists[0];
+newList.addEventListener('dragover', function (e) {
+
+	e.preventDefault();
+});
+
+newList.addEventListener('dragenter', function (e) {
+
+	e.preventDefault();
+});
+newList.addEventListener('dragleave', function (e) {
+
+	e.preventDefault();
+
+});
+newList.addEventListener('drop', function (e) {
+	e.preventDefault();
+
+	const todo_div = document.createElement("div");
+
+
+	//heading
+	const heading = document.createElement("p");
+	txt = draggedItem.innerText.split("--->");
+	text = document.createTextNode(txt[0])
+	heading.appendChild(text);
+	heading.setAttribute("contenteditable", "true");
+	heading.style.fontWeight = "bold";
+	heading.style.marginBottom = "10px";
+	todo_div.appendChild(heading);
+
+
+	//delete button
+	const deleteBtn = document.createElement("button");
+	deleteBtn.classList.add("fa");
+	deleteBtn.classList.add("fa-trash");
+	deleteBtn.addEventListener("click", () => {
+
+		const save = todo_div.querySelectorAll(".list-item");
+		for (let i = 0; i < save.length; i++) {
+			toSave.children[1].append(save[i]);
+		}
+		deleteBtn.parentElement.remove();
+
+	});
+
+
+	todo_div.appendChild(deleteBtn);
+
+	//outer div
+	todo_div.classList.add("list");
+	todo_div.append(draggedItem);
+
+
+	todo_div.addEventListener('dragover', function (e) {
+		e.preventDefault();
+	});
+
+	todo_div.addEventListener('dragenter', function (e) {
+		e.preventDefault();
+	});
+
+	todo_div.addEventListener('dragleave', function (e) {
+		e.preventDefault();
+	});
+	todo_div.addEventListener('drop', function (e) {
+		this.append(draggedItem);
+
+	});
+
+	newDivContainer.appendChild(todo_div);
+
+
+});
+
+
+//save button
+const saveBtn = document.getElementById('save-btn')
+
+saveBtn.addEventListener('click', () => {
+
+	//entites list
+	const entitiesList = [];
+	for (let i = 0; i < toSave.children[1].children.length; i++) {
+		entitiesList.push(toSave.children[1].children[i].textContent);
+	}
+	console.log(entitiesList);
+
+	//ignore list
+	const ignoreList = [];
+	for (let i = 0; i < il.children.length; i++) {
+		ignoreList.push(il.children[i].textContent);
+	}
+	console.log(ignoreList);
+
+	//allias list
+	const alliasList = [];
+	for (let i = 1; i < newDivContainer.children.length; i++) {
+		alliasList[i-1] = [];
+		for (let j = 2; j < newDivContainer.children[i].children.length; j++) {
+			alliasList[i-1].push(newDivContainer.children[i].children[j].textContent);
+		}
+	}
+	console.log(alliasList);
+    const headings = [];
+    headingsContainer = document.querySelectorAll('#newDivContainer > .list > p');
+	for (let i = 0; i < headingsContainer.length; i++) {
+	    headings.push(headingsContainer[i].innerText);
+    }
+    console.log(headings);
+
+	date_from = document.getElementById("date_from").value;
+	date_to = document.getElementById("date_to").value;
+	$.ajax({
+	  type: 'POST',
+	  url: "savenounreport",
+	  data: JSON.stringify({id: {{noun_report.id}},entities: entitiesList, ignored: ignoreList, alias: alliasList,
+	   						alias_headings: headings,date_from: date_from,date_to: date_to}),
+	  success: function(res)
+	  {
+<!--		alert(res);-->
+		location.reload();
+	  },
+	  contentType: "application/json",
+	  async: false
+	});
+
+
+
+
+
+<!--  $.post( "savenounreport", { id: "{{noun_report.id}}","headings[]":headings })-->
+<!--  .done(function( data ) {-->
+<!--    if(data==='done'){-->
+<!--      alert('saved');-->
+<!--    }-->
+<!--    else{-->
+<!--      alert('error');-->
+<!--    }-->
+<!--  });-->
+
+
+});
+
+
+function deleteButton(e){
+		console.log(e);
+		console.log(e.parentElement);
+		const save = e.parentElement.querySelectorAll(".list-item");
+		for (let i = 0; i < save.length; i++) {
+			toSave.children[1].append(save[i]);
+		}
+		e.parentElement.remove();
+}
+
+function toggleChanged(){
+	window.location.replace("/viewentity?id="+{{noun_report.id}});
+}
+
+</script>
+</html>
