@@ -25,23 +25,15 @@
                         <tbody>
                           {% for report in reports %}
                           <tr>
-<!--                              {%if 'default:' in report.title%}-->
-<!--                            <td ><a onclick="reportClick(this)" id="{{ report.id }}" style="font-weight: bold;" type="{{ report.type }}" href="#">{{report.title[9:]}}*</a></td>-->
-<!--                              {%else%}-->
                             <td><a onclick="reportClick(this)" id="{{ report.id }}" style="font-weight: bold;" type="{{ report.type }}" href="#">{{report.title}}</a></td>
-<!--                              {%endif%}-->
                             <td>{{report.type}}</td>
                             <td>{{report.status}}</td>
                             <td>{{"{:%d, %b %Y : %I:%M %p} EST".format(report.date_created) }}</td>
-<!--                           {%if 'default: ' not in report.title %}-->
                               {%if report.status=='done' or report.status=='killed' %}
                                 <td><button class="btn btn-primary bg-theme mx-1" onclick="deleteClick(this.id)" id="{{ report.id }}" type="button">Delete</button></td>
                               {%else%}
                                 <td><p>Wait untill done</p><td>
                               {%endif%}
-<!--                          {%else%}-->
-<!--                            <td><p>Cannot delete here</p><td>-->
-<!--                          {%endif%}-->
                           </tr>
                           {% endfor %}
                         </tbody>
