@@ -3951,7 +3951,9 @@ def new_noun_report():
                 noun_report.status = 'running'
                 noun_report.running = True
                 noun_report.date_created = datetime.datetime.now(tz)
-                NounReportEntitiesModel.query.filter_by(noun_report_id=id).delete()
+                # NounReportEntitiesModel.query.filter_by(noun_report_id=id).delete()
+                for entity in NounReportEntitiesModel.query.filter_by(noun_report_id=id).all():
+                    entity.count = 0
             else:
                 noun_report = NounReportModel(search_query_title=search_query, title=title, date_from=date_from,
                                               date_to=date_to, date_created=datetime.datetime.now(tz), type='noun',
@@ -3985,6 +3987,7 @@ def new_noun_report():
             noun_report.status = 'done'
             noun_report.running = False
             noun_report.date_completed = datetime.datetime.now()
+            NounReportEntitiesModel.query.filter_by(noun_report_id=id, count=0).delete()
             db.session.commit()
             return redirect(f'/editentity?id={noun_report.id}')
 

@@ -200,7 +200,7 @@ input:checked + .slider:before {
 		<div class="one">
 			<div id="entities">
 				<h2>Entities:</h2>
-				<div class="list">
+				<div class="list" style="overflow-y: scroll; height:600px;">
 					{%if entities%}
 						{%for entity in entities%}
 							<div class="list-item" draggable="true">{{entity.name}}--->{{entity.count}}</div>
