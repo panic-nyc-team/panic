@@ -58,7 +58,6 @@ from tqdm import tqdm
 
 from flask_cors import CORS
 
-
 import io
 import base64
 
@@ -70,11 +69,8 @@ import matplotlib
 import spacy
 from collections import Counter
 import en_core_web_sm
+
 nlp = en_core_web_sm.load()
-
-
-
-
 
 webhoseio.config(token="8018e387-9258-4fd4-9ec5-9f9366a779a8")
 
@@ -139,9 +135,6 @@ sentence_model = SentenceTransformer('distilbert-base-nli-stsb-mean-tokens')
 
 
 def startup():
-
-
-
     # docs = NewDocumentModel.query.all()
     # print(len(docs))
     # for d in docs:
@@ -183,7 +176,6 @@ def startup():
 app.before_first_request(startup)
 
 
-
 @app.after_request
 def add_header(r):
     """
@@ -195,6 +187,7 @@ def add_header(r):
     r.headers["Expires"] = "0"
     r.headers['Cache-Control'] = 'public, max-age=0'
     return r
+
 
 def get_sentiment(text):
     blob = TextBlob(text)
@@ -995,8 +988,6 @@ def export_result():
                     name = f'static/excel/result{random.randint(0, 999)}.xlsx'
                 wb.save(name)
                 return send_file(name, as_attachment=True)
-
-
 
             if flag_link:
                 name = f'./static/jsons/report{report.id}.json'
@@ -2462,9 +2453,9 @@ def newdocumentadd(i, f_title, f_id):
     # locations = None
 
     # if (entities):
-        # persons = entities.get('persons')
-        # organizations = entities.get('organizations')
-        # locations = entities.get('locations')
+    # persons = entities.get('persons')
+    # organizations = entities.get('organizations')
+    # locations = entities.get('locations')
 
     newdocument = NewDocumentModel(f_id=f_id, thread_uuid=thread.get('uuid'), uuid=i.get('uuid'),
                                    ord_in_thread=i.get('ord_in_thread'), parent_url=i.get('parent_url')
@@ -2745,6 +2736,10 @@ def search_query_documents_background(id):
 def reports():
     try:
         reports = ReportModel.query.all()
+        noun_reports = NounReportModel.query.all()
+        for report in noun_reports:
+            reports.append(report)
+        reports.sort(key=lambda x: x.date_created, reverse=False)
         # d = eval(companydocument.classified_sentences)
         return render_template('reports.html', reports=reports)
     except Exception as e:
@@ -3099,26 +3094,27 @@ def report_company_test():
             labels = 'Aesthetic', 'Craftsmanship', 'Narrative', 'Purpose'
             temp_colors = ClassColors.query.filter_by(id=1).first()
             if temp_colors:
-                pie_colors = [temp_colors.aesthetic, temp_colors.craftsmanship, temp_colors.narrative, temp_colors.purpose]
+                pie_colors = [temp_colors.aesthetic, temp_colors.craftsmanship, temp_colors.narrative,
+                              temp_colors.purpose]
             if sentences_score:
                 sizes = [sentences_score.get('aesthetic'), sentences_score.get('craftsmanship'),
                          sentences_score.get('narrative'), sentences_score.get('purpose')]
             else:
-                sizes = [0,0,0,0]
+                sizes = [0, 0, 0, 0]
 
             fig1, ax1 = plt.subplots()
 
             if temp_colors:
                 ax1.pie(sizes, autopct='%1.1f%%',
-                        startangle=90, textprops={'color':"black"}, colors=pie_colors)
+                        startangle=90, textprops={'color': "black"}, colors=pie_colors)
             else:
                 ax1.pie(sizes, autopct='%1.1f%%',
-                        startangle=90, textprops={'color':"black"})
+                        startangle=90, textprops={'color': "black"})
             ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
             path_to_image = f"./static/images/plots/new_plot{random.randint(0, 999)}.png"
             while os.path.exists(path_to_image):
                 path_to_image = f"./static/images/plots/new_plot{random.randint(0, 999)}.png"
-            plt.savefig(path_to_image,transparent=True)
+            plt.savefig(path_to_image, transparent=True)
 
             # for key,value in a.items():
             #     authors.append([key,value/length_sen])
@@ -3671,13 +3667,15 @@ def sendmail():
     except:
         return 'error'
 
+
 @app.route("/edgebundling", methods=[GET, POST])
 def edge_bundling():
     report_id = request.args.get('report_id')
     report_name = f'./static/jsons/report{report_id}.json'
     if not os.path.exists(report_name):
         return 'no file exists'
-    return render_template('index.html',report_name=report_name)
+    return render_template('index.html', report_name=report_name)
+
 
 @app.route("/processes", methods=[GET, POST])
 def processes():
@@ -3685,10 +3683,18 @@ def processes():
         processes = []
         searchqueries = SuperSearchQueryModel.query.filter_by(running=True).all()
         reports = ReportModel.query.filter_by(running=True).all()
+        noun_reports = NounReportModel.query.filter_by(running=True).all()
+        for report in noun_reports:
+            reports.append(report)
         recent = []
         last_hour = datetime.datetime.now() - datetime.timedelta(hours=1)
         for r in ReportModel.query.filter_by(running=False).all():
             if r.date_completed and r.date_completed > last_hour:
+                recent.append(r)
+        for r in NounReportModel.query.filter_by(running=False).all():
+            print(r.date_completed, last_hour)
+            if r.date_completed and r.date_completed > last_hour:
+                print(2)
                 recent.append(r)
         for s in SuperSearchQueryModel.query.filter_by(running=False).all():
             if s.date_completed and s.date_completed > last_hour:
@@ -3708,7 +3714,7 @@ def get_search_query_sentence_percentage(f_title):
 
         docs = SearchQueryDocumentModel.query.filter_by(f_title=f_title).all()
         if not docs:
-            print('not docs ',f_title)
+            print('not docs ', f_title)
             return None
         score = {'aesthetic': 0, 'craftsmanship': 0, 'narrative': 0, 'purpose': 0}
         for d in docs:
@@ -3726,18 +3732,282 @@ def get_search_query_sentence_percentage(f_title):
                     score['craftsmanship'] += 1
                 elif dimension == 'aesthetic':
                     score['aesthetic'] += 1
-        total = score['aesthetic']+score['craftsmanship']+score['narrative']+score['purpose']
+        total = score['aesthetic'] + score['craftsmanship'] + score['narrative'] + score['purpose']
         if total == 0:
             print('total 0')
             return None
-        score['aesthetic'] = round(score['aesthetic']*100/total, 2)
-        score['craftsmanship'] = round(score['craftsmanship']*100/total, 2)
-        score['narrative'] = round(score['narrative']*100/total, 2)
-        score['purpose'] = round(score['purpose']*100/total, 2)
+        score['aesthetic'] = round(score['aesthetic'] * 100 / total, 2)
+        score['craftsmanship'] = round(score['craftsmanship'] * 100 / total, 2)
+        score['narrative'] = round(score['narrative'] * 100 / total, 2)
+        score['purpose'] = round(score['purpose'] * 100 / total, 2)
         return score
     except Exception as e:
         print(e)
         return None
+
+
+@app.route("/viewentity", methods=[GET, POST])
+def view_entity():
+    id = request.args.get('id')
+    top = request.args.get('top')
+    if not id:
+        return 'id error'
+    if not top:
+        top = 25
+    else:
+        try:
+            top = int(top)
+        except:
+            top = 25
+    noun_report = NounReportModel.query.filter_by(id=id).first()
+    if not noun_report:
+        return 'noun report not found'
+    try:
+        date_from = int(time.mktime(noun_report.date_from.timetuple())) * 1000
+        date_to = int(time.mktime(noun_report.date_to.timetuple())) * 1000
+    except:
+        date_from = None
+        date_to = None
+
+    entities = []
+    temp_entities = NounReportEntitiesModel.query.filter_by(noun_report_id=id, ignored=False, alias_id=None).all()
+    for entity in temp_entities:
+        entities.append([entity.name, entity.count])
+    aliases = AliasModel.query.filter_by(noun_report_id=id).all()
+    for alias in aliases:
+        name = alias.name
+        count = 0
+        alias_entities = NounReportEntitiesModel.query.filter_by(noun_report_id=id, alias_id=alias.id).all()
+        for i in alias_entities:
+            count = count + i.count
+        entities.append([name, count])
+
+    if entities:
+        entities.sort(key=lambda x: x[1], reverse=True)
+    else:
+        return render_template('viewentity.html', path_to_image=None, noun_report=noun_report,
+                               date_from=date_from,
+                               date_to=date_to, topstyle=[None, None, None])
+    matplotlib.use('Agg')
+    names = []
+    counts = []
+    for entity in entities[:top]:
+        names.append(entity[0])
+        counts.append(entity[1])
+    # print(names)
+    # print(counts)
+    if top == 25:
+        fig = plt.figure(figsize=(5, 6))
+    elif top == 50:
+        fig = plt.figure(figsize=(6, 10))
+    elif top == 100:
+        fig = plt.figure(figsize=(7, 15))
+    plt.barh(names, counts)
+    plt.gca().invert_yaxis()
+    plt.tight_layout()
+    # plt.title('Store Inventory')
+    # plt.ylabel('Product')
+    # plt.xlabel('Quantity')
+    # plt.show()
+    path_to_image = f"./static/images/plots/new_plot{random.randint(0, 999)}.png"
+    while os.path.exists(path_to_image):
+        path_to_image = f"./static/images/plots/new_plot{random.randint(0, 999)}.png"
+    plt.savefig(path_to_image, transparent=True)
+
+    topstyle = []
+    if top == 25:
+        topstyle.append('font-weight: bold;')
+        topstyle.append(None)
+        topstyle.append(None)
+    elif top == 50:
+        topstyle.append(None)
+        topstyle.append('font-weight: bold;')
+        topstyle.append(None)
+    elif top == 100:
+        topstyle.append(None)
+        topstyle.append(None)
+        topstyle.append('font-weight: bold;')
+
+    return render_template('viewentity.html', path_to_image=path_to_image, noun_report=noun_report, date_from=date_from,
+                           date_to=date_to, topstyle=topstyle)
+
+
+@app.route("/editentity", methods=[GET])
+def edit_entity():
+    id = request.args.get('id')
+    if not id:
+        return 'id error'
+    noun_report = NounReportModel.query.filter_by(id=id).first()
+    if not noun_report:
+        return 'noun report not found'
+    entities = NounReportEntitiesModel.query.filter_by(noun_report_id=id, ignored=False, alias_id=None).all()
+    ignored = NounReportEntitiesModel.query.filter_by(noun_report_id=id, ignored=True).all()
+    aliases = AliasModel.query.filter_by(noun_report_id=id).all()
+    zipped_aliases = []
+    for alias in aliases:
+        alias_entities = NounReportEntitiesModel.query.filter_by(noun_report_id=id, alias_id=alias.id).all()
+        zipped_aliases.append([alias, alias_entities])
+    if entities:
+        try:
+            entities.sort(key=lambda x: x.count, reverse=True)
+        except:
+            pass
+    # else:
+    #     return 'no entities found'
+    try:
+        date_from = int(time.mktime(noun_report.date_from.timetuple())) * 1000
+        date_to = int(time.mktime(noun_report.date_to.timetuple())) * 1000
+    except:
+        date_from = None
+        date_to = None
+
+    return render_template('editnounreport.html', entities=entities, noun_report=noun_report, ignored=ignored,
+                           zipped_aliases=zipped_aliases, date_from=date_from, date_to=date_to)
+
+
+@app.route("/savenounreport", methods=[POST])
+def save_noun_report():
+    data = request.get_json()
+    id = data.get('id')
+    entities = data.get('entities')
+    ignored = data.get('ignored')
+    alias = data.get('alias')
+    alias_headings = data.get('alias_headings')
+    if len(alias) != len(alias_headings):
+        return 'error'
+    NounReportEntitiesModel.query.filter_by(noun_report_id=id).delete()
+    AliasModel.query.filter_by(noun_report_id=id).delete()
+    db.session.flush()
+    for entity in entities:
+        name, count = entity.split('--->')
+        try:
+            count = int(count)
+        except:
+            count = 0
+        add_entity = NounReportEntitiesModel(noun_report_id=id, name=name,
+                                             count=count, ignored=False, alias_id=None)
+        db.session.add(add_entity)
+        db.session.flush()
+    for entity in ignored:
+        name, count = entity.split('--->')
+        try:
+            count = int(count)
+        except:
+            count = 0
+        add_entity = NounReportEntitiesModel(noun_report_id=id, name=name,
+                                             count=count, ignored=True, alias_id=None)
+        db.session.add(add_entity)
+        db.session.flush()
+
+    for i in zip(alias, alias_headings):
+        add_alias = AliasModel(name=i[1], noun_report_id=id)
+        db.session.add(add_alias)
+        db.session.flush()
+        for j in i[0]:
+            name, count = j.split('--->')
+            try:
+                count = int(count)
+            except:
+                count = 0
+            add_entity = NounReportEntitiesModel(noun_report_id=id, name=name,
+                                                 count=count, ignored=False, alias_id=add_alias.id)
+            db.session.add(add_entity)
+            db.session.flush()
+    db.session.commit()
+    return 'done'
+
+
+@app.route('/newnounreport', methods=['GET', 'POST'])
+def new_noun_report():
+    if (request.method == 'GET'):
+        try:
+            search_queries = SuperSearchQueryModel.query.all()
+            return render_template('newnounreport.html', search_queries=search_queries)
+        except Exception as e:
+            print(e, file=sys.stderr)
+            return 'error'
+    else:
+        try:
+            result = request.form
+            id = result.get('id')
+            title = result.get('title')
+            if (title is None or title == '' or title == 'None'):
+                return 'title cannot be empty'
+            search_query = result.get('search_query')
+            date_from = result.get('date_from')
+            date_to = result.get('date_to')
+            try:
+                date_from = datetime.datetime.strptime(date_from, '%Y-%m-%d').date()
+                date_to = datetime.datetime.strptime(date_to, '%Y-%m-%d').date()
+            except Exception as e:
+                print(e)
+                return 'date error'
+            print(search_query)
+
+            if id:
+                noun_report = NounReportModel.query.filter_by(id=id).first()
+                noun_report.date_from = date_from
+                noun_report.date_to = date_to
+                noun_report.status = 'running'
+                noun_report.running = True
+                noun_report.date_created = datetime.datetime.now(tz)
+                NounReportEntitiesModel.query.filter_by(noun_report_id=id).delete()
+            else:
+                noun_report = NounReportModel(search_query_title=search_query, title=title, date_from=date_from,
+                                              date_to=date_to, date_created=datetime.datetime.now(tz), type='noun',
+                                              status='running', running=True)
+                db.session.add(noun_report)
+            db.session.flush()
+            temp_date = NewDocumentModel.query.filter_by(f_title=search_query).all()
+            docs = []
+            for query in temp_date:
+                try:
+                    published = datetime.datetime.strptime(query.published.split('T')[0], '%Y-%m-%d').date()
+                except:
+                    continue
+                print(date_from, published, date_to)
+                if published and date_from <= published <= date_to:
+                    docs.append(query)
+            for d in docs:
+                doc_entities = NewDocumentEntitiesModel.query.filter_by(f_id=d.id).all()
+                for doc_entity in doc_entities:
+                    name_exists = NounReportEntitiesModel.query.filter_by(noun_report_id=noun_report.id,
+                                                                          name=doc_entity.name).first()
+                    if name_exists:
+                        name_exists.count += doc_entity.count
+                        db.session.flush()
+                        continue
+                    else:
+                        add_entity = NounReportEntitiesModel(noun_report_id=noun_report.id, name=doc_entity.name,
+                                                             count=doc_entity.count, ignored=False, alias_id=None)
+                        db.session.add(add_entity)
+                        db.session.flush()
+            noun_report.status = 'done'
+            noun_report.running = False
+            noun_report.date_completed = datetime.datetime.now()
+            db.session.commit()
+            return redirect(f'/editentity?id={noun_report.id}')
+
+        except Exception as e:
+            print(e, file=sys.stderr)
+            return 'error'
+
+
+@app.route('/deletenounreport')
+def delete_noun_report():
+    try:
+        id = request.args.get('id')
+        if (id is None or id == ''):
+            return 'error'
+        NounReportModel.query.filter_by(id=id).delete()
+        NounReportEntitiesModel.query.filter_by(noun_report_id=id).delete()
+        AliasModel.query.filter_by(noun_report_id=id).delete()
+        db.session.commit()
+        return redirect(url_for('reports'))
+    except Exception as e:
+        print(e, file=sys.stderr)
+        return 'delete error'
+
 
 if __name__ == '__main__':
     from waitress import serve

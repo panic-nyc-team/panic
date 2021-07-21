@@ -25,17 +25,19 @@
                         <tbody>
                           {% for report in reports %}
                           <tr>
+
                             <td><a onclick="reportClick(this)" id="{{ report.id }}" style="font-weight: bold;" type="{{ report.type }}" href="#">{{report.title}}</a></td>
                             <td>{{report.type}}</td>
                             <td>{{report.status}}</td>
                             <td>{{"{:%d, %b %Y : %I:%M %p} EST".format(report.date_created) }}</td>
                               {%if report.status=='done' or report.status=='killed' %}
-                                <td><button class="btn btn-primary bg-theme mx-1" onclick="deleteClick(this.id)" id="{{ report.id }}" type="button">Delete</button></td>
+                                <td><button class="btn btn-primary bg-theme mx-1" onclick="deleteClick(this)" id="{{ report.id }}" type="{{ report.type }}">Delete</button></td>
                               {%else%}
                                 <td><p>Wait untill done</p><td>
                               {%endif%}
                           </tr>
                           {% endfor %}
+
                         </tbody>
                     </table>
                 </div>
@@ -51,8 +53,14 @@
     <script src='https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js' integrity='sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo' crossorigin='anonymous'></script>
     <script src='https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js' integrity='sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6' crossorigin='anonymous'></script>
 <script>
-function deleteClick(id) {
-  window.location.href = "/deletereport?id="+id;
+function deleteClick(e) {
+  var type = e.getAttribute("type");
+  if(type=="noun"){
+    window.location.href = "/deletenounreport?id="+e.id;
+  }
+  else{
+    window.location.href = "/deletereport?id="+e.id;
+  }
 }
 
 function reportClick(e) {
@@ -65,6 +73,9 @@ function reportClick(e) {
   }
   else if(type=="vstag"){
     window.location.href = "/reporttest?id="+e.id;
+  }
+  else if(type=="noun"){
+    window.location.href = "/viewentity?id="+e.id;
   }
   else{
     alert('error');

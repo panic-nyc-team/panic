@@ -325,7 +325,7 @@ class NewDocumentEntitiesModel(db.Model):
     f_id = db.Column(db.Integer)
     name = db.Column(db.String(100))
     count = db.Column(db.Integer)
-
+    # ignored = db.Column(db.Boolean)
     @classmethod
     def delete(cls, f_id):
         try:
@@ -334,6 +334,42 @@ class NewDocumentEntitiesModel(db.Model):
             return True
         except:
             return False
+
+class NounReportModel(db.Model):
+    __tablename__ = 'nounreport'
+    id = db.Column(db.Integer, primary_key=True)
+    search_query_title = db.Column(db.Text)
+    title = db.Column(db.String(200))
+    type = db.Column(db.String(200))
+    status = db.Column(db.String(200))
+    running = db.Column(db.Boolean)
+    date_from = db.Column(db.DateTime())
+    date_to = db.Column(db.DateTime())
+    date_created = db.Column(db.DateTime())
+    date_completed = db.Column(db.DateTime())
+
+
+class NounReportEntitiesModel(db.Model):
+    __tablename__ = 'nounreportentity'
+    id = db.Column(db.Integer, primary_key=True)
+    noun_report_id = db.Column(db.Integer)
+    name = db.Column(db.String(100))
+    count = db.Column(db.Integer)
+    ignored = db.Column(db.Boolean)
+    alias_id = db.Column(db.Integer)
+
+class AliasModel(db.Model):
+    __tablename__ = 'aliasentity'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255))
+    noun_report_id = db.Column(db.Integer)
+    # entity_id = db.Column(db.Integer)
+
+# class IgnoredEntityModel(db.Model):
+#     __tablename__ = 'ignoredentity'
+#     id = db.Column(db.Integer, primary_key=True)
+#     entity_id = db.Column(db.Integer)
+#     noun_report_id = db.Column(db.Integer)
 
 
 # class NewDocumentPersonsModel(db.Model):

@@ -1,5 +1,5 @@
 {% extends "new_layout.html" %}
-{% block title %}Add Arbitrary Document{% endblock %}
+{% block title %}New Report{% endblock %}
 {% block head %}
   {{ super() }}
 {% endblock %}
@@ -16,7 +16,7 @@
                     <div class='col-lg-12'>
                         <form>
                             <div class="form-group text-white">
-                              <label for="exampleInputEmail1">Title</label>
+                              <label>Title</label>
                                   <input type="text" class="form-control"  placeholder="title" name="title" id="title">
                             </div>
                             <div class="form-group text-white">
@@ -35,6 +35,7 @@
                                   <option value="vssearchquery">vs search query</option>
                                   <option value="vstag" selected>vs tag</option>
                                   {%endif%}
+                                  <option value="noun">noun</option>
                                   </select>
                             </div>
                             <div class="row">
@@ -112,7 +113,12 @@ var typeElement = document.getElementById("vs");
 function typeChange(){
       var e = document.getElementById("vs");
       var val = e.value;
+      if (val==='noun'){
+          window.location.href = "/newnounreport";
+      }
+      else{
       window.location.href = "/newreport?type="+val;
+      }
   }
 
 </script>
