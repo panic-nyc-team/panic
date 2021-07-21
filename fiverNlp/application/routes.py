@@ -3967,7 +3967,7 @@ def new_noun_report():
                     published = datetime.datetime.strptime(query.published.split('T')[0], '%Y-%m-%d').date()
                 except:
                     continue
-                print(date_from, published, date_to)
+                # print(date_from, published, date_to)
                 if published and date_from <= published <= date_to:
                     docs.append(query)
             for d in docs:
