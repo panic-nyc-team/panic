@@ -1,3 +1,4 @@
+from fuzzywuzzy import fuzz
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -3090,7 +3091,6 @@ def report_company_test():
             print(sentences_score)
             matplotlib.use('Agg')
             matplotlib.rcParams.update({'font.size': 16})
-            plt.style.use('dark_background')
             labels = 'Aesthetic', 'Craftsmanship', 'Narrative', 'Purpose'
             temp_colors = ClassColors.query.filter_by(id=1).first()
             if temp_colors:
@@ -3103,6 +3103,7 @@ def report_company_test():
                 sizes = [0, 0, 0, 0]
 
             fig1, ax1 = plt.subplots()
+            plt.style.use('dark_background')
 
             if temp_colors:
                 ax1.pie(sizes, autopct='%1.1f%%',
@@ -3115,7 +3116,6 @@ def report_company_test():
             while os.path.exists(path_to_image):
                 path_to_image = f"./static/images/plots/new_plot{random.randint(0, 999)}.png"
             plt.savefig(path_to_image, transparent=True)
-
             # for key,value in a.items():
             #     authors.append([key,value/length_sen])
             # authors = sorted(authors, key=lambda x: x[1],reverse=True)
@@ -3789,6 +3789,10 @@ def view_entity():
                                date_from=date_from,
                                date_to=date_to, topstyle=[None, None, None])
     matplotlib.use('Agg')
+    plt.rcParams.update(plt.rcParamsDefault)
+
+    # matplotlib.rcParams.update({'font.size': 10})
+    # plt.style.use('classic')
     names = []
     counts = []
     for entity in entities[:top]:
@@ -4011,6 +4015,40 @@ def delete_noun_report():
         print(e, file=sys.stderr)
         return 'delete error'
 
+
+@app.route('/fuzzy', methods=['GET'])
+def fuzzy():
+    id = request.args.get('id')
+    if (id is None or id == ''):
+        return 'error'
+    AliasModel.query.filter_by(noun_report_id=id).delete()
+    entities = NounReportEntitiesModel.query.filter_by(noun_report_id=id).all()
+    for entity in entities:
+        entity.ignored = False
+        entity.alias_id = None
+        is_ignored = len(re.findall('\d', entity.name)) > 0
+        if is_ignored or 'http' in entity.name:
+            entity.ignored = True
+    db.session.flush()
+    entities = NounReportEntitiesModel.query.filter_by(noun_report_id=id, ignored=False).all()
+    for entity in entities:
+        alias_entities = []
+        for entity_2 in entities:
+            if not entity == entity_2 and entity_2.alias_id is None and entity.alias_id is None and not entity_2.ignored:
+                ratio = fuzz.token_set_ratio(entity.name, entity_2.name)
+                if ratio > 60:
+                    if not alias_entities:
+                        alias_entities.append(entity)
+                    alias_entities.append(entity_2)
+        if alias_entities:
+            a = AliasModel(name=alias_entities[0].name, noun_report_id=id)
+            db.session.add(a)
+            db.session.flush()
+            for i in alias_entities:
+                i.alias_id = a.id
+        db.session.flush()
+    db.session.commit()
+    return redirect(f'/editentity?id={id}')
 
 if __name__ == '__main__':
     from waitress import serve
