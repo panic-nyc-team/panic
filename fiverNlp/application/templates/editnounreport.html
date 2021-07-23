@@ -229,8 +229,9 @@ input:checked + .slider:before {
 			</div>
 		</div>
 		<div class="three">
+			<h2 style="display: inline;">Alliases:</h2>
+			<input type="button" onclick="fuzzy()" value="fuzzy" id="recalc">
 			<div id="newDivContainer">
-				<h2>Alliases:</h2>
 
 				{%if zipped_aliases%}
 					{%for alias,entities in zipped_aliases%}
@@ -420,10 +421,10 @@ saveBtn.addEventListener('click', () => {
 
 	//allias list
 	const alliasList = [];
-	for (let i = 1; i < newDivContainer.children.length; i++) {
-		alliasList[i-1] = [];
+	for (let i = 0; i < newDivContainer.children.length; i++) {
+		alliasList[i] = [];
 		for (let j = 2; j < newDivContainer.children[i].children.length; j++) {
-			alliasList[i-1].push(newDivContainer.children[i].children[j].textContent);
+			alliasList[i].push(newDivContainer.children[i].children[j].textContent);
 		}
 	}
 	console.log(alliasList);
@@ -481,6 +482,12 @@ function deleteButton(e){
 function toggleChanged(){
 	window.location.replace("/viewentity?id="+{{noun_report.id}});
 }
+
+function fuzzy(){
+	window.location.replace("/fuzzy?id="+{{noun_report.id}});
+}
+
+
 
 </script>
 </html>
