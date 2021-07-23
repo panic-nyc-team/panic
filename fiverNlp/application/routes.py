@@ -136,6 +136,17 @@ sentence_model = SentenceTransformer('distilbert-base-nli-stsb-mean-tokens')
 
 
 def startup():
+    search_queries = SuperSearchQueryModel.query.all()
+    for search_query in search_queries:
+        if os.path.exists(f'./static/jsons/searchquery{search_query.id}.json'):
+            continue
+        print(search_query.id)
+        res = export_result({'export_type':'search_query','where':str(search_query.id),'filter': 'includes', 'search_parameter': '', 'format': 'flat_json', 'flag_link': True})
+        if res:
+            print(res)
+        else:
+            print('error')
+
     # docs = NewDocumentModel.query.all()
     # print(len(docs))
     # for d in docs:
@@ -740,8 +751,11 @@ def export():
 
 
 @app.route('/exportresult', methods=['post'])
-def export_result():
-    form = request.form
+def export_result(temp_form=None):
+    if temp_form:
+        form = temp_form
+    else:
+        form = request.form
     print(form)
     flag_link = form.get('flag_link')
     if not flag_link:
@@ -1008,6 +1022,11 @@ def export_result():
             if data == 'empty':
                 return 'empty'
             return send_file(data, as_attachment=True)
+        if flag_link:
+            name = f'./static/jsons/searchquery{search_query.id}.json'
+            with open(name, 'w') as f:
+                json.dump(data, f)
+            return {'report_id': search_query.id}
         return jsonify(data)
 
     elif export_type == 'document':
@@ -2720,6 +2739,13 @@ def search_query_documents_background(id):
         db.session.commit()
 
     super_query = SuperSearchQueryModel.query.filter_by(id=id).first()
+    res = export_result(
+        {'export_type': 'search_query', 'where': str(super_query.id), 'filter': 'includes', 'search_parameter': '',
+         'format': 'flat_json', 'flag_link': True})
+    if res:
+        print(res)
+    else:
+        print('error')
     super_query.running = False
     super_query.date_completed = datetime.datetime.now()
     docs = SearchQueryDocumentModel.query.filter_by(f_title=super_query.title).all()
@@ -3463,18 +3489,30 @@ def report_background(id, type, first, second, range_from, range_to):
             d_f = None
             d_t = None
         if d_f is None and d_t is None:
-            res = requests.post(url_for('export_result', _external=True),
-                                data=[('export_type', 'report'), ('where', str(report.id)),
-                                      ('filter', 'includes'), ('search_parameter', ''), ('format', 'json'),
-                                      ('flag_link', True)])
-        else:
-            res = requests.post(url_for('export_result', _external=True),
-                                data=[('export_type', 'report'), ('where', str(report.id)), ('date_checkbox', 'date'),
-                                      ('start_date', d_f), ('end_date', d_t), ('filter', 'includes'),
-                                      ('search_parameter', ''), ('format', 'json'), ('flag_link', True)])
 
-        if res.ok:
-            print(res.json())
+            res = export_result(
+                {'export_type': 'report', 'where': str(report.id), 'filter': 'includes',
+                 'search_parameter': '',
+                 'format': 'json', 'flag_link': True})
+
+            # res = requests.post(url_for('export_result', _external=True),
+            #                     data=[('export_type', 'report'), ('where', str(report.id)),
+            #                           ('filter', 'includes'), ('search_parameter', ''), ('format', 'json'),
+            #                           ('flag_link', True)])
+        else:
+
+            res = export_result(
+                {'export_type': 'report', 'where': str(report.id), 'date_checkbox': 'date', 'filter': 'includes',
+                 'search_parameter': '', 'start_date': d_f, 'end_date': d_t,
+                 'format': 'json', 'flag_link': True})
+
+            # res = requests.post(url_for('export_result', _external=True),
+            #                     data=[('export_type', 'report'), ('where', str(report.id)), ('date_checkbox', 'date'),
+            #                           ('start_date', d_f), ('end_date', d_t), ('filter', 'includes'),
+            #                           ('search_parameter', ''), ('format', 'json'), ('flag_link', True)])
+
+        if res:
+            print(res)
         else:
             print('error')
         ReportModel.query.filter_by(id=id).update(
@@ -3675,6 +3713,14 @@ def edge_bundling():
     if not os.path.exists(report_name):
         return 'no file exists'
     return render_template('index.html', report_name=report_name)
+
+@app.route("/pivot", methods=[GET, POST])
+def pivot():
+    query_id = request.args.get('query_id')
+    query_name = f'./static/jsons/searchquery{query_id}.json'
+    if not os.path.exists(query_name):
+        return 'no file exists'
+    return render_template('pivot.html', query_name=query_name)
 
 
 @app.route("/processes", methods=[GET, POST])
@@ -4029,7 +4075,7 @@ def fuzzy():
                    'november', 'nov.', 'december', 'dec.', 'winter', 'second', 'minute', 'hour', 'day', 'week', 'month',
                    'quarter', 'half', 'year', 'decade', 'century', 'millenia', 'period', 'season', 'dollar', 'usd',
                    'pound', '$', 'euro', 'yuan', 'rupee', 'pkr', 'sterling', '%', 'percent', 'degree', 'celsius',
-                   'fahrenheit']
+                   'fahrenheit', 'tomorrow']
     AliasModel.query.filter_by(noun_report_id=id).delete()
     entities = NounReportEntitiesModel.query.filter_by(noun_report_id=id).all()
     for entity in entities:
