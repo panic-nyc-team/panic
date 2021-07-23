@@ -219,7 +219,7 @@ input:checked + .slider:before {
 
 				</div>
 				<h3>Ignore</h3>
-				<div id="ignore-list" class="list" style="min-height: 30px;">
+				<div id="ignore-list" class="list" style="overflow-y: scroll; height:600px;">
 					{%if ignored%}
 						{%for entity in ignored%}
 							<div class="list-item" draggable="true" style="display: block;">{{entity.name}}--->{{entity.count}}</div>
