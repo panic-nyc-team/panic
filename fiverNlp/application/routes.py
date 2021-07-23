@@ -136,16 +136,16 @@ sentence_model = SentenceTransformer('distilbert-base-nli-stsb-mean-tokens')
 
 
 def startup():
-    search_queries = SuperSearchQueryModel.query.all()
-    for search_query in search_queries:
-        if os.path.exists(f'./static/jsons/searchquery{search_query.id}.json'):
-            continue
-        print(search_query.id)
-        res = export_result({'export_type':'search_query','where':str(search_query.id),'filter': 'includes', 'search_parameter': '', 'format': 'flat_json', 'flag_link': True})
-        if res:
-            print(res)
-        else:
-            print('error')
+    # search_queries = SuperSearchQueryModel.query.all()
+    # for search_query in search_queries:
+    #     if os.path.exists(f'./static/jsons/searchquery{search_query.id}.json'):
+    #         continue
+    #     print(search_query.id)
+    #     res = export_result({'export_type':'search_query','where':str(search_query.id),'filter': 'includes', 'search_parameter': '', 'format': 'flat_json', 'flag_link': True})
+    #     if res:
+    #         print(res)
+    #     else:
+    #         print('error')
 
     # docs = NewDocumentModel.query.all()
     # print(len(docs))
@@ -1083,7 +1083,7 @@ def get_doc_data(documents, field_checkbox, form, date_checkbox, start_date, end
         result_flat = []
         for i in data:
             for j in i:
-                print(j)
+                # print(j)
                 result_flat.append(j)
         largest = 0
         largest_index = None
@@ -1097,7 +1097,7 @@ def get_doc_data(documents, field_checkbox, form, date_checkbox, start_date, end
         sheet = wb.active
         column_map = {}
         for count, i in enumerate(result_flat[largest_index], 1):
-            print(i)
+            # print(i)
             row_1 = sheet.cell(row=1, column=count)
             row_1.value = i
             column_map[i] = count
@@ -1122,7 +1122,7 @@ def get_doc_data(documents, field_checkbox, form, date_checkbox, start_date, end
 
 
 def get_doc_sub(document, field_checkbox, search_p, attributes, format):
-    print(1)
+    # print(1)
     # polarity, sentiment = get_sentiment(document.text)
     # temp_emotions = te.get_emotion(document.text)
     # emotions = {}
@@ -1145,7 +1145,7 @@ def get_doc_sub(document, field_checkbox, search_p, attributes, format):
             temp['polarity'] = ''
         if d.emotions:
             emotions = eval(d.emotions)
-    print(2)
+    # print(2)
     if field_checkbox:
         if search_p:
             if search_p not in document.title and search_p not in document.text:
@@ -1153,7 +1153,7 @@ def get_doc_sub(document, field_checkbox, search_p, attributes, format):
         for attr in attributes:
             if attributes[attr] is None:
                 temp.pop(attr, None)
-    print(3)
+    # print(3)
     # d_persons = NewDocumentPersonsModel.query.filter_by(f_id=document.id).all()
     # d_locations = NewDocumentLocationsModel.query.filter_by(f_id=document.id).all()
     # d_organizations = NewDocumentOrganizationsModel.query.filter_by(f_id=document.id).all()
@@ -1184,7 +1184,7 @@ def get_doc_sub(document, field_checkbox, search_p, attributes, format):
             #         t['entity'] = i.name
             #         t['sentiment'] = i.sentiment
             #         result.append(t.copy())
-        print(4)
+        # print(4)
         return result
     elif format == 'json':
         # for i in d_persons:
