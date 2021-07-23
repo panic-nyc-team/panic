@@ -4036,7 +4036,7 @@ def fuzzy():
         for entity_2 in entities:
             if not entity == entity_2 and entity_2.alias_id is None and entity.alias_id is None and not entity_2.ignored:
                 ratio = fuzz.token_set_ratio(entity.name, entity_2.name)
-                if ratio > 60:
+                if ratio > 70:
                     if not alias_entities:
                         alias_entities.append(entity)
                     alias_entities.append(entity_2)
