@@ -71,7 +71,7 @@ function DrawChart(dataDocuments) {
 
   //Static Icons
   // Set icons accordingly
-  const pathIcon = "./static/icons/";
+  const pathIcon = "/static/pivot/static/icons/";
 
   const iconUrl = {
     entity: pathIcon + "entity.png",
