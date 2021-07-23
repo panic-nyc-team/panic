@@ -4021,14 +4021,30 @@ def fuzzy():
     id = request.args.get('id')
     if (id is None or id == ''):
         return 'error'
+    ignore_list = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve',
+                   'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty',
+                   'thirty', 'forty', 'fifty', 'hundred', 'thousand', 'million', 'billion', 'trillion', 'winter',
+                   'january', 'jan.', 'february', 'feb.', 'march', 'mar.', 'spring', 'april', 'apr.', 'may', 'june',
+                   'jun.', 'summer', 'july', 'jul.', 'august', 'aug.', 'september', 'sep.', 'autumn', 'october', 'oct.',
+                   'november', 'nov.', 'december', 'dec.', 'winter', 'second', 'minute', 'hour', 'day', 'week', 'month',
+                   'quarter', 'half', 'year', 'decade', 'century', 'millenia', 'period', 'season', 'dollar', 'usd',
+                   'pound', '$', 'euro', 'yuan', 'rupee', 'pkr', 'sterling', '%', 'percent', 'degree', 'celsius',
+                   'fahrenheit']
     AliasModel.query.filter_by(noun_report_id=id).delete()
     entities = NounReportEntitiesModel.query.filter_by(noun_report_id=id).all()
     for entity in entities:
+        if not entity.name:
+            continue
         entity.ignored = False
         entity.alias_id = None
         is_ignored = len(re.findall('\d', entity.name)) > 0
         if is_ignored or 'http' in entity.name:
             entity.ignored = True
+            continue
+        for w in ignore_list:
+            if w in entity.name.lower():
+                entity.ignored = True
+                break
     db.session.flush()
     entities = NounReportEntitiesModel.query.filter_by(noun_report_id=id, ignored=False).all()
     for entity in entities:
