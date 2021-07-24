@@ -4113,6 +4113,7 @@ def fuzzy():
             continue
         for w in ignore_list:
             if find_word(w)(name):
+                print(w, name)
                 entity.ignored = True
                 break
     db.session.flush()
