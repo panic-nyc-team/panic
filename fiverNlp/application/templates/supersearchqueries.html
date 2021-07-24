@@ -62,7 +62,8 @@
     </div>
     </form>
   {%if(supersearchquery.title)%}
-    <button class="btn btn-danger" type="button" onclick="deleteSearchQuery()" >Delete Search Query</button><br>
+    <button class="btn btn-danger" type="button" onclick="deleteSearchQuery()" >Delete Search Query</button><br><br>
+    <button class="btn btn-primary" type="button" onclick="exportLink('{{supersearchquery.id}}')" >Export Link</button>
   {%endif%}
 
 
@@ -147,6 +148,10 @@
    function delform(e) {
     $(e.target).closest('.container').remove();
   }
+  function exportLink(id) {
+  window.location.href = "/pivot?query_id="+id;
+}
+
 
 
 </script>
