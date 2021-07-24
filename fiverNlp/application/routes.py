@@ -138,8 +138,8 @@ sentence_model = SentenceTransformer('distilbert-base-nli-stsb-mean-tokens')
 def startup():
     reports = ReportModel.query.all()
     for report in reports:
-        if os.path.exists(f'./static/jsons/report{report.id}.json'):
-            continue
+        # if os.path.exists(f'./static/jsons/report{report.id}.json'):
+        #     continue
         print(report.id)
         try:
             d_f = report.date_from.strftime('%Y-%m-%d')
