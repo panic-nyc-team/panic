@@ -56,6 +56,10 @@ from collections import Counter
 from nltk.corpus import stopwords
 import csv, pickle
 from tqdm import tqdm
+from nltk.stem import PorterStemmer
+from nltk.tokenize import word_tokenize
+
+ps = PorterStemmer()
 
 from flask_cors import CORS
 
@@ -4090,8 +4094,9 @@ def fuzzy():
                    'jun.', 'summer', 'july', 'jul.', 'august', 'aug.', 'september', 'sep.', 'autumn', 'october', 'oct.',
                    'november', 'nov.', 'december', 'dec.', 'winter', 'second', 'minute', 'hour', 'day', 'week', 'month',
                    'quarter', 'half', 'year', 'decade', 'century', 'millenia', 'period', 'season', 'dollar', 'usd',
-                   'pound', '$', 'euro', 'yuan', 'rupee', 'pkr', 'sterling', '%', 'percent', 'degree', 'celsius',
-                   'fahrenheit', 'tomorrow']
+                   'pound', 'euro', 'yuan', 'rupee', 'pkr', 'sterling', '%', 'percent', 'degree', 'celsius',
+                   'fahrenheit', 'tomorrow', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday',
+                   'sunday']
     AliasModel.query.filter_by(noun_report_id=id).delete()
     entities = NounReportEntitiesModel.query.filter_by(noun_report_id=id).all()
     for entity in entities:
@@ -4103,8 +4108,11 @@ def fuzzy():
         if is_ignored or 'http' in entity.name:
             entity.ignored = True
             continue
+        name = ps.stem(entity.name)
+        if not name:
+            continue
         for w in ignore_list:
-            if w in entity.name.lower():
+            if find_word(w)(name):
                 entity.ignored = True
                 break
     db.session.flush()
@@ -4127,6 +4135,10 @@ def fuzzy():
         db.session.flush()
     db.session.commit()
     return redirect(f'/editentity?id={id}')
+
+
+def find_word(w):
+    return re.compile(r'\b({0})\b'.format(w), flags=re.IGNORECASE).search
 
 if __name__ == '__main__':
     from waitress import serve
