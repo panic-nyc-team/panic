@@ -136,16 +136,28 @@ sentence_model = SentenceTransformer('distilbert-base-nli-stsb-mean-tokens')
 
 
 def startup():
-    # search_queries = SuperSearchQueryModel.query.all()
-    # for search_query in search_queries:
-    #     if os.path.exists(f'./static/jsons/searchquery{search_query.id}.json'):
-    #         continue
-    #     print(search_query.id)
-    #     res = export_result({'export_type':'search_query','where':str(search_query.id),'filter': 'includes', 'search_parameter': '', 'format': 'flat_json', 'flag_link': True})
-    #     if res:
-    #         print(res)
-    #     else:
-    #         print('error')
+    reports = ReportModel.query.all()
+    for report in reports:
+        if os.path.exists(f'./static/jsons/report{report.id}.json'):
+            continue
+        print(report.id)
+        try:
+            d_f = report.date_from.strftime('%Y-%m-%d')
+            d_t = report.date_to.strftime('%Y-%m-%d')
+        except:
+            d_f = None
+            d_t = None
+        if d_f is None and d_t is None:
+            res = export_result(
+                {'export_type': 'report', 'where': str(report.id), 'filter': 'includes',
+                 'search_parameter': '',
+                 'format': 'json', 'flag_link': True})
+
+        else:
+            res = export_result(
+                {'export_type': 'report', 'where': str(report.id), 'date_checkbox': 'date', 'filter': 'includes',
+                 'search_parameter': '', 'start_date': d_f, 'end_date': d_t,
+                 'format': 'json', 'flag_link': True})
 
     # docs = NewDocumentModel.query.all()
     # print(len(docs))
@@ -3495,21 +3507,12 @@ def report_background(id, type, first, second, range_from, range_to):
                  'search_parameter': '',
                  'format': 'json', 'flag_link': True})
 
-            # res = requests.post(url_for('export_result', _external=True),
-            #                     data=[('export_type', 'report'), ('where', str(report.id)),
-            #                           ('filter', 'includes'), ('search_parameter', ''), ('format', 'json'),
-            #                           ('flag_link', True)])
         else:
 
             res = export_result(
                 {'export_type': 'report', 'where': str(report.id), 'date_checkbox': 'date', 'filter': 'includes',
                  'search_parameter': '', 'start_date': d_f, 'end_date': d_t,
                  'format': 'json', 'flag_link': True})
-
-            # res = requests.post(url_for('export_result', _external=True),
-            #                     data=[('export_type', 'report'), ('where', str(report.id)), ('date_checkbox', 'date'),
-            #                           ('start_date', d_f), ('end_date', d_t), ('filter', 'includes'),
-            #                           ('search_parameter', ''), ('format', 'json'), ('flag_link', True)])
 
         if res:
             print(res)
