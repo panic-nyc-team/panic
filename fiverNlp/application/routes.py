@@ -136,7 +136,7 @@ sentence_model = SentenceTransformer('distilbert-base-nli-stsb-mean-tokens')
 
 
 def startup():
-    reports = ReportModel.query.all()
+    reports = ReportModel.query.filter_by(id=32).all()
     for report in reports:
         # if os.path.exists(f'./static/jsons/report{report.id}.json'):
         #     continue
