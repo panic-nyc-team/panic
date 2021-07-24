@@ -3503,17 +3503,26 @@ def report_background(id, type, first, second, range_from, range_to):
             d_t = None
         if d_f is None and d_t is None:
 
-            res = export_result(
-                {'export_type': 'report', 'where': str(report.id), 'filter': 'includes',
-                 'search_parameter': '',
-                 'format': 'json', 'flag_link': True})
+            # res = export_result(
+            #     {'export_type': 'report', 'where': str(report.id), 'filter': 'includes',
+            #      'search_parameter': '',
+            #      'format': 'json', 'flag_link': True})
 
+            res = requests.post(url_for('export_result', _external=True),
+                                data=[('export_type', 'report'), ('where', str(report.id)),
+                                      ('filter', 'includes'), ('search_parameter', ''), ('format', 'json'),
+                                      ('flag_link', True)])
         else:
 
-            res = export_result(
-                {'export_type': 'report', 'where': str(report.id), 'date_checkbox': 'date', 'filter': 'includes',
-                 'search_parameter': '', 'start_date': d_f, 'end_date': d_t,
-                 'format': 'json', 'flag_link': True})
+            # res = export_result(
+            #     {'export_type': 'report', 'where': str(report.id), 'date_checkbox': 'date', 'filter': 'includes',
+            #      'search_parameter': '', 'start_date': d_f, 'end_date': d_t,
+            #      'format': 'json', 'flag_link': True})
+
+            res = requests.post(url_for('export_result', _external=True),
+                                data=[('export_type', 'report'), ('where', str(report.id)), ('date_checkbox', 'date'),
+                                      ('start_date', d_f), ('end_date', d_t), ('filter', 'includes'),
+                                      ('search_parameter', ''), ('format', 'json'), ('flag_link', True)])
 
         if res:
             print(res)
