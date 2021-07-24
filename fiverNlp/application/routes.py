@@ -158,7 +158,7 @@ def startup():
                 {'export_type': 'report', 'where': str(report.id), 'date_checkbox': 'date', 'filter': 'includes',
                  'search_parameter': '', 'start_date': d_f, 'end_date': d_t,
                  'format': 'json', 'flag_link': True})
-
+        break
     # docs = NewDocumentModel.query.all()
     # print(len(docs))
     # for d in docs:
@@ -1020,6 +1020,7 @@ def export_result(temp_form=None):
                 name = f'./static/jsons/report{report.id}.json'
                 # if os.path.exists(name):
                 #     os.remove(name)
+                print(data)
                 with open(name, 'w') as f:
                     json.dump(data, f)
                 return {'report_id': report.id}
