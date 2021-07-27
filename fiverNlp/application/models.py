@@ -1,6 +1,6 @@
 from routes import db
 
-# new
+
 import datetime
 from pytz import timezone
 
