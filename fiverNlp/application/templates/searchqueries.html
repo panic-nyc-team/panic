@@ -28,7 +28,7 @@
                                 <td><a onclick="editSearchQuery(this.id)" style="font-weight: bold;" id="{{searchquery[0].title}}" href="#">{{searchquery[0].title}}</a></td>
                                 <td width="500">{{searchquery[3].query_string}}</td>
                                 <td>{{searchquery[2]}}/{{searchquery[1]}}</td>
-                                <td>
+                                <td width="1000">
                                     {%if searchquery[0].status=='paused'%}
                                       <button class="btn btn-primary bg-theme mx-1" onclick="changeStatus(this.id)" id="{{searchquery[0].title}}" type="button">Run</button>
                                     {%else%}
