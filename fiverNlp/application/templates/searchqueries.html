@@ -35,6 +35,8 @@
                                       <button class="btn btn-primary bg-theme mx-1" onclick="changeStatus(this.id)" id="{{searchquery[0].title}}" type="button">Pause</button>
                                     {%endif%}
                                     <button class="btn btn-primary bg-theme mx-1 mt-3 mt-md-0" onclick="viewDocuments(this.id)" id="{{searchquery[0].title}}" type="button">Documents</button>
+                                    <button class="btn btn-primary bg-theme mx-1" type="button" onclick="exportLink('{{searchquery[0].id}}')" >Export Link</button>
+
                                 </td>
                               </tr>
                           {% endfor %}
@@ -70,6 +72,9 @@
       .done(function( data ) {
         window.location.replace("/searchqueries");
       });
+    }
+    function exportLink(id) {
+      window.location.href = "/pivot?query_id="+id;
     }
     </script>
 {% endblock %}
