@@ -179,9 +179,9 @@ def startup():
         if not l:
             offset += 49
             continue
-        print(len(l))
+        print(l)
         json_response = get_domain_authority(l)
-        # print(json_response)
+        print(json_response)
         results = json_response.get('results')
         if results:
             length = len(results)
