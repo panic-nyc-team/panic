@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from fuzzywuzzy import fuzz
 import smtplib
 from email.mime.multipart import MIMEMultipart
@@ -176,7 +175,7 @@ def startup():
         l = []
         for c in docs[offset:offset+49]:
             if not c.domain_authority:
-                l.append(c.url)
+                l.append(c.url.encode('utf-8'))
         if not l:
             offset += 49
             continue
