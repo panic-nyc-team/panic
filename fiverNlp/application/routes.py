@@ -174,9 +174,11 @@ def startup():
     while True:
         l = []
         for c in docs[offset:offset+49]:
-            l.append(c.url)
+            if not c.domain_authority:
+                l.append(c.url)
         if not l:
-            break
+            offset += 49
+            continue
         print(len(l))
         json_response = get_domain_authority(l)
         # print(json_response)
