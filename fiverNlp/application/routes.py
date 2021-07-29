@@ -2880,60 +2880,60 @@ def search_query_documents_background(id):
     else:
         print('error')
 
-    docs = NewDocumentModel.query.filter_by(f_title=f_title).all()
-    offset = 0
-    while True:
-        l = []
-        for c in docs[offset:offset+49]:
-            if not c.domain_authority:
-                l.append(c.url.encode('utf-8'))
-        if not l:
-            offset += 49
-            continue
-        json_response = get_domain_authority(l)
-        results = json_response.get('results')
-        if results:
-            length = len(results)
-            if length != len(l):
-                print('not equal', length, len(docs))
-                return
-            i = 0
-            while i < length:
-                domain_authority = json_response['results'][i]['domain_authority']
-                if domain_authority:
-                    if domain_authority < 10:
-                        bucket = '0-10'
-                    elif domain_authority < 20:
-                        bucket = '10-20'
-                    elif domain_authority < 30:
-                        bucket = '20-30'
-                    elif domain_authority < 40:
-                        bucket = '30-40'
-                    elif domain_authority < 50:
-                        bucket = '40-50'
-                    elif domain_authority < 60:
-                        bucket = '50-60'
-                    elif domain_authority < 70:
-                        bucket = '60-70'
-                    elif domain_authority < 80:
-                        bucket = '70-80'
-                    elif domain_authority < 90:
-                        bucket = '80-90'
-                    elif domain_authority <= 100:
-                        bucket = '90-100'
-                    else:
-                        domain_authority = -1
-                        bucket = '-1'
-                else:
-                    domain_authority = -1
-                    bucket = '-1'
-                docs[offset+i].domain_authority = domain_authority
-                docs[offset+i].bucket = bucket
-                print(offset+i)
-                i += 1
-        db.session.commit()
-        offset += 49
-        time.sleep(10)
+    # docs = NewDocumentModel.query.filter_by(f_title=f_title).all()
+    # offset = 0
+    # while True:
+    #     l = []
+    #     for c in docs[offset:offset+49]:
+    #         if not c.domain_authority:
+    #             l.append(c.url.encode('utf-8'))
+    #     if not l:
+    #         offset += 49
+    #         continue
+    #     json_response = get_domain_authority(l)
+    #     results = json_response.get('results')
+    #     if results:
+    #         length = len(results)
+    #         if length != len(l):
+    #             print('not equal', length, len(docs))
+    #             return
+    #         i = 0
+    #         while i < length:
+    #             domain_authority = json_response['results'][i]['domain_authority']
+    #             if domain_authority:
+    #                 if domain_authority < 10:
+    #                     bucket = '0-10'
+    #                 elif domain_authority < 20:
+    #                     bucket = '10-20'
+    #                 elif domain_authority < 30:
+    #                     bucket = '20-30'
+    #                 elif domain_authority < 40:
+    #                     bucket = '30-40'
+    #                 elif domain_authority < 50:
+    #                     bucket = '40-50'
+    #                 elif domain_authority < 60:
+    #                     bucket = '50-60'
+    #                 elif domain_authority < 70:
+    #                     bucket = '60-70'
+    #                 elif domain_authority < 80:
+    #                     bucket = '70-80'
+    #                 elif domain_authority < 90:
+    #                     bucket = '80-90'
+    #                 elif domain_authority <= 100:
+    #                     bucket = '90-100'
+    #                 else:
+    #                     domain_authority = -1
+    #                     bucket = '-1'
+    #             else:
+    #                 domain_authority = -1
+    #                 bucket = '-1'
+    #             docs[offset+i].domain_authority = domain_authority
+    #             docs[offset+i].bucket = bucket
+    #             print(offset+i)
+    #             i += 1
+    #     db.session.commit()
+    #     offset += 49
+    #     time.sleep(10)
 
 
     super_query.running = False
