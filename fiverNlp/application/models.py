@@ -299,6 +299,8 @@ class NewDocumentModel(db.Model):
     crawled = db.Column(db.String(50))
     updated = db.Column(db.String(50))
     rating = db.Column(db.Float)
+    domain_authority = db.Column(db.Integer)
+    bucket = db.Column(db.String(10))
 
     @classmethod
     def delete(cls, id):

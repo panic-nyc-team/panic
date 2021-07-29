@@ -163,9 +163,66 @@ def startup():
     #              'search_parameter': '', 'start_date': d_f, 'end_date': d_t,
     #              'format': 'json', 'flag_link': True})
 
-
-
-
+    docs = NewDocumentModel.query.all()
+    # counter = 1
+    # for newdocument in docs:
+    #     print(counter)
+    #     counter += 1
+        # if newdocument.domain_authority:
+        #     continue
+    offset = 0
+    while True:
+        l = []
+        for c in docs[offset:offset+49]:
+            l.append(c.url)
+        if not l:
+            break
+        print(len(l))
+        json_response = get_domain_authority(l)
+        # print(json_response)
+        results = json_response.get('results')
+        if results:
+            length = len(results)
+            if length != len(l):
+                print('not equal', length, len(docs))
+                return
+            i = 0
+            while i < length:
+                domain_authority = json_response['results'][i]['domain_authority']
+                if domain_authority:
+                    if domain_authority < 10:
+                        bucket = '0-10'
+                    elif domain_authority < 20:
+                        bucket = '10-20'
+                    elif domain_authority < 30:
+                        bucket = '20-30'
+                    elif domain_authority < 40:
+                        bucket = '30-40'
+                    elif domain_authority < 50:
+                        bucket = '40-50'
+                    elif domain_authority < 60:
+                        bucket = '50-60'
+                    elif domain_authority < 70:
+                        bucket = '60-70'
+                    elif domain_authority < 80:
+                        bucket = '70-80'
+                    elif domain_authority < 90:
+                        bucket = '80-90'
+                    elif domain_authority <= 100:
+                        bucket = '90-100'
+                    else:
+                        domain_authority = -1
+                        bucket = '-1'
+                else:
+                    domain_authority = -1
+                    bucket = '-1'
+                docs[offset+i].domain_authority = domain_authority
+                docs[offset+i].bucket = bucket
+                print(offset+i)
+                i += 1
+        db.session.commit()
+        offset += 49
+        time.sleep(10)
     # docs = NewDocumentModel.query.all()
     # print(len(docs))
     # for d in docs:
@@ -2545,6 +2602,39 @@ def newdocumentadd(i, f_title, f_id):
         if (vk):
             newdocument.vk_shares = vk.get('shares')
 
+    json_response = get_domain_authority([newdocument.url])
+    results = json_response.get('results')
+    domain_authority = -1
+    bucket = '-1'
+    if results:
+        length = len(results)
+        i = 0
+        while i < length:
+            domain_authority = json_response['results'][i]['domain_authority']
+            if domain_authority:
+                if domain_authority < 10:
+                    bucket = '0-10'
+                elif domain_authority < 20:
+                    bucket = '10-20'
+                elif domain_authority < 30:
+                    bucket = '20-30'
+                elif domain_authority < 40:
+                    bucket = '30-40'
+                elif domain_authority < 50:
+                    bucket = '40-50'
+                elif domain_authority < 60:
+                    bucket = '50-60'
+                elif domain_authority < 70:
+                    bucket = '60-70'
+                elif domain_authority < 80:
+                    bucket = '70-80'
+                elif domain_authority < 90:
+                    bucket = '80-90'
+                elif domain_authority <= 100:
+                    bucket = '90-100'
+            i += 1
+    newdocument.domain_authority = domain_authority
+    newdocument.bucket = bucket
     db.session.add(newdocument)
     db.session.flush()
     database = []
@@ -3734,6 +3824,7 @@ def edge_bundling():
         return 'no file exists'
     return render_template('index.html', report_name=report_name)
 
+
 @app.route("/pivot", methods=[GET, POST])
 def pivot():
     query_id = request.args.get('query_id')
@@ -4140,6 +4231,23 @@ def fuzzy():
 
 def find_word(w):
     return re.compile(r'\b({0})\b'.format(w), flags=re.IGNORECASE).search
+
+
+def get_domain_authority(l):
+    auth = ('mozscape-5084ac4783', 'b6f939908792253946d015256924696c')
+    url = 'https://lsapi.seomoz.com/v2/url_metrics'
+    l_s = "["
+    for s in l:
+        l_s += f'"{s}",'
+    l_s = l_s[:-1]
+    l_s += "]"
+    data = f"""
+              {{"targets": {l_s}}}
+            """
+    response = requests.post(url, data=data, auth=auth)
+    json_response = response.json()
+    return json_response
+
 
 if __name__ == '__main__':
     from waitress import serve
