@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from fuzzywuzzy import fuzz
 import smtplib
 from email.mime.multipart import MIMEMultipart
