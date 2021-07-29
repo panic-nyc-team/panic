@@ -4257,7 +4257,7 @@ def find_word(w):
 
 
 def get_domain_authority(l):
-    auth = ('mozscape-61d889f3b0', '2cf4bc78deb6732fd4da0d50cb6e9ac3')
+    auth = ('', '')
     url = 'https://lsapi.seomoz.com/v2/url_metrics'
     l_s = "["
     for s in l:
