@@ -2613,39 +2613,39 @@ def newdocumentadd(i, f_title, f_id):
         if (vk):
             newdocument.vk_shares = vk.get('shares')
 
-    json_response = get_domain_authority([newdocument.url])
-    results = json_response.get('results')
-    domain_authority = -1
-    bucket = '-1'
-    if results:
-        length = len(results)
-        i = 0
-        while i < length:
-            domain_authority = json_response['results'][i]['domain_authority']
-            if domain_authority:
-                if domain_authority < 10:
-                    bucket = '0-10'
-                elif domain_authority < 20:
-                    bucket = '10-20'
-                elif domain_authority < 30:
-                    bucket = '20-30'
-                elif domain_authority < 40:
-                    bucket = '30-40'
-                elif domain_authority < 50:
-                    bucket = '40-50'
-                elif domain_authority < 60:
-                    bucket = '50-60'
-                elif domain_authority < 70:
-                    bucket = '60-70'
-                elif domain_authority < 80:
-                    bucket = '70-80'
-                elif domain_authority < 90:
-                    bucket = '80-90'
-                elif domain_authority <= 100:
-                    bucket = '90-100'
-            i += 1
-    newdocument.domain_authority = domain_authority
-    newdocument.bucket = bucket
+    # json_response = get_domain_authority([newdocument.url])
+    # results = json_response.get('results')
+    # domain_authority = -1
+    # bucket = '-1'
+    # if results:
+    #     length = len(results)
+    #     i = 0
+    #     while i < length:
+    #         domain_authority = json_response['results'][i]['domain_authority']
+    #         if domain_authority:
+    #             if domain_authority < 10:
+    #                 bucket = '0-10'
+    #             elif domain_authority < 20:
+    #                 bucket = '10-20'
+    #             elif domain_authority < 30:
+    #                 bucket = '20-30'
+    #             elif domain_authority < 40:
+    #                 bucket = '30-40'
+    #             elif domain_authority < 50:
+    #                 bucket = '40-50'
+    #             elif domain_authority < 60:
+    #                 bucket = '50-60'
+    #             elif domain_authority < 70:
+    #                 bucket = '60-70'
+    #             elif domain_authority < 80:
+    #                 bucket = '70-80'
+    #             elif domain_authority < 90:
+    #                 bucket = '80-90'
+    #             elif domain_authority <= 100:
+    #                 bucket = '90-100'
+    #         i += 1
+    # newdocument.domain_authority = domain_authority
+    # newdocument.bucket = bucket
     db.session.add(newdocument)
     db.session.flush()
     database = []
