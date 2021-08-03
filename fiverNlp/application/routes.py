@@ -82,7 +82,7 @@ webhoseio.config(token="8018e387-9258-4fd4-9ec5-9f9366a779a8")
 app = Flask(__name__)
 CORS(app)
 app.config.from_object('config.Config')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://mikenyc:12345@localhost/mike?charset=utf8'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://mikenyc:12345@localhost/mike?charset=utf8mb4'
 # app.config ['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.sqlite3'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # COUNTRY_CODES = ['','US','AU','HK','GB']
@@ -2838,7 +2838,6 @@ def search_query_documents_background(id):
             if (int(output['moreResultsAvailable']) < 1):
                 break
         db.session.commit()
-
     super_query = SuperSearchQueryModel.query.filter_by(id=id).first()
     res = export_result(
         {'export_type': 'search_query', 'where': str(super_query.id), 'filter': 'includes', 'search_parameter': '',
@@ -2848,60 +2847,65 @@ def search_query_documents_background(id):
     else:
         print('error')
 
-    # docs = NewDocumentModel.query.filter_by(f_title=f_title).all()
-    # offset = 0
-    # while True:
-    #     l = []
-    #     for c in docs[offset:offset+49]:
-    #         if not c.domain_authority:
-    #             l.append(c.url.encode('utf-8'))
-    #     if not l:
-    #         offset += 49
-    #         continue
-    #     json_response = get_domain_authority(l)
-    #     results = json_response.get('results')
-    #     if results:
-    #         length = len(results)
-    #         if length != len(l):
-    #             print('not equal', length, len(docs))
-    #             return
-    #         i = 0
-    #         while i < length:
-    #             domain_authority = json_response['results'][i]['domain_authority']
-    #             if domain_authority:
-    #                 if domain_authority < 10:
-    #                     bucket = '0-10'
-    #                 elif domain_authority < 20:
-    #                     bucket = '10-20'
-    #                 elif domain_authority < 30:
-    #                     bucket = '20-30'
-    #                 elif domain_authority < 40:
-    #                     bucket = '30-40'
-    #                 elif domain_authority < 50:
-    #                     bucket = '40-50'
-    #                 elif domain_authority < 60:
-    #                     bucket = '50-60'
-    #                 elif domain_authority < 70:
-    #                     bucket = '60-70'
-    #                 elif domain_authority < 80:
-    #                     bucket = '70-80'
-    #                 elif domain_authority < 90:
-    #                     bucket = '80-90'
-    #                 elif domain_authority <= 100:
-    #                     bucket = '90-100'
-    #                 else:
-    #                     domain_authority = -1
-    #                     bucket = '-1'
-    #             else:
-    #                 domain_authority = -1
-    #                 bucket = '-1'
-    #             docs[offset+i].domain_authority = domain_authority
-    #             docs[offset+i].bucket = bucket
-    #             print(offset+i)
-    #             i += 1
-    #     db.session.commit()
-    #     offset += 49
-    #     time.sleep(10)
+    docs = NewDocumentModel.query.filter_by(f_title=f_title).all()
+    print(len(docs))
+    offset = 0
+    while True:
+        print('start of loop')
+        l = []
+        if not docs[offset:offset+49]:
+            break
+        for c in docs[offset:offset+49]:
+            if not c.domain_authority:
+                l.append(c.url.encode('utf-8'))
+        if not l:
+            offset += 49
+            continue
+        json_response = get_domain_authority(l)
+        results = json_response.get('results')
+        if results:
+            length = len(results)
+            print(length)
+            if length != len(l):
+                print('not equal', length, len(docs))
+                return
+            i = 0
+            while i < length:
+                domain_authority = json_response['results'][i]['domain_authority']
+                if domain_authority:
+                    if domain_authority < 10:
+                        bucket = '0-10'
+                    elif domain_authority < 20:
+                        bucket = '10-20'
+                    elif domain_authority < 30:
+                        bucket = '20-30'
+                    elif domain_authority < 40:
+                        bucket = '30-40'
+                    elif domain_authority < 50:
+                        bucket = '40-50'
+                    elif domain_authority < 60:
+                        bucket = '50-60'
+                    elif domain_authority < 70:
+                        bucket = '60-70'
+                    elif domain_authority < 80:
+                        bucket = '70-80'
+                    elif domain_authority < 90:
+                        bucket = '80-90'
+                    elif domain_authority <= 100:
+                        bucket = '90-100'
+                    else:
+                        domain_authority = -1
+                        bucket = '-1'
+                else:
+                    domain_authority = -1
+                    bucket = '-1'
+                docs[offset+i].domain_authority = domain_authority
+                docs[offset+i].bucket = bucket
+                # print(offset+i)
+                i += 1
+        db.session.commit()
+        offset += 49
+        time.sleep(10)
 
 
     super_query.running = False
@@ -4282,7 +4286,7 @@ def find_word(w):
 
 
 def get_domain_authority(l):
-    auth = ('', '')
+    auth = ('mozscape-a8932fff20', '9fe82277c7e2be2720053059f12e2b4d')
     url = 'https://lsapi.seomoz.com/v2/url_metrics'
     l_s = "["
     for s in l:
