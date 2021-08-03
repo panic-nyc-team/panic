@@ -1224,7 +1224,7 @@ def get_doc_sub(document, field_checkbox, search_p, attributes, format):
             'site_type': document.site_type
         , 'url': document.url, 'main_image': document.main_image,
             'country': document.country
-        , 'text': document.text}
+        , 'text': document.text, 'domain_authority': document.domain_authority, 'bucket': document.bucket}
     emotions = None
     if d:
         if d.polarity:
@@ -1288,7 +1288,6 @@ def get_doc_sub(document, field_checkbox, search_p, attributes, format):
             temp['emotions'] = {}
         # temp['reach'] = {'per_million': document.reach_per_m, 'page_views': {'per_million': document.reach_views_per_m
         #     , 'per_user': document.reach_views_per_u}}
-        print(4)
         return temp
     else:
         return 'error'
@@ -1301,7 +1300,7 @@ def highlight():
     sentence = request.form.get('sentence')
     print(url, sentence)
     # search_query_document = SearchQueryDocumentModel.query.filter_by(id=id).first()
-    if (url):
+    if url:
         url = url + '#:~:text=' + urllib.parse.quote(sentence)
         return url
     else:
@@ -2614,50 +2613,6 @@ def newdocumentadd(i, f_title, f_id):
             newdocument.vk_shares = vk.get('shares')
 
 
-    # try:
-    #     json_response = get_domain_authority([newdocument.url.encode('utf-8')])
-    #     results = json_response.get('results')
-    #     domain_authority = -1
-    #     bucket = '-1'
-    #     if results:
-    #         length = len(results)
-    #         i = 0
-    #         while i < length:
-    #             domain_authority = json_response['results'][i]['domain_authority']
-    #             if domain_authority:
-    #                 if domain_authority < 10:
-    #                     bucket = '0-10'
-    #                 elif domain_authority < 20:
-    #                     bucket = '10-20'
-    #                 elif domain_authority < 30:
-    #                     bucket = '20-30'
-    #                 elif domain_authority < 40:
-    #                     bucket = '30-40'
-    #                 elif domain_authority < 50:
-    #                     bucket = '40-50'
-    #                 elif domain_authority < 60:
-    #                     bucket = '50-60'
-    #                 elif domain_authority < 70:
-    #                     bucket = '60-70'
-    #                 elif domain_authority < 80:
-    #                     bucket = '70-80'
-    #                 elif domain_authority < 90:
-    #                     bucket = '80-90'
-    #                 elif domain_authority <= 100:
-    #                     bucket = '90-100'
-    #                 else:
-    #                     domain_authority = -1
-    #                     bucket = '-1'
-    #             else:
-    #                 domain_authority = -1
-    #                 bucket = '-1'
-    #
-    #             i += 1
-    # except:
-    #     domain_authority = -1
-    #     bucket = '-1'
-    # newdocument.domain_authority = domain_authority
-    # newdocument.bucket = bucket
     db.session.add(newdocument)
     db.session.flush()
     database = []
