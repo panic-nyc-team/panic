@@ -140,6 +140,19 @@ sentence_model = SentenceTransformer('distilbert-base-nli-stsb-mean-tokens')
 
 
 def startup():
+
+
+    super_queries = SuperSearchQueryModel.query.all()
+    for super_query in super_queries:
+        res = export_result(
+            {'export_type': 'search_query', 'where': str(super_query.id), 'filter': 'includes', 'search_parameter': '',
+             'format': 'flat_json', 'flag_link': True})
+        if res:
+            print(res)
+        else:
+            print('error')
+
+
     # reports = ReportModel.query.all()
     # for report in reports:
     #     # if os.path.exists(f'./static/jsons/report{report.id}.json'):
@@ -1114,7 +1127,7 @@ def export_result(temp_form=None):
             name = f'./static/jsons/searchquery{search_query.id}.json'
             with open(name, 'w') as f:
                 json.dump(data, f)
-            return {'report_id': search_query.id}
+            return {'id': search_query.id}
         return jsonify(data)
 
     elif export_type == 'document':
