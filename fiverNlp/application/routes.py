@@ -8,9 +8,9 @@ import openpyxl
 import glob
 from textblob import TextBlob
 import text2emotion as te
-
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from dateutil.relativedelta import relativedelta
-from flask import Flask, render_template, request, url_for, flash, send_from_directory, send_file, jsonify
+from flask import Flask, render_template, request, url_for, flash, send_from_directory, send_file, jsonify, session
 from werkzeug.utils import secure_filename, redirect
 import json
 import inspect, nltk
@@ -81,6 +81,7 @@ webhoseio.config(token="8018e387-9258-4fd4-9ec5-9f9366a779a8")
 
 app = Flask(__name__)
 CORS(app)
+app.secret_key = 'my_secret_key_123_$'
 app.config.from_object('config.Config')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://mikenyc:12345@localhost/mike?charset=utf8mb4'
 # app.config ['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.sqlite3'
@@ -137,21 +138,37 @@ maxlen = 40
 class_colors = load_classColors()
 
 sentence_model = SentenceTransformer('distilbert-base-nli-stsb-mean-tokens')
+# sid = SentimentIntensityAnalyzer()
 
 
 def startup():
+    # sentences = SentenceTextModel.query.all()
+    # for sentence in sentences:
+    #     ss = sid.polarity_scores(sentence.sentence)
+    #     if ss['neu'] >= 0.8:
+    #         sentiment = ss['neu']
+    #         polarity = 'Neutral'
+    #     elif ss['neg'] > ss['pos']:
+    #         sentiment = ss['neg']
+    #         polarity = 'Negative'
+    #     elif ss['pos'] > ss['neg']:
+    #         sentiment = ss['pos']
+    #         polarity = 'Positive'
+    #     else:
+    #         sentiment = None
+    #         polarity = None
+    #     sentence.sentiment = sentiment
+    #     sentence.polarity = polarity
 
-
-    super_queries = SuperSearchQueryModel.query.all()
-    for super_query in super_queries:
-        res = export_result(
-            {'export_type': 'search_query', 'where': str(super_query.id), 'filter': 'includes', 'search_parameter': '',
-             'format': 'flat_json', 'flag_link': True})
-        if res:
-            print(res)
-        else:
-            print('error')
-
+    # super_queries = SuperSearchQueryModel.query.all()
+    # for super_query in super_queries:
+    #     res = export_result(
+    #         {'export_type': 'search_query', 'where': str(super_query.id), 'filter': 'includes', 'search_parameter': '',
+    #          'format': 'flat_json', 'flag_link': True})
+    #     if res:
+    #         print(res)
+    #     else:
+    #         print('error')
 
     # reports = ReportModel.query.all()
     # for report in reports:
@@ -175,10 +192,6 @@ def startup():
     #             {'export_type': 'report', 'where': str(report.id), 'date_checkbox': 'date', 'filter': 'includes',
     #              'search_parameter': '', 'start_date': d_f, 'end_date': d_t,
     #              'format': 'json', 'flag_link': True})
-
-
-
-
 
     # docs = NewDocumentModel.query.all()
     # # counter = 1
@@ -243,10 +256,6 @@ def startup():
     #     offset += 49
     #     time.sleep(10)
 
-
-
-
-
     # docs = NewDocumentModel.query.all()
     # print(len(docs))
     # for d in docs:
@@ -288,6 +297,34 @@ def startup():
 app.before_first_request(startup)
 
 
+
+@app.before_request
+def before_request_func():
+    if not session.get('logged_in') and request.endpoint != 'login':
+        return render_template('login.html')
+
+
+# def exclude_from_analytics(func):
+#     func._exclude_from_analytics = True
+#     return func
+
+@app.route('/login', methods=[GET, POST])
+def login():
+    if request.method == 'GET':
+        print(123)
+        return render_template('login.html')
+    else:
+        print(123)
+        password = request.form.get('password')
+        print(password)
+        if password == 'panic12345':
+            session['logged_in'] = True
+            return redirect(url_for("search_queries"))
+        else:
+            session['logged_in'] = False
+            return render_template('login.html')
+
+
 @app.after_request
 def add_header(r):
     """
@@ -306,62 +343,13 @@ def get_sentiment(text):
     sentiment = blob.sentiment.polarity
     if sentiment > .1:
         polarity = "Positive"
-    elif sentiment < -.1:
+    elif sentiment < 0:
         polarity = "Negative"
     else:
         polarity = "Neutral"
     return polarity, sentiment
 
 
-# fl = 1
-#
-# @tl.job(interval=datetime.timedelta(seconds=10))
-# def mints():
-#     global fl
-#     print(fl)
-#     if fl == 0:
-#         fl = 1
-#         docs = SearchQueryDocumentModel.query.all()
-#         c = 1
-#         for d in docs:
-#             if d.polarity:
-#                 c += 1
-#                 continue
-#             if d.clean_text:
-#                 polarity, sentiment = get_sentiment(d.clean_text)
-#                 temp_emotions = te.get_emotion(d.clean_text)
-#                 emotions = {}
-#                 if temp_emotions:
-#                     for key in temp_emotions:
-#                         if temp_emotions[key] != 0.0:
-#                             emotions[key] = temp_emotions[key]
-#                 d.sentiment = sentiment
-#                 d.polarity = polarity
-#                 d.emotions = str(emotions)
-#                 print(c)
-#                 c += 1
-#                 db.session.commit()
-#         print('finish')
-# sentences = SentenceTextModel.query.all()
-# for s in sentences:
-#     if s.polarity:
-#         c += 1
-#         continue
-#     if s.sentence:
-#         polarity, sentiment = get_sentiment(s.sentence)
-#         temp_emotions = te.get_emotion(s.sentence)
-#         emotions = {}
-#         if temp_emotions:
-#             for key in temp_emotions:
-#                 if temp_emotions[key] != 0.0:
-#                     emotions[key] = temp_emotions[key]
-#         s.sentiment = sentiment
-#         s.polarity = polarity
-#         s.emotions = str(emotions)
-#         # print(polarity)
-#         # print(c)
-#         c += 1
-#         db.session.commit()
 
 @tl.job(interval=datetime.timedelta(minutes=300))
 def day():
@@ -2625,7 +2613,6 @@ def newdocumentadd(i, f_title, f_id):
         if (vk):
             newdocument.vk_shares = vk.get('shares')
 
-
     db.session.add(newdocument)
     db.session.flush()
     database = []
@@ -2853,9 +2840,9 @@ def search_query_documents_background(id):
     while True:
         print('start of loop')
         l = []
-        if not docs[offset:offset+49]:
+        if not docs[offset:offset + 49]:
             break
-        for c in docs[offset:offset+49]:
+        for c in docs[offset:offset + 49]:
             if not c.domain_authority:
                 l.append(c.url.encode('utf-8'))
         if not l:
@@ -2899,14 +2886,13 @@ def search_query_documents_background(id):
                 else:
                     domain_authority = -1
                     bucket = '-1'
-                docs[offset+i].domain_authority = domain_authority
-                docs[offset+i].bucket = bucket
+                docs[offset + i].domain_authority = domain_authority
+                docs[offset + i].bucket = bucket
                 # print(offset+i)
                 i += 1
         db.session.commit()
         offset += 49
         time.sleep(10)
-
 
     super_query.running = False
     super_query.date_completed = datetime.datetime.now()
