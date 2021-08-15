@@ -188,12 +188,12 @@ def startup():
                 {'export_type': 'report', 'where': str(report.id), 'filter': 'includes',
                  'search_parameter': '',
                  'format': 'flat_json', 'flag_link': True})
-
         else:
             res = export_result(
                 {'export_type': 'report', 'where': str(report.id), 'date_checkbox': 'date', 'filter': 'includes',
                  'search_parameter': '', 'start_date': d_f, 'end_date': d_t,
                  'format': 'flat_json', 'flag_link': True})
+        print(res)
 
     # docs = NewDocumentModel.query.all()
     # # counter = 1
@@ -1045,7 +1045,15 @@ def export_result(temp_form=None):
                     flat_attrs_temp['similarity_dimension'] = d.get('similarity_dimension')
                     flat_attrs_temp['similarity'] = d.get('similarity')
                     result_flat.append(flat_attrs_temp.copy())
-                return jsonify(result_flat)
+                if flag_link:
+                    name = f'./static/jsons/report{report.id}.json'
+                    # if os.path.exists(name):
+                    #     os.remove(name)
+                    with open(name, 'w') as f:
+                        json.dump(data, f)
+                    return {'report_id': report.id}
+                else:
+                    return jsonify(result_flat)
             if format == 'excel':
                 flat_attrs = {}
                 wb = openpyxl.Workbook()
@@ -1092,14 +1100,6 @@ def export_result(temp_form=None):
                 wb.save(name)
                 return send_file(name, as_attachment=True)
 
-            if flag_link:
-                name = f'./static/jsons/report{report.id}.json'
-                # if os.path.exists(name):
-                #     os.remove(name)
-                print(data)
-                with open(name, 'w') as f:
-                    json.dump(data, f)
-                return {'report_id': report.id}
             return jsonify(data)
         else:
             return 'report not found'
