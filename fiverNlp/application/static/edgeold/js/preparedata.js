@@ -1,31 +1,5 @@
 function prepareData(data) {
-  // let rawData = data 
-  let rawData = data.map(d => {
-    const obj = {}
-    const s1 = {}
-    const s2 = {}
-
-    s1.parent_title = d.s1_parent_title
-    s1.parent_url = d.s1_parent_url
-    s1.text = d.s1_text
-
-    s2.parent_country = d.s2_parent_country
-    s2.parent_date = d.s2_parent_date
-    s2.parent_site = d.s2_parent_site
-    s2.parent_site_type = d.s2_parent_site_type
-    s2.parent_title = d.s2_parent_title
-    s2.parent_url = d.s2_parent_url
-    s2.text = d.s2_text
-    s2.url = d.s2_url
-
-    obj.similarity_dimension = d.similarity_dimension
-    obj.similarity = d.similarity
-    obj.s1 = s1
-    obj.s2 = s2
-    return obj
-  });
-  // console.log(rawData)
-
+  let rawData = data;
   let nonUniqueNodes = [].concat.apply(
     [],
     rawData.map((l) => [l.s1, l.s2])

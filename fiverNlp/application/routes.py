@@ -138,6 +138,8 @@ maxlen = 40
 class_colors = load_classColors()
 
 sentence_model = SentenceTransformer('distilbert-base-nli-stsb-mean-tokens')
+
+
 # sid = SentimentIntensityAnalyzer()
 
 
@@ -185,13 +187,13 @@ def startup():
     #         res = export_result(
     #             {'export_type': 'report', 'where': str(report.id), 'filter': 'includes',
     #              'search_parameter': '',
-    #              'format': 'json', 'flag_link': True})
+    #              'format': 'flat_json', 'flag_link': True})
     #
     #     else:
     #         res = export_result(
     #             {'export_type': 'report', 'where': str(report.id), 'date_checkbox': 'date', 'filter': 'includes',
     #              'search_parameter': '', 'start_date': d_f, 'end_date': d_t,
-    #              'format': 'json', 'flag_link': True})
+    #              'format': 'flat_json', 'flag_link': True})
 
     # docs = NewDocumentModel.query.all()
     # # counter = 1
@@ -297,7 +299,6 @@ def startup():
 app.before_first_request(startup)
 
 
-
 @app.before_request
 def before_request_func():
     if not session.get('logged_in') and request.endpoint != 'login':
@@ -348,7 +349,6 @@ def get_sentiment(text):
     else:
         polarity = "Neutral"
     return polarity, sentiment
-
 
 
 @tl.job(interval=datetime.timedelta(minutes=300))
@@ -3641,7 +3641,7 @@ def report_background(id, type, first, second, range_from, range_to):
             res = export_result(
                 {'export_type': 'report', 'where': str(report.id), 'filter': 'includes',
                  'search_parameter': '',
-                 'format': 'json', 'flag_link': True})
+                 'format': 'flat_json', 'flag_link': True})
 
             # res = requests.post(url_for('export_result', _external=True),
             #                     data=[('export_type', 'report'), ('where', str(report.id)),
@@ -3652,7 +3652,7 @@ def report_background(id, type, first, second, range_from, range_to):
             res = export_result(
                 {'export_type': 'report', 'where': str(report.id), 'date_checkbox': 'date', 'filter': 'includes',
                  'search_parameter': '', 'start_date': d_f, 'end_date': d_t,
-                 'format': 'json', 'flag_link': True})
+                 'format': 'flat_json', 'flag_link': True})
 
             # res = requests.post(url_for('export_result', _external=True),
             #                     data=[('export_type', 'report'), ('where', str(report.id)), ('date_checkbox', 'date'),

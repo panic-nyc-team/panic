@@ -1,37 +1,45 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <link rel="stylesheet" href="/static/pivot/static/style.css" />
-  </head>
-    <script type="text/javascript">
-            var query_name = "{{ query_name }}"
-    </script>
-  <body>
-    <div class="chart-container">
-      <div class="inputs">
-        <h3 class="document-counts">
-          <span id="document-counts"></span>
-        </h3>
-        <h4 class="title-group-by input-title">Drag & Drop Hierarchy:</h4>
-        <div id="group-by" class="group-by" value=""></div>
-        <h4 class="title-extras input-title">All Attributes:</h4>
-        <div id="extras" class="extras"></div>
-      </div>
-      <div class="group-dump"></div>
-      <div id="chart" class="chart"></div>
-      <div class="toggle-dark-container">
-        <div id="toggle-dark-btn" class="toggle-btn">
-          <input id="toggle-dark" type="checkbox" />
-          <span></span>
-        </div>
+
+<head>
+  <link rel="stylesheet" href="../static/pivot/static/style.css" />
+  <script type="text/javascript">
+          var query_name = "{{ query_name }}"
+  </script>
+</head>
+
+<body>
+  <div class="chart-container">
+    <div class="inputs">
+      <h3 class="document-counts">
+        <span id="document-counts"></span>
+      </h3>
+      <h4 class="title-group-by input-title">Drag & Drop Hierarchy:</h4>
+      <div id="group-by" class="group-by" value=""></div>
+      <h4 class="title-extras input-title">All Attributes:</h4>
+      <div id="extras" class="extras"></div>
+    </div>
+    <div class="group-dump"></div>
+    <div id="chart" class="chart"></div>
+    <div id="chart2" class="chart"></div>
+    <div class="toggle-dark-container">
+      <div id="toggle-dark-btn" class="toggle-btn">
+        <input id="toggle-dark" type="checkbox" />
+        <span></span>
       </div>
     </div>
-  </body>
-  <script src="https://cdn.jsdelivr.net/npm/d3@6.6.1/dist/d3.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+  </div>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/d3@6.6.1/dist/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
 
-  <script src="/static/pivot/js/debounce.js"></script>
-  <script src="/static/pivot/js/dragdropinput.js"></script>
-  <script src="/static/pivot/js/barchart.js"></script>
-  <script src="/static/pivot/js/index.js"></script>
+<script src="../static/pivot/js/barchart/barchart.js"></script>
+<!-- <script src="js/interface/dragdropinput.js"></script> -->
+<script src="../static/pivot/js/interface/interface.js"></script>
+<script src="../static/pivot/js/pivotchart/treeGraph.js"></script>
+<script src="../static/pivot/js/pivotchart/mainGraph.js"></script>
+<script src="../static/pivot/js/pivotchart/pivotchart.js"></script>
+<!-- <script src="index.js"></script> -->
+<script src="../static/pivot/js/index.js"></script>
+
 </html>
