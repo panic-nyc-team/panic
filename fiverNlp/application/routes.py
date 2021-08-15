@@ -1050,7 +1050,7 @@ def export_result(temp_form=None):
                     # if os.path.exists(name):
                     #     os.remove(name)
                     with open(name, 'w') as f:
-                        json.dump(data, f)
+                        json.dump(result_flat, f)
                     return {'report_id': report.id}
                 else:
                     return jsonify(result_flat)
