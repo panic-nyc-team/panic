@@ -172,28 +172,28 @@ def startup():
     #     else:
     #         print('error')
 
-    # reports = ReportModel.query.all()
-    # for report in reports:
-    #     # if os.path.exists(f'./static/jsons/report{report.id}.json'):
-    #     #     continue
-    #     print(report.id)
-    #     try:
-    #         d_f = report.date_from.strftime('%Y-%m-%d')
-    #         d_t = report.date_to.strftime('%Y-%m-%d')
-    #     except:
-    #         d_f = None
-    #         d_t = None
-    #     if d_f is None and d_t is None:
-    #         res = export_result(
-    #             {'export_type': 'report', 'where': str(report.id), 'filter': 'includes',
-    #              'search_parameter': '',
-    #              'format': 'flat_json', 'flag_link': True})
-    #
-    #     else:
-    #         res = export_result(
-    #             {'export_type': 'report', 'where': str(report.id), 'date_checkbox': 'date', 'filter': 'includes',
-    #              'search_parameter': '', 'start_date': d_f, 'end_date': d_t,
-    #              'format': 'flat_json', 'flag_link': True})
+    reports = ReportModel.query.all()
+    for report in reports:
+        # if os.path.exists(f'./static/jsons/report{report.id}.json'):
+        #     continue
+        print(report.id)
+        try:
+            d_f = report.date_from.strftime('%Y-%m-%d')
+            d_t = report.date_to.strftime('%Y-%m-%d')
+        except:
+            d_f = None
+            d_t = None
+        if d_f is None and d_t is None:
+            res = export_result(
+                {'export_type': 'report', 'where': str(report.id), 'filter': 'includes',
+                 'search_parameter': '',
+                 'format': 'flat_json', 'flag_link': True})
+
+        else:
+            res = export_result(
+                {'export_type': 'report', 'where': str(report.id), 'date_checkbox': 'date', 'filter': 'includes',
+                 'search_parameter': '', 'start_date': d_f, 'end_date': d_t,
+                 'format': 'flat_json', 'flag_link': True})
 
     # docs = NewDocumentModel.query.all()
     # # counter = 1
