@@ -2,6 +2,8 @@ d3.json(report_name)
   .then(function (rawData) {
     const { tree, similarityDimensions } = prepareData(rawData);
     EdgeBundling(rawData, tree, similarityDimensions);
+    document.getElementById('toggle-dark').click();
+
   }).catch(function (error) {
     console.log(error);
   });

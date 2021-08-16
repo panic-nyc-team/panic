@@ -301,8 +301,9 @@ app.before_first_request(startup)
 
 @app.before_request
 def before_request_func():
-    if not session.get('logged_in') and request.endpoint != 'login':
-        return render_template('login.html')
+    if request.endpoint not in ['classified', 'addToBin', 'predict']:
+        if not session.get('logged_in') and request.endpoint != 'login':
+            return render_template('login.html')
 
 
 # def exclude_from_analytics(func):
@@ -2321,8 +2322,6 @@ def save_arbitrary_document():
         if (arbitrarydocument.clean_text == '' or arbitrarydocument.clean_text == 'None'):
             arbitrarydocument.clean_text = None
         if (arbitrarydocument.clean_text is not None):
-            # arbitrarydocument.classified_sentences = str(temp_azure(arbitrarydocument.clean_text))
-            # res = requests.post(url_for('classified',_external=True), json={"mytext":re.sub(r'[^a-zA-Z0-9. ]','',arbitrarydocument.clean_text)})
             res = requests.post(url_for('classified', _external=True), json={"mytext": arbitrarydocument.clean_text})
             if res.ok:
                 arbitrarydocument.classified_sentences = str(res.json())
@@ -2344,7 +2343,7 @@ def save_arbitrary_document():
         return redirect(url_for('arbitrary_documents'))
     except Exception as e:
         db.session.rollback()
-        print(e, file=sys.stderr)
+        print(traceback.format_exc())
         return "Error"
 
 
@@ -3643,22 +3642,12 @@ def report_background(id, type, first, second, range_from, range_to):
                  'search_parameter': '',
                  'format': 'flat_json', 'flag_link': True})
 
-            # res = requests.post(url_for('export_result', _external=True),
-            #                     data=[('export_type', 'report'), ('where', str(report.id)),
-            #                           ('filter', 'includes'), ('search_parameter', ''), ('format', 'json'),
-            #                           ('flag_link', True)])
         else:
 
             res = export_result(
                 {'export_type': 'report', 'where': str(report.id), 'date_checkbox': 'date', 'filter': 'includes',
                  'search_parameter': '', 'start_date': d_f, 'end_date': d_t,
                  'format': 'flat_json', 'flag_link': True})
-
-            # res = requests.post(url_for('export_result', _external=True),
-            #                     data=[('export_type', 'report'), ('where', str(report.id)), ('date_checkbox', 'date'),
-            #                           ('start_date', d_f), ('end_date', d_t), ('filter', 'includes'),
-            #                           ('search_parameter', ''), ('format', 'json'), ('flag_link', True)])
-
         if res:
             print(res)
         else:

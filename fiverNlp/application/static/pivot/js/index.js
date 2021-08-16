@@ -21,6 +21,7 @@ let App = function (rawData) {
 
     this.interface.updateInterfaceColor(this.pivotChart.treeGraph.treeColors)
     this.handleDarkMode()
+
 }
 
 App.prototype.addSvg = function () {
@@ -155,7 +156,7 @@ App.prototype.setDarkMode = function () {
 d3.json(query_name)
     .then(function (json) {
         var app = new App(json)
-
+        document.getElementById('toggle-dark').click();
     })
     .catch(function (error) {
         console.log(error);
