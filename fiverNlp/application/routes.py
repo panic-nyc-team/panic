@@ -352,15 +352,20 @@ def get_sentiment(text):
     return polarity, sentiment
 
 
-@tl.job(interval=datetime.timedelta(minutes=300))
-def day():
-    files = glob.glob('static/excel/*')
-    for f in files:
-        os.remove(f)
 
+day_running = False
+
+@tl.job(interval=datetime.timedelta(minutes=1))
+def day():
     work('Day')
     # report_word('Daily')
 
+
+@tl.job(interval=datetime.timedelta(minutes=300))
+def excel():
+    files = glob.glob('static/excel/*')
+    for f in files:
+        os.remove(f)
 
 @tl.job(interval=datetime.timedelta(days=7))
 def week():
@@ -375,16 +380,34 @@ def month():
 
 
 def work(fetch_frequency):
+    global day_running
     searchqueries = SuperSearchQueryModel.query.filter_by(fetch_frequency=fetch_frequency, status='playing').all()
-    if (searchqueries == []):
+    if not searchqueries:
         print('Empty', file=sys.stderr)
         return None
-
+    if fetch_frequency == 'Day':
+        print(123123123)
+        if day_running:
+            print('day running')
+            return None
+        # flag = True
+        # for searchquery in searchqueries:
+        #     if searchquery.running:
+        #         flag = False
+        #         break
+        # if not flag:
+        #     print('day running')
+        #     return None
+    day_running = True
     for searchquery in searchqueries:
         try:
-            search_query_documents_background(searchquery.id)
+            if searchquery.running:
+                continue
+            searchquery.running = True
+            search_query_documents_background(searchquery.id, True)
         except Exception as e:
             print('error 123', e)
+    day_running = False
 
 
 def report_word(frequency):
@@ -2684,7 +2707,7 @@ def kill_search_query():
     return redirect(url_for('processes'))
 
 
-def search_query_documents_background(id):
+def search_query_documents_background(id,day=False):
     f_title = SuperSearchQueryModel.query.filter_by(id=id).first().title
     search_queries = SearchQueryModel.query.filter_by(f_id=id).all()
     db.session.expunge_all()
@@ -2710,7 +2733,7 @@ def search_query_documents_background(id):
                             "sort": "crawled"}
             output = webhoseio.query("filterWebContent", query_params)
             super_query = SuperSearchQueryModel.query.filter_by(id=id).first()
-            if not super_query.running:
+            if not super_query.running and not day:
                 print('killed')
                 return
             if not super_query.total:
@@ -2752,7 +2775,7 @@ def search_query_documents_background(id):
             for i in output['posts']:
                 try:
                     super_query = SuperSearchQueryModel.query.filter_by(id=id).first()
-                    if not super_query.running:
+                    if not super_query.running and not day:
                         print('killed')
                         return
                     super_query.current_number += 1
