@@ -1,3 +1,4 @@
+import math
 from fuzzywuzzy import fuzz
 import smtplib
 from email.mime.multipart import MIMEMultipart
@@ -352,20 +353,25 @@ def get_sentiment(text):
     return polarity, sentiment
 
 
-
 day_running = False
+day_counter = 1
 
-@tl.job(interval=datetime.timedelta(minutes=1))
+
+@tl.job(interval=datetime.timedelta(minutes=2))
 def day():
     work('Day')
     # report_word('Daily')
 
 
-@tl.job(interval=datetime.timedelta(minutes=300))
+@tl.job(interval=datetime.timedelta(minutes=100))
 def excel():
     files = glob.glob('static/excel/*')
     for f in files:
         os.remove(f)
+    files = glob.glob('static/images/plots/*')
+    for f in files:
+        os.remove(f)
+
 
 @tl.job(interval=datetime.timedelta(days=7))
 def week():
@@ -381,23 +387,18 @@ def month():
 
 def work(fetch_frequency):
     global day_running
+    global day_counter
     searchqueries = SuperSearchQueryModel.query.filter_by(fetch_frequency=fetch_frequency, status='playing').all()
     if not searchqueries:
         print('Empty', file=sys.stderr)
         return None
     if fetch_frequency == 'Day':
-        print(123123123)
+        if day_counter % 300 != 0:
+            day_counter += 1
+            return None
         if day_running:
             print('day running')
             return None
-        # flag = True
-        # for searchquery in searchqueries:
-        #     if searchquery.running:
-        #         flag = False
-        #         break
-        # if not flag:
-        #     print('day running')
-        #     return None
     day_running = True
     for searchquery in searchqueries:
         try:
@@ -408,6 +409,7 @@ def work(fetch_frequency):
         except Exception as e:
             print('error 123', e)
     day_running = False
+    day_counter += 1
 
 
 def report_word(frequency):
@@ -1118,9 +1120,9 @@ def export_result(temp_form=None):
                         if column_map.get(j):
                             row_1 = sheet.cell(row=row, column=column_map.get(j))
                             row_1.value = i.get(j)
-                name = f'static/excel/result{random.randint(0, 999)}.xlsx'
+                name = f'static/excel/result{random.randint(0, 99999)}.xlsx'
                 while os.path.exists(name):
-                    name = f'static/excel/result{random.randint(0, 999)}.xlsx'
+                    name = f'static/excel/result{random.randint(0, 99999)}.xlsx'
                 wb.save(name)
                 return send_file(name, as_attachment=True)
 
@@ -2707,7 +2709,7 @@ def kill_search_query():
     return redirect(url_for('processes'))
 
 
-def search_query_documents_background(id,day=False):
+def search_query_documents_background(id, day=False):
     f_title = SuperSearchQueryModel.query.filter_by(id=id).first().title
     search_queries = SearchQueryModel.query.filter_by(f_id=id).all()
     db.session.expunge_all()
@@ -3308,9 +3310,9 @@ def report_company_test():
                 ax1.pie(sizes, autopct='%1.1f%%',
                         startangle=90, textprops={'color': "black"})
             ax1.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
-            path_to_image = f"./static/images/plots/new_plot{random.randint(0, 999)}.png"
+            path_to_image = f"./static/images/plots/new_plot{random.randint(0, 999999)}.png"
             while os.path.exists(path_to_image):
-                path_to_image = f"./static/images/plots/new_plot{random.randint(0, 999)}.png"
+                path_to_image = f"./static/images/plots/new_plot{random.randint(0, 999999)}.png"
             plt.savefig(path_to_image, transparent=True)
             # for key,value in a.items():
             #     authors.append([key,value/length_sen])
@@ -3998,15 +4000,13 @@ def view_entity():
     matplotlib.use('Agg')
     plt.rcParams.update(plt.rcParamsDefault)
 
-    # matplotlib.rcParams.update({'font.size': 10})
+    matplotlib.rcParams.update({'font.size': 10})
     # plt.style.use('classic')
     names = []
     counts = []
     for entity in entities[:top]:
         names.append(entity[0])
         counts.append(entity[1])
-    # print(names)
-    # print(counts)
     if top == 25:
         fig = plt.figure(figsize=(5, 6))
     elif top == 50:
@@ -4016,15 +4016,16 @@ def view_entity():
     plt.barh(names, counts)
     plt.gca().invert_yaxis()
     plt.tight_layout()
-    # plt.title('Store Inventory')
-    # plt.ylabel('Product')
-    # plt.xlabel('Quantity')
-    # plt.show()
+    total = 0
+    for c in counts:
+        total += c
+    for i, v in enumerate(counts):
+        perc = math.ceil((100 * v / total))
+        plt.text(v, i, f"{str(perc)}%", color='black', va='center', fontweight='bold')
     path_to_image = f"./static/images/plots/new_plot{random.randint(0, 999)}.png"
     while os.path.exists(path_to_image):
         path_to_image = f"./static/images/plots/new_plot{random.randint(0, 999)}.png"
     plt.savefig(path_to_image, transparent=True)
-
     topstyle = []
     if top == 25:
         topstyle.append('font-weight: bold;')
