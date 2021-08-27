@@ -163,15 +163,15 @@ def startup():
     #     sentence.sentiment = sentiment
     #     sentence.polarity = polarity
 
-    # super_queries = SuperSearchQueryModel.query.all()
-    # for super_query in super_queries:
-    #     res = export_result(
-    #         {'export_type': 'search_query', 'where': str(super_query.id), 'filter': 'includes', 'search_parameter': '',
-    #          'format': 'flat_json', 'flag_link': True})
-    #     if res:
-    #         print(res)
-    #     else:
-    #         print('error')
+    super_queries = SuperSearchQueryModel.query.all()
+    for super_query in super_queries:
+        res = export_result(
+            {'export_type': 'search_query', 'where': str(super_query.id), 'filter': 'includes', 'search_parameter': '',
+             'format': 'flat_json', 'flag_link': True})
+        if res:
+            print(res)
+        else:
+            print('error')
 
     # reports = ReportModel.query.all()
     # for report in reports:
