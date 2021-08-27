@@ -912,13 +912,6 @@ def export_result(temp_form=None):
                 if not i.sentence:
                     continue
                 try:
-                    # polarity, sentiment = get_sentiment(i.sentence)
-                    # temp_emotions = te.get_emotion(i.sentence)
-                    # emotions = {}
-                    # if temp_emotions:
-                    #     for key in temp_emotions:
-                    #         if temp_emotions[key] != 0.0:
-                    #             emotions[key] = temp_emotions[key]
                     sentence_text[i.id] = {'text': i.sentence, 'polarity': i.polarity, 'emotions': i.emotions}
                 except Exception as e:
                     print(e)
@@ -1237,14 +1230,6 @@ def get_doc_data(documents, field_checkbox, form, date_checkbox, start_date, end
 
 
 def get_doc_sub(document, field_checkbox, search_p, attributes, format):
-    # print(1)
-    # polarity, sentiment = get_sentiment(document.text)
-    # temp_emotions = te.get_emotion(document.text)
-    # emotions = {}
-    # if temp_emotions:
-    #     for key in temp_emotions:
-    #         if temp_emotions[key] != 0.0:
-    #             emotions[key] = temp_emotions[key]
     d = SearchQueryDocumentModel.query.filter_by(id=document.f_id).first()
     temp = {'search_query': document.f_title, 'title': document.title, 'author': document.author
         , 'publish_date': document.published, 'site': document.site,
@@ -1268,53 +1253,31 @@ def get_doc_sub(document, field_checkbox, search_p, attributes, format):
         for attr in attributes:
             if attributes[attr] is None:
                 temp.pop(attr, None)
-    # print(3)
-    # d_persons = NewDocumentPersonsModel.query.filter_by(f_id=document.id).all()
-    # d_locations = NewDocumentLocationsModel.query.filter_by(f_id=document.id).all()
-    # d_organizations = NewDocumentOrganizationsModel.query.filter_by(f_id=document.id).all()
-    persons = []
-    locations = []
-    organizations = []
     if format == 'flat_json' or format == 'excel':
         result = []
-        # if not d_persons and not d_locations and not d_organizations:
-        #     result.append(temp.copy())
         if not emotions:
             result.append(temp.copy())
         else:
-            for i in emotions:
-                t = temp.copy()
-                t['emotion'] = i
-                result.append(t.copy())
-            # for i in d_organizations:
-            #     if emotions:
-            #         for j in emotions:
-            #             t = temp.copy()
-            #             t['entity'] = i.name
-            #             t['sentiment'] = i.sentiment
-            #             t['emotion'] = j
-            #             result.append(t.copy())
-            #     else:
-            #         t = temp.copy()
-            #         t['entity'] = i.name
-            #         t['sentiment'] = i.sentiment
-            #         result.append(t.copy())
-        # print(4)
+            t = temp.copy()
+            try:
+                t['emotion'] = max(emotions, key=emotions.get)
+            except:
+                t['emotion'] = None
+            result.append(t.copy())
+
+            # for i in emotions:
+            #     t = temp.copy()
+            #     t['emotion'] = i
+            #     result.append(t.copy())
         return result
     elif format == 'json':
-        # for i in d_persons:
-        #     persons.append({'name': i.name, 'sentiment': i.sentiment})
-        # for i in d_locations:
-        #     locations.append({'name': i.name, 'sentiment': i.sentiment})
-        # for i in d_organizations:
-        #     organizations.append({'name': i.name, 'sentiment': i.sentiment})
-        # temp['entities'] = {'persons': persons, 'organizations': organizations, 'locations': locations}
         if emotions:
-            temp['emotions'] = emotions
+            try:
+                temp['emotion'] = max(emotions, key=emotions.get)
+            except:
+                temp['emotion'] = None
         else:
-            temp['emotions'] = {}
-        # temp['reach'] = {'per_million': document.reach_per_m, 'page_views': {'per_million': document.reach_views_per_m
-        #     , 'per_user': document.reach_views_per_u}}
+            temp['emotion'] = None
         return temp
     else:
         return 'error'
@@ -1964,24 +1927,69 @@ def search_queries_classified_sentences():
         return 'error'
 
 
+@app.route('/searchqueries/newsearchquerydocument', methods=['GET'])
+def new_search_query_document():
+    title = request.args.get('title')
+    if not title:
+        return 'empty title'
+    return render_template('addsearchquerydocument.html', title=title)
+
 @app.route('/searchqueries/savesearchquerydocument', methods=['POST'])
 def save_search_query_document():
     try:
         result = request.form
         clean_text = result.get('clean_text')
+        title = result.get('super_title')
+        id = result.get('id')
+        if (id is None or id == ''):
+            return "Error"
+
+
+        if id == 'new':
+            temp_s = SuperSearchQueryModel.query.filter_by(title=title).first()
+            if not temp_s:
+                return 'error'
+            polarity, sentiment = get_sentiment(clean_text)
+            temp_emotions = te.get_emotion(clean_text)
+            emotions = {}
+            if temp_emotions:
+                for key in temp_emotions:
+                    if temp_emotions[key] != 0.0:
+                        emotions[key] = temp_emotions[key]
+            searchquerydocument = SearchQueryDocumentModel(f_title=temp_s.title, title=result.get('title'),
+                                                           author=result.get('author'),
+                                                           provider=result.get('provider'),
+                                                           url=result.get('url'), image_url=result.get('image_url'),
+                                                           date=result.get('date'), clean_text=clean_text,
+                                                           polarity=polarity, sentiment=sentiment,
+                                                           emotions=str(emotions),
+                                                           date_created=datetime.datetime.now())
+            if (searchquerydocument.clean_text == '' or searchquerydocument.clean_text == 'None'):
+                searchquerydocument.clean_text = None
+            if (searchquerydocument.clean_text is not None):
+                res = requests.post(url_for('classified', _external=True),
+                                    json={"mytext": searchquerydocument.clean_text})
+                if res.ok:
+                    searchquerydocument.classified_sentences = str(res.json())
+                else:
+                    searchquerydocument.classified_sentences = None
+            else:
+                searchquerydocument.classified_sentences = None
+            db.session.add(searchquerydocument)
+            db.session.flush()
+            newdocumentadd({}, searchquerydocument.f_title, searchquerydocument.id, True)
+            return redirect(url_for('search_query_documents', title=SearchQueryDocumentModel.query.filter_by(
+                title=searchquerydocument.title).first().f_title))
+
+
+
         searchquerydocument = SearchQueryDocumentModel(title=result.get('title'), clean_text=clean_text,
                                                        date=result.get('date'), author=result.get('author'),
                                                        provider=result.get('provider'), url=result.get('url'),
                                                        image_url=result.get('image_url'))
-        old_title = result.get('old_title')
-        id = result.get('id')
-        if (id is None or id == ''):
-            return "Error"
         if (searchquerydocument.clean_text == '' or searchquerydocument.clean_text == 'None'):
             searchquerydocument.clean_text = None
         if (searchquerydocument.clean_text is not None):
-            # searchquerydocument.classified_sentences = str(temp_azure(searchquerydocument.clean_text))
-            # res = requests.post(url_for('classified',_external=True), json={"mytext":re.sub(r'[^a-zA-Z0-9. ]','',searchquerydocument.clean_text)})
             res = requests.post(url_for('classified', _external=True), json={"mytext": searchquerydocument.clean_text})
             if res.ok:
                 searchquerydocument.classified_sentences = str(res.json())
@@ -2572,41 +2580,50 @@ def savecompany():
         return "Error"
 
 
-def newdocumentadd(i, f_title, f_id):
+def newdocumentadd(i, f_title, f_id, new_doc=False):
+    if not i:
+        i = {}
     thread = i.get('thread')
+    if not thread:
+        thread = {}
     reach = thread.get('reach')
     social = thread.get('social')
-    # entities = i.get('entities')
     site_categories = thread.get('site_categories')
     external_links = i.get('external_links')
     external_images = i.get('external_images')
-    # persons = None
-    # organizations = None
-    # locations = None
 
-    # if (entities):
-    # persons = entities.get('persons')
-    # organizations = entities.get('organizations')
-    # locations = entities.get('locations')
 
-    newdocument = NewDocumentModel(f_id=f_id, thread_uuid=thread.get('uuid'), uuid=i.get('uuid'),
-                                   ord_in_thread=i.get('ord_in_thread'), parent_url=i.get('parent_url')
-                                   , highlight_text=i.get('highlightText'), highlight_title=i.get('highlightTitle')
-                                   , highlight_thread_title=i.get('highlightThreadTitle'), rating=i.get('rating')
-                                   , crawled=i.get('crawled'), updated=i.get('updated'),
-                                   site_full=thread.get('site_full')
-                                   , site_section=thread.get('site_section'), section_title=thread.get('section_title')
-                                   , language=i.get('language')
-                                   , author=i.get('author'), text=i.get('text'), url=i.get('url'),
-                                   site=thread.get('site')
-                                   , title=thread.get('title'), f_title=f_title, title_full=thread.get('title_full')
-                                   , published=thread.get('published'), replies_count=thread.get('replies_count')
-                                   , participants_count=thread.get('participants_count'),
-                                   site_type=thread.get('site_type')
-                                   , country=thread.get('country'), spam_score=thread.get('spam_score')
-                                   , main_image=thread.get('main_image'),
-                                   performance_score=thread.get('performance_score')
-                                   , domain_rank=thread.get('domain_rank'))
+
+    if new_doc:
+        searchquerydocument = SearchQueryDocumentModel.query.filter_by(id=f_id).first()
+        newdocument = NewDocumentModel(f_id=f_id, f_title=f_title)
+        newdocument.title = searchquerydocument.title
+        newdocument.text = searchquerydocument.clean_text
+        newdocument.published = str(searchquerydocument.date)
+        newdocument.author = searchquerydocument.author
+        newdocument.site = searchquerydocument.provider
+        newdocument.url = searchquerydocument.url
+        newdocument.main_image = searchquerydocument.image_url
+    else:
+        newdocument = NewDocumentModel(f_id=f_id, thread_uuid=thread.get('uuid'), uuid=i.get('uuid'),
+                                       ord_in_thread=i.get('ord_in_thread'), parent_url=i.get('parent_url')
+                                       , highlight_text=i.get('highlightText'), highlight_title=i.get('highlightTitle')
+                                       , highlight_thread_title=i.get('highlightThreadTitle'), rating=i.get('rating')
+                                       , crawled=i.get('crawled'), updated=i.get('updated'),
+                                       site_full=thread.get('site_full')
+                                       , site_section=thread.get('site_section'), section_title=thread.get('section_title')
+                                       , language=i.get('language')
+                                       , author=i.get('author'), text=i.get('text'), url=i.get('url'),
+                                       site=thread.get('site')
+                                       , title=thread.get('title'), f_title=f_title, title_full=thread.get('title_full')
+                                       , published=thread.get('published'), replies_count=thread.get('replies_count')
+                                       , participants_count=thread.get('participants_count'),
+                                       site_type=thread.get('site_type')
+                                       , country=thread.get('country'), spam_score=thread.get('spam_score')
+                                       , main_image=thread.get('main_image'),
+                                       performance_score=thread.get('performance_score')
+                                       , domain_rank=thread.get('domain_rank'))
+
     if (reach):
         newdocument.reach_per_m = reach.get('per_million')
         newdocument.reach_updated = reach.get('updated')
@@ -2652,19 +2669,6 @@ def newdocumentadd(i, f_title, f_id):
     except:
         db.session.rollback()
 
-    # if (persons):
-    #     for p in persons:
-    #         temp_p = NewDocumentPersonsModel(f_id=newdocument.id, name=p.get('name'), sentiment=p.get('sentiment'))
-    #         database.append(temp_p)
-    # if (organizations):
-    #     for o in organizations:
-    #         temp_o = NewDocumentOrganizationsModel(f_id=newdocument.id, name=o.get('name'),
-    #                                                sentiment=o.get('sentiment'))
-    #         database.append(temp_o)
-    # if (locations):
-    #     for l in locations:
-    #         temp_l = NewDocumentLocationsModel(f_id=newdocument.id, name=l.get('name'), sentiment=l.get('sentiment'))
-    #         database.append(temp_l)
     if (site_categories):
         for category in site_categories:
             temp_c = NewDocumentSiteCategoriesModel(f_id=newdocument.id, category=category)
@@ -2679,7 +2683,6 @@ def newdocumentadd(i, f_title, f_id):
             database.append(temp_images)
 
     try:
-        # db.session.add(newdocument)
         for i in database:
             db.session.add(i)
     except:
@@ -4286,6 +4289,8 @@ def find_word(w):
 
 def get_domain_authority(l):
     auth = ('mozscape-a8932fff20', '9fe82277c7e2be2720053059f12e2b4d')
+    auth2 = ('mozscape-5084ac4783', 'b6f939908792253946d015256924696c')
+    # auth3 = ('mozscape-61d889f3b0', '2cf4bc78deb6732fd4da0d50cb6e9ac3')
     url = 'https://lsapi.seomoz.com/v2/url_metrics'
     l_s = "["
     for s in l:
@@ -4297,6 +4302,9 @@ def get_domain_authority(l):
             """
     response = requests.post(url, data=data, auth=auth)
     json_response = response.json()
+    if not json_response.get('results'):
+        response = requests.post(url, data=data, auth=auth2)
+        json_response = response.json()
     return json_response
 
 

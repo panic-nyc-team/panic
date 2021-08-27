@@ -1,0 +1,71 @@
+{% extends "new_layout.html" %}
+{% block title %}Add SearchQuery Document{% endblock %}
+{% block head %}
+  {{ super() }}
+{% endblock %}
+
+<body>
+{% block content %}
+<div class="container text-white mt-10">
+  <br>
+  <br>
+  <br>
+  <br>
+  <br>
+  <h2>Search Query Document</h2>
+
+  <form action="/searchqueries/savesearchquerydocument" id="myform" class="needs-validation" novalidate method="post">
+    <input type="hidden" name="id" value="new">
+    <input type="hidden" name="super_title" value="{{title}}">
+    <div class="form-group">
+      <label>Title</label>
+      <input type="text" class="form-control"  placeholder="Enter Title" name="title" required >
+    </div>
+    <div class="form-group">
+      <label >Clean Text</label>
+        <textarea type="text" rows="15" class="form-control"  name="clean_text"></textarea>
+    </div>
+
+     <div  class="form-group">
+       <label>Date</label>
+       <input type="text" class="form-control"  placeholder="Enter Date" name="date">
+       <div class="valid-feedback">Valid.</div>
+       <div class="invalid-feedback">Please fill out this field.</div>
+     </div>
+
+     <div  class="form-group">
+       <label>Author </label>
+       <input type="text" class="form-control"  placeholder="Enter Author Name" name="author" >
+       <div class="valid-feedback">Valid.</div>
+       <div class="invalid-feedback">Please fill out this field.</div>
+     </div>
+
+     <div  class="form-group">
+       <label>Provider </label>
+       <input type="text" class="form-control"  placeholder="Enter Provider" name="provider" >
+       <div class="valid-feedback">Valid.</div>
+       <div class="invalid-feedback">Please fill out this field.</div>
+     </div>
+
+     <div  class="form-group">
+       <label>Url </label>
+       <input type="text" class="form-control"  placeholder="Enter Url" name="url" >
+       <div class="valid-feedback">Valid.</div>
+       <div class="invalid-feedback">Please fill out this field.</div>
+     </div>
+
+     <div  class="form-group">
+       <label>Image Url</label>
+       <input type="text" class="form-control"  placeholder="Enter Image Url" name="image_url" >
+       <div class="valid-feedback">Valid.</div>
+       <div class="invalid-feedback">Please fill out this field.</div>
+     </div>
+
+    <button class="btn btn-primary bg-theme" onclick="submitForm()" >Save</button><br><br>
+  </form>
+</div>
+
+
+{% endblock %}
+
+</body>

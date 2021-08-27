@@ -116,6 +116,10 @@
             </tbody>
           </table>
     </div>
+    <div class='row justify-content-center text-center text-white col-lg-12 mt-3'>
+        <button class="btn btn-primary bg-theme" type="button" onclick="myAddNew()">Add</button>
+    </div>
+
   <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
   <script type=text/javascript>
     $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
@@ -133,6 +137,10 @@ function sortit(url) {
 }
 function opendoc(id) {
   window.location.href = "/searchqueries/editsearchquerydocument?id="+id;
+}
+
+function myAddNew() {
+    window.location.href = "/searchqueries/newsearchquerydocument?title={{title}}";
 }
 
 </script>
