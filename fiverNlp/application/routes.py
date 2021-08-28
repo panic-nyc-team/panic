@@ -2852,14 +2852,7 @@ def search_query_documents_background(id, day=False):
             if (int(output['moreResultsAvailable']) < 1):
                 break
         db.session.commit()
-    super_query = SuperSearchQueryModel.query.filter_by(id=id).first()
-    res = export_result(
-        {'export_type': 'search_query', 'where': str(super_query.id), 'filter': 'includes', 'search_parameter': '',
-         'format': 'flat_json', 'flag_link': True})
-    if res:
-        print(res)
-    else:
-        print('error')
+    # super_query = SuperSearchQueryModel.query.filter_by(id=id).first()
 
     docs = NewDocumentModel.query.filter_by(f_title=f_title).all()
     print(len(docs))
@@ -2871,7 +2864,7 @@ def search_query_documents_background(id, day=False):
             break
         for c in docs[offset:offset + 49]:
             if not c.domain_authority:
-                l.append(c.url.encode('utf-8'))
+                l.append(c)
         if not l:
             offset += 49
             continue
@@ -2881,7 +2874,7 @@ def search_query_documents_background(id, day=False):
             length = len(results)
             print(length)
             if length != len(l):
-                print('not equal', length, len(docs))
+                print('not equal', length, len(l))
                 return
             i = 0
             while i < length:
@@ -2913,14 +2906,21 @@ def search_query_documents_background(id, day=False):
                 else:
                     domain_authority = -1
                     bucket = '-1'
-                docs[offset + i].domain_authority = domain_authority
-                docs[offset + i].bucket = bucket
+                l[i].domain_authority = domain_authority
+                l[i].bucket = bucket
                 # print(offset+i)
                 i += 1
         db.session.commit()
         offset += 49
         time.sleep(10)
 
+    res = export_result(
+        {'export_type': 'search_query', 'where': str(id), 'filter': 'includes', 'search_parameter': '',
+         'format': 'flat_json', 'flag_link': True})
+    if res:
+        print(res)
+    else:
+        print('error')
     super_query.running = False
     super_query.date_completed = datetime.datetime.now()
     docs = SearchQueryDocumentModel.query.filter_by(f_title=super_query.title).all()
@@ -4294,7 +4294,8 @@ def get_domain_authority(l):
     url = 'https://lsapi.seomoz.com/v2/url_metrics'
     l_s = "["
     for s in l:
-        l_s += f'"{s}",'
+        c = s.url.encode('utf-8')
+        l_s += f'"{c}",'
     l_s = l_s[:-1]
     l_s += "]"
     data = f"""
@@ -4302,15 +4303,16 @@ def get_domain_authority(l):
             """
     response = requests.post(url, data=data, auth=auth)
     json_response = response.json()
+    print(json_response)
     if not json_response.get('results'):
         response = requests.post(url, data=data, auth=auth2)
         json_response = response.json()
+        print(json_response)
     return json_response
 
 
 if __name__ == '__main__':
     from waitress import serve
-
     tl.start()
     serve(app, host='0.0.0.0', port=5000)
     # app.run(

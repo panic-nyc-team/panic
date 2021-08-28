@@ -44,7 +44,7 @@ class CompanyDocumentModel(db.Model):
 class SearchQueryDocumentModel(db.Model):
     __tablename__ = 'searchquerydocument'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    title = db.Column(db.String(255))
+    title = db.Column(db.Text)
     clean_text = db.Column(db.Text)
     classified_sentences = db.Column(db.Text(10000000))
     author = db.Column(db.String(255))
@@ -122,7 +122,7 @@ class SearchQueryModel(db.Model):
     __tablename__ = 'searchquery'
     id = db.Column(db.Integer, primary_key=True)
     # title = db.Column(db.String(200), unique=True)
-    query_string = db.Column(db.String(200))
+    query_string = db.Column(db.Text)
     market_language_code = db.Column(db.String(20))
     country_code = db.Column(db.String(20))
     site_type = db.Column(db.String(20))
@@ -274,7 +274,7 @@ class NewDocumentModel(db.Model):
     site = db.Column(db.String(255))
     title = db.Column(db.Text)
     f_title = db.Column(db.String(255))
-    title_full = db.Column(db.String(255))
+    title_full = db.Column(db.Text)
     published = db.Column(db.String(255))
     replies_count = db.Column(db.Integer)
     participants_count = db.Column(db.Integer)
