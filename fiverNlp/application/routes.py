@@ -2852,7 +2852,6 @@ def search_query_documents_background(id, day=False):
             if (int(output['moreResultsAvailable']) < 1):
                 break
         db.session.commit()
-    # super_query = SuperSearchQueryModel.query.filter_by(id=id).first()
 
     docs = NewDocumentModel.query.filter_by(f_title=f_title).all()
     print(len(docs))
@@ -2921,6 +2920,7 @@ def search_query_documents_background(id, day=False):
         print(res)
     else:
         print('error')
+    super_query = SuperSearchQueryModel.query.filter_by(id=id).first()
     super_query.running = False
     super_query.date_completed = datetime.datetime.now()
     docs = SearchQueryDocumentModel.query.filter_by(f_title=super_query.title).all()
