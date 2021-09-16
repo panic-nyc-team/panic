@@ -1,9 +1,10 @@
 @font-face {
   font-family: Roboto;
-  src: url(Roboto-Regular.ttf);
+  src: url(./static/Roboto-Regular.ttf);
 }
+
 body {
-  font-family: Roboto, Arial, Helvetica, sans-serif;
+  font-family:Roboto, Arial, Helvetica, sans-serif;
   font-size: 1em;
   padding: 0;
   margin: 0;
@@ -90,6 +91,7 @@ body:-webkit-full-screen {
   pointer-events: auto;
 }
 
+
 /* DRAG & DROP*/
 
 .extras {
@@ -125,7 +127,67 @@ body:-webkit-full-screen {
 .node {
   cursor: pointer;
 }
-.rect-side {
+.rect-extra {
+}
+
+/* Document List */
+
+.document-list{
+  font-family: Georgia,Roboto;
+  position: absolute;
+  width: 360px; 
+  padding: 10px;
+  border: 0px dashed black;
+  border-radius: 5px;
+}
+.document-search {
+  align-items: center;
+  height: 30px;
+}
+.document-search-input {
+  height: 100%;
+  width: 100%;
+  padding: none;
+  border: 0px solid grey;
+  border-radius: 2.5px;
+  background: url(./static/search_black_24dp.svg) no-repeat right;
+  background-color: #fff;
+}
+
+input[type="search"]::-webkit-search-decoration,
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-results-button,
+input[type="search"]::-webkit-search-results-decoration {
+  -webkit-appearance:none;
+}
+
+.document-search-icon {
+  position: relative;
+  height: 100%;
+  width: 36px;
+}
+
+.document-elements{
+  list-style: none;
+  padding-left: 0;
+  margin: 10px 0 5px 0;
+  overflow-y: auto;
+}
+.document-li{
+  margin-bottom:5px;
+  opacity: 0.8;
+}
+.document-li a p{
+  padding: 7px;
+  margin: auto;
+}
+.document-li a{
+  color:#222;
+  text-decoration: none;
+}
+.document-li a:hover{
+  text-decoration: underline;
+  color:#000;
 }
 
 /*Tooltip*/
@@ -173,7 +235,7 @@ body:-webkit-full-screen {
   vertical-align: middle;
 }
 
-.side-node-text-div {
+.extra-node-text-div {
   width: 100%;
   height: 100%;
   display: flex;
@@ -181,7 +243,7 @@ body:-webkit-full-screen {
   align-items: flex-end;
   text-align: center;
 }
-.side-node-text-div span {
+.extra-node-text-div span {
   width: 100%;
   display: inline-block;
   color: black;
@@ -190,7 +252,7 @@ body:-webkit-full-screen {
   vertical-align: middle;
 }
 
-.side-hull-text-div {
+.extra-hull-text-div {
   width: 100%;
   height: 100%;
   display: flex;
@@ -198,7 +260,7 @@ body:-webkit-full-screen {
   align-items: flex-end;
   text-align: center;
 }
-.side-hull-text-div span {
+.extra-hull-text-div span {
   width: 100%;
   display: inline-block;
   color: black;
@@ -302,4 +364,60 @@ input[type="checkbox"] {
 #toggle-dark-btn input[type="checkbox"]:checked + span:after {
   background-color: #fff;
   transform: translate(200%, 0px);
+}
+
+/* Toggle Center Position */
+
+.toggle-center{
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  padding: 15px;
+}
+
+.toggle-center-button{
+  cursor: pointer;
+  display: flex;
+  border: 0px solid black;
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  padding: 0;
+  margin: 0;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Root Label */
+.root-foreignobject{
+  margin: auto;
+}
+
+.root-label-container{
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+justify-content: center;
+align-items: center;
+}
+
+.root-label{
+  color: "#222";
+  padding: 0px;
+  /* background-color: white; */
+  display: flex;
+  flex-direction: row;
+  justify-content:center;
+  align-items:center;
+  padding: 5px;
+  /* border-radius: 5px; */
+}
+
+.root-label p{
+  margin: 0;
+  padding: 0;
+}
+.root-label img{
+  margin: 0;
+  padding: 0;
 }

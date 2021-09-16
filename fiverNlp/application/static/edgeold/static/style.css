@@ -2,8 +2,19 @@
   font-family: Roboto;
   src: url(/static/edge/static/Roboto-Regular.ttf);
 }
+
+@font-face {
+  font-family: Gotham;
+  src: url(/static/edge/static/Gotham/Gotham-Light.otf);
+}
+
+@font-face {
+  font-family: Gotham-Medium;
+  src: url(/static/edge/static/Gotham/Gotham-Medium_0.otf);
+}
+
 body {
-  font-family: Roboto, Arial, Helvetica, sans-serif;
+  font-family: Gotham,Roboto, Arial, Helvetica, sans-serif;
   font-size: 1em;
   padding: 0;
   margin: 0;
@@ -150,7 +161,9 @@ body:-webkit-full-screen {
   font-size: 1rem;
   margin-block-start: 1rem;
   margin-block-end: 0.25rem;
+  font-family: Gotham-Medium;
 }
+
 .tooltip-text {
   margin-top: 0.25rem;
   font-size: 0.9rem;
@@ -167,6 +180,10 @@ body:-webkit-full-screen {
   flex-direction: row;
   justify-content: flex-start;
   align-items: center;
+}
+
+.tooltip-element-title{
+  font-family: Gotham-Medium;
 }
 
 .tooltip-list-element div {

@@ -1,49 +1,61 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <link rel="stylesheet" href="/static/edge/static/style.css" />
+
+<head>
+  <link rel="stylesheet" href="../static/edge/style.css" />
     <script type="text/javascript">
             var report_name = "{{ report_name }}"
     </script>
-  </head>
-  <body>
-    <div class="chart-container">
-      <div id="control-box" class="control">
-        <h3 class="document-counts">
-          <span id="document-counts"></span> Sentence Pairs
-        </h3>
-        <div id="inputs" class="inputs">
-          <div class="inputs-bg">
-            <h4 class="title-group-by">Group by:</h4>
-            <div id="group-by" class="group-by" value=""></div>
-          </div>
-          <div class="inputs-bg">
-            <h4 class="title-similarity-dimension">
-              Filter by Similarity Dimension:
-            </h4>
-            <div id="similarity-dimension" class="similarity-dimension"></div>
-          </div>
+</head>
+
+<body>
+  <canvas id="testcanvas"></canvas>
+  <div class="chart-container">
+    <div id="control-box" class="control">
+      <h3 class="document-counts">
+        <span id="document-counts"></span> Sentence Pairs
+      </h3>
+      <div id="inputs" class="inputs">
+        <div class="inputs-bg">
+          <h4 class="title-group-by">Group by:</h4>
+          <div id="group-by" class="group-by" value=""></div>
         </div>
-      </div>
-      <div class="toggle-container">
-        <div id="toggle-dark-btn" class="toggle-btn">
-          <input id="toggle-dark" type="checkbox" />
-          <span></span>
+        <div class="inputs-bg">
+          <h4 class="title-similarity-dimension">
+            Filter by Similarity Dimension:
+          </h4>
+          <div id="similarity-dimension" class="similarity-dimension"></div>
         </div>
-      </div>
-      <div id="chart"></div>
-      <div >
-        <audio id="audio-wheel" src="/static/edge/static/tick001.mp3"></audio>
-        <button id="audio-wheel-button" style="display:none">Play</button>
-      </div>
-      <div class="toggle-sound-notice">
-        <span>Click anywhere to enable sound</span>
       </div>
     </div>
-  </body>
-  <script src="https://cdn.jsdelivr.net/npm/d3@6.6.1/dist/d3.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
-  <script src="/static/edge/js/preparedata.js"></script>
-  <script src="/static/edge/js/dragdropinput.js"></script>
-  <script src="/static/edge/js/index.js"></script>
+    <div class="toggle-container">
+      <div id="toggle-dark-btn" class="toggle-btn">
+        <input id="toggle-dark" type="checkbox" />
+        <span></span>
+      </div>
+    </div>
+    <div id="svg-edgebundling"></div>
+    <div id="svg-bar"></div>
+    <div>
+      <audio id="audio-wheel" src="../static/edge/static/tick001.mp3"></audio>
+      <button id="audio-wheel-button" style="display:none">Play</button>
+    </div>
+    <div class="toggle-sound-notice">
+      <span>Click anywhere to enable sound</span>
+    </div>
+    <div id="toggle-center" class="toggle-center">
+      <button id="toggle-center-button" class="toggle-center-button">
+        <img src="../static/edge/static/fullscreen_exit_black_24dp.svg" alt="reposition center">
+      </button>
+    </div>
+  </div>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/d3@6.6.1/dist/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/underscore@1.13.1/underscore-umd-min.js"></script>
+<script src="../static/edge/js/preparedata.js"></script>
+<script src="../static/edge/js/edgebundling/edgebundling.js"></script>
+<script src="../static/edge/js/barchart/barchart.js"></script>
+<script src="../static/edge/index.js"></script>
+
 </html>

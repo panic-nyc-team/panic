@@ -15,20 +15,20 @@ let TreeGraph = function (pivotChart, mainGraph) {
 
 TreeGraph.prototype.addTree = function () {
     this.treeLink = this.pivotChart.layerMain.append("g")
+        // .call(initTransform)
         .attr("id", "tree-line")
         .selectAll("line");
 
     this.treeNode = this.pivotChart.layerMain.append("g")
+        // .call(initTransform)
         .attr("id", "tree-node")
         .selectAll("circle");
 
     this.treeLabel = this.pivotChart.layerMain.append("g")
+        // .call(initTransform)
         .attr("id", "tree-label-text")
         .selectAll("foreignObject");
 
-    // this.rootLabel = this.pivotChart.layerMain.append("g")
-    //     .attr("id", "root-label")
-    //     .selectAll("foreignObject");
 }
 
 TreeGraph.prototype.addSimulation = function () {
@@ -81,14 +81,6 @@ TreeGraph.prototype.startSimulation = function () {
                 return d.y - _this.baseTriangle(d.r)
             });
 
-        // _this.rootLabel
-        //     .attr("x", function (d) {
-        //         return d.x - _this.baseTriangle(d.r) * 2
-        //     })
-        //     .attr("y", function (d) {
-        //         return d.y - _this.baseTriangle(d.r) * 2
-        //     })
-
         function getFociTree(groupBy, node) {
             return _this.pivotChart.clusterMap.get(groupBy.map((k) => node[k]).join("-") + "-leaf");
         }
@@ -113,7 +105,7 @@ TreeGraph.prototype.getTreeData = function () {
 
     let labelCluster = combinations.map((combination) => {
         return {
-            groupNames: hierarchy,
+            grouping: hierarchy,
             combination: combination,
             nodes: data.filter((item) => {
                 for (let i = 0; i < hierarchy.length; i++) {
@@ -131,7 +123,7 @@ TreeGraph.prototype.getTreeData = function () {
             return {
                 source: "fakeRoot",
                 target: d,
-                distance: layout.extraNodeRadius * 5,
+                distance: layout.sideNodeRadius * 5,
             };
         });
 
@@ -146,11 +138,11 @@ TreeGraph.prototype.getTreeData = function () {
                 let arr = [];
                 for (let i = 0; i < c.combination.length; i++) {
                     let combo = c.combination.slice(0, i + 1);
-                    let groupNames = c.groupNames.slice(0, combo.length);
+                    let grouping = c.grouping.slice(0, combo.length);
 
                     const subNodes = data.filter((item) => {
-                        for (let i = 0; i < groupNames.length; i++) {
-                            if (item[groupNames[i]] !== combo[i]) {
+                        for (let i = 0; i < grouping.length; i++) {
+                            if (item[grouping[i]] !== combo[i]) {
                                 return false;
                             }
                         }
@@ -160,7 +152,7 @@ TreeGraph.prototype.getTreeData = function () {
                     arr.push({
                         id: combo.join("-"),
                         name: combo[i],
-                        groupNames: combo,
+                        grouping: combo,
                         level: i + 1,
                         group: hierarchy[i],
                         type: "label",
@@ -170,7 +162,7 @@ TreeGraph.prototype.getTreeData = function () {
                         arr.push({
                             id: combo.join("-") + "-leaf",
                             name: combo.join("-") + "-leaf",
-                            groupNames: combo.concat("leaf"),
+                            grouping: combo.concat("leaf"),
                             level: i + 1,
                             group: hierarchy[i],
                             type: "leaf",
@@ -195,11 +187,11 @@ TreeGraph.prototype.getTreeData = function () {
             .flat()
     ).concat({
         id: "fakeRoot",
-        name: [...new Set(this.app.data.map(d => d.search_query))][0],
-        groupNames: ["fakeRoot"],
+        name: "fakeRoot",
+        grouping: ["fakeRoot"],
         level: 0,
         group: "fakeRoot",
-        type: "label",
+        type: "root",
         r: layout.treeRootRadius,
     });
 
@@ -234,29 +226,10 @@ TreeGraph.prototype.renderTreeNode = function () {
         .attr("fill", function (d) {
             return _this.pivotChart.brighten(_this.treeColors(d.group))
         })
-        .style("cursor", "pointer")
         .attr("stroke", this.layout.labelCircleStroke)
         .attr("stroke-width", this.layout.labelStrokeWidth)
         .attr("opacity", (d) => (d.type === "leaf" ? 0 : 1))
-        .on("click", function (event, d) {
-            _this.handleClick(d)
-            _this.app.updateDocumentList({ group: d.group, groupNames: d.groupNames })
-        })
-
-    this.treeNode.append("title").text(function (d) {
-        return d.name;
-    });
-}
-
-TreeGraph.prototype.handleClick = function (node) {
-    const _this = this
-    this.treeNode.attr("stroke-width", function (d) {
-        return d.id === node.id ? _this.layout.labelStrokeWidthHighlighted : _this.layout.labelStrokeWidth
-    })
-}
-
-TreeGraph.prototype.clearColoring = function () {
-    this.treeNode.attr("stroke-width", this.layout.labelStrokeWidth)
+        .style("pointer-events", "none");
 }
 
 TreeGraph.prototype.renderTreeLink = function () {
@@ -277,6 +250,7 @@ TreeGraph.prototype.renderTreeLink = function () {
 }
 
 TreeGraph.prototype.baseTriangle = function (radius) {
+
     return Math.cos(Math.PI / 4) * radius;
 }
 
@@ -300,37 +274,6 @@ TreeGraph.prototype.renderTreeLabel = function () {
             return `${d.r / (2.5 * multiplier)}px`;
         });
 }
-
-// TreeGraph.prototype.renderRootLabel = function () {
-//     const _this = this
-
-//     this.rootLabel = this.rootLabel
-//         .data(this.treeNodes.filter((d) => d.type === "root"))
-//         .join("foreignObject")
-//         .attr("class", 'root-foreignobject')
-//         .attr("width", function (d) {
-//             return _this.baseTriangle(d.r) * 4
-//         })
-//         .attr("height", function (d) {
-//             return _this.baseTriangle(d.r) * 4
-//         })
-//         .style("font-size", (d) => {
-//             const multiplier = Math.floor(d.name.length / 18) + 1;
-//             return `${d.r / (3.5 * multiplier)}px`;
-//         })
-//         .style("color", "white")
-
-//     const searchQuery = [...new Set(this.app.data.map(d => d.search_query))][0]
-
-//     this.rootLabelDiv = this.rootLabel
-//         .append("xhtml:div")
-//         .attr("class", "root-label-container")
-//         .append("div")
-//         .attr("class", "root-label")
-//         .html((d) => (`
-//             <p>${searchQuery}</p>
-//         `))
-// }
 
 TreeGraph.prototype.updateTree = function () {
     let _this = this
@@ -356,7 +299,6 @@ TreeGraph.prototype.updateTree = function () {
     let [newtreeNodes, newtreeLinks] = this.getTreeData();
 
     this.treeNodes = newtreeNodes;
-
     this.treeLinks = newtreeLinks;
 
     this.renderTreeNode()
@@ -366,8 +308,6 @@ TreeGraph.prototype.updateTree = function () {
     this.renderTreeLink()
 
     this.renderTreeLabel()
-
-    // this.renderRootLabel()
 
     d3.selectAll(".mainlabeldiv").remove();
 

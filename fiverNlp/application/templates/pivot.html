@@ -2,7 +2,8 @@
 <html>
 
 <head>
-  <link rel="stylesheet" href="../static/pivot/static/style.css" />
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="../static/pivot/style.css" />
   <script type="text/javascript">
           var query_name = "{{ query_name }}"
   </script>
@@ -10,15 +11,23 @@
 
 <body>
   <div class="chart-container">
-    <div class="inputs">
+    <div id="interface" class="inputs">
       <h3 class="document-counts">
         <span id="document-counts"></span>
       </h3>
       <h4 class="title-group-by input-title">Drag & Drop Hierarchy:</h4>
       <div id="group-by" class="group-by" value=""></div>
-      <h4 class="title-extras input-title">All Attributes:</h4>
+      <h4 class="title-extras input-title">Dimensions</h4>
       <div id="extras" class="extras"></div>
     </div>
+
+    <div id="document-list" class="document-list">
+      <div id="document-search" class="document-search">
+        <input id="document-search-input" class="document-search-input" placeholder="Search Document" type="search">
+      </div>
+      <div id="doc-list-details"></div>
+    </div>
+
     <div class="group-dump"></div>
     <div id="chart" class="chart"></div>
     <div id="chart2" class="chart"></div>
@@ -27,6 +36,11 @@
         <input id="toggle-dark" type="checkbox" />
         <span></span>
       </div>
+    </div>
+    <div id="toggle-center" class="toggle-center">
+      <button id="toggle-center-button" class="toggle-center-button">
+        <img src="../static/pivot/static/fullscreen_exit_black_24dp.svg" alt="reposition center">
+      </button>
     </div>
   </div>
 </body>
@@ -39,7 +53,8 @@
 <script src="../static/pivot/js/pivotchart/treeGraph.js"></script>
 <script src="../static/pivot/js/pivotchart/mainGraph.js"></script>
 <script src="../static/pivot/js/pivotchart/pivotchart.js"></script>
+<script src="../static/pivot/js/documentlist/documentlist.js"></script>
 <!-- <script src="index.js"></script> -->
-<script src="../static/pivot/js/index.js"></script>
+<script src="../static/pivot/index.js"></script>
 
 </html>

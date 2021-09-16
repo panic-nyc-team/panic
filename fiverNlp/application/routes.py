@@ -2291,7 +2291,7 @@ def savesearchquery():
         return redirect(url_for('search_queries'))
 
     except Exception as e:
-        print(e, file=sys.stderr)
+        print(e)
         return "Error"
 
 

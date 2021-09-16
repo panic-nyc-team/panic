@@ -34,24 +34,27 @@ PivotChart.prototype.addClusterMap = function (treeNodes) {
 PivotChart.prototype.updateDarkMode = function () {
     this.bg.attr("fill", this.layout.bgColor);
     this.mainGraph.mainHulls.attr("fill", this.layout.hullFill);
-    this.mainGraph.extraHulls.attr("fill", this.layout.hullFill);
+    this.mainGraph.sideHulls.attr("fill", this.layout.hullFill);
     this.mainGraph.node.attr("fill", this.layout.nodeFill).attr("stroke", this.layout.nodeStroke);
     this.mainGraph.nodeImage.attr("filter", this.layout.imageFilter);
     d3.select("#document-counts").style("color", this.layout.textColor);
     d3.selectAll(".input-title").style("color", this.layout.textColor);
     d3.select(".group-by").style("background-color", this.layout.inputBg);
-    d3.selectAll(".extra-text").style("color", this.layout.extraFontColor);
-    d3.select("#toggle-center-button").style("background-color", this.layout.toggleCenter)
+    d3.selectAll(".side-text").style("color", this.layout.sideFontColor);
 }
 
 PivotChart.prototype.draw = function () {
     this.layerMainBg = this.app.svg.append("g").attr("id", "layerMainBg");
-    this.layerMain = this.app.svg.append("g").attr("id", "layerMain");
+    this.layerMainTransform = this.app.svg.append("g").attr("id", "initialTransform")
+    this.layerMain = this.layerMainTransform.append("g").attr("id", "layerMain");
+    this.layerTree = this.app.svg.append("g").attr("id", "layerTree");
 
     this.mainGraph = new MainGraph(this)
     this.treeGraph = new TreeGraph(this, this.mainGraph)
 
+
     this.addZoom()
+    this.addInitTransform()
 
     this.mainGraph.addTooltip()
     this.mainGraph.addLink()
@@ -67,9 +70,7 @@ PivotChart.prototype.draw = function () {
     this.treeGraph.updateTree()
     this.mainGraph.updateMainHulls()
 
-
-    this.addInitTransform()
-
+    this.documentCounts()
 
     this.treeGraph.startSimulation()
     this.mainGraph.startSimulation()
@@ -80,15 +81,48 @@ PivotChart.prototype.restartChart = function () {
     this.updateChart()
 }
 
+PivotChart.prototype.documentCounts = function () {
+    let _this = this
+
+    d3.select("#document-counts text").remove();
+    d3.select("#document-counts")
+        .append("text")
+        .text(function () {
+            const groupingSizes = _this.app.groupBy.map((g) => [
+                g,
+                new Set(_this.app.data.map((d) => d[g])).size,
+            ]);
+            const groupingText = groupingSizes
+                .map(([g, size]) => `${size} ${g}`)
+                .join(", ");
+            return groupingText;
+        });
+}
+
+PivotChart.prototype.addInitTransform = function () {
+    let _this = this
+    this.layerMainTransform.call(inittransform)
+
+    function inittransform(g) {
+        const k = 0.5 / _this.app.groupBy.length;
+        g.attr(
+            "transform",
+            `translate(${_this.height / 2},${300 + _this.height * k}) scale(${k})`
+        );
+    }
+
+}
+
 PivotChart.prototype.updateChart = function () {
     this.treeGraph.updateTree()
     this.mainGraph.updateMainHulls()
-    this.mainGraph.updateExtra()
+    this.mainGraph.updateSide()
     this.mainGraph.clearColoring()
+    this.documentCounts()
 }
 
-PivotChart.prototype.updateChartExtra = function () {
-    this.mainGraph.updateExtra()
+PivotChart.prototype.updateChartSide = function () {
+    this.mainGraph.updateSide()
     this.mainGraph.clearColoring()
 }
 
@@ -121,50 +155,34 @@ PivotChart.prototype.addBackground = function () {
         .attr("height", this.height)
         .attr("fill", this.layout.bgColor)
         .on("click", function () {
-            _this.app.documentList.render({ data: [], displayState: "none" })
-
-            _this.mainGraph.clearColoring()
-            _this.treeGraph.clearColoring()
+            return _this.mainGraph.clearColoring()
         });
-}
-
-
-PivotChart.prototype.addInitTransform = function () {
-    let _this = this
-    const mainElements = d3.select("#layerMain")
-        .selectChildren().nodes().map(d => `#${d.id}`)
-    for (let el of mainElements) {
-        d3.select(el).call(setInitTransform)
-    }
-
-    function setInitTransform(g) {
-        const k = 0.5 / (_this.app.groupBy.length + 0.5);
-        const x = _this.width * k * 1.5
-        const y = _this.height * k
-
-        g.attr("transform", `translate(${x},${y}) scale(${k})`);
-    }
 }
 
 PivotChart.prototype.addZoom = function () {
     let _this = this
-    const zoom = d3.zoom()
-        .extent([
-            [0, 0],
-            [this.width, this.height],
-        ])
-        .scaleExtent([0, 20])
-        .on("zoom", zoomed)
 
-    let zoomedElement = this.app.svg.call(zoom);
-
-    d3.select("#toggle-center-button").on('click', function () {
-        zoomedElement.transition()
-            .duration(750).call(zoom.transform, d3.zoomIdentity);
-    })
+    this.app.svg.call(
+        d3
+            .zoom()
+            .extent([
+                [0, 0],
+                [this.width, this.height],
+            ])
+            .scaleExtent([0, 20])
+            .on("zoom", zoomed)
+    );
 
     function zoomed({ transform }) {
+        transformScale = transform.k;
+        transformX = transform.x;
+        transformY = transform.y;
+
         _this.layerMain.attr(
+            "transform",
+            `translate(${transform.x},${transform.y}) scale(${transform.k})`
+        );
+        _this.layerTree.attr(
             "transform",
             `translate(${transform.x},${transform.y}) scale(${transform.k})`
         );
@@ -205,21 +223,19 @@ PivotChart.prototype.setLayout = function () {
         hullStroke: "#aaa",
         hullStrokeWidth: 1,
         hullOpacity: 0.8,
-        extraNodeRadius: 20,
-        extraFontColor: function () { return _this.app.darkMode ? "#fff" : "#222" },
+        sideNodeRadius: 20,
+        sideFontColor: function () { return _this.app.darkMode ? "#fff" : "#222" },
         linestroke: "#ddd",
         linestrokeWidth: 2,
         linestrokeHighlight: "#3978e6",
         lineopacity: 0.4,
         lineopacityHighlight: 1,
         treeLabelRadius: 24,
-        treeRootRadius: 36,
+        treeRootRadius: 4,
         labelRadius: 16,
         labelCircleFill: "#eee",
         labelCircleStroke: "#eee",
         labelStrokeWidth: 2,
-        labelStrokeWidthHighlighted: 4,
         labelLineStroke: "#333",
-        toggleCenter: function () { return _this.app.darkMode ? "#ddd" : "#ddd" },
     };
 }

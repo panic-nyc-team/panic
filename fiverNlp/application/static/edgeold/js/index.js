@@ -1,8 +1,9 @@
 d3.json(report_name)
   .then(function (rawData) {
-    console.log(report_name);
     const { tree, similarityDimensions } = prepareData(rawData);
     EdgeBundling(rawData, tree, similarityDimensions);
+    document.getElementById('toggle-dark').click();
+
   }).catch(function (error) {
     console.log(error);
   });
@@ -30,7 +31,7 @@ function EdgeBundling(rawData, treeData, rawSimilarityDimensions) {
       : d3.rgb(color).darker(2).toString();
   };
 
-  let darkMode = null;
+  let darkMode = true;
 
   let deltaRad = 0
 
@@ -57,9 +58,10 @@ function EdgeBundling(rawData, treeData, rawSimilarityDimensions) {
     arcWidth: 5,
     arcMargin: 0,
     bgColor: () => (darkMode ? "#222" : "#fff"),
-    groupLabelSize: 24,
+    groupLabelSize: 22,
     groupLabelRatio: 0.45,
     groupLinesColor: () => darkMode ? "#fff" : "#111",
+    groupLabelOpacity: 0.4,
     tooltipBg: () => (darkMode ? "#ddd" : "#fff"),
     textEstimateL: 200,
   };
@@ -85,9 +87,6 @@ function EdgeBundling(rawData, treeData, rawSimilarityDimensions) {
     .radius((d) => d.y - props.arcWidth - props.arcMargin)
     .angle((d) => d.x);
 
-
-
-
   const svg = d3
     .select("#chart")
     .append("svg")
@@ -104,14 +103,16 @@ function EdgeBundling(rawData, treeData, rawSimilarityDimensions) {
     enableSoundNotice.style("display", "none")
   })
 
-
   const layerBg = svg.append("g").attr("class", "bg");
-  const layerChart = svg.append("g")
-  const layerEdgeBundling = layerChart.append("g").call(transformInit)
+  const layerChart = svg.append("g").attr("class", "chart")
+  const layerEdgeBundling = layerChart.append("g").attr("class", "edgebundling").call(transformInit)
   const layerWheel = layerEdgeBundling.append("g").attr("class", "wheel")
   const layerNodes = layerEdgeBundling.append("g").attr("class", "nodes");
   const layerLinks = layerEdgeBundling.append("g").attr("class", "links");
   const layerGroupLabel = layerEdgeBundling.append("g").attr("class", "arcs");
+
+  layerChart
+    .style("cursor", "pointer")
 
   const bg = layerBg
     .append("rect")
@@ -122,12 +123,13 @@ function EdgeBundling(rawData, treeData, rawSimilarityDimensions) {
     .attr("fill", props.bgColor)
     .on("click", clickBg);
 
-  const wheel = layerWheel.append("circle")
-    .attr("cx", 0)
-    .attr("cy", 0)
-    .attr("r", radius + props.textEstimateL * 2)
-    .attr("stroke", "none")
-    .attr("fill", props.bgColor)
+  const wheel = layerWheel
+    .append("path")
+    .attr("d", d3.arc()
+      .innerRadius(radius)
+      .outerRadius(radius + props.textEstimateL * 1.5)
+      .startAngle(0)
+      .endAngle(2 * Math.PI))
 
   const wheelNeedle = layerWheel.append("rect")
     .attr("x", radius)
@@ -179,7 +181,8 @@ function EdgeBundling(rawData, treeData, rawSimilarityDimensions) {
     .append("text")
     .attr("class", "node-text")
     .attr("id", d => "node" + `${d.data.id}`)
-    .attr("fill", props.nodeColor)
+    .style("font-family", "Gotham")
+    .attr("stroke", props.nodeColor)
     .style("cursor", "pointer")
     .style("pointer-events", "click")
     .attr("dy", "0.31em")
@@ -196,6 +199,7 @@ function EdgeBundling(rawData, treeData, rawSimilarityDimensions) {
     .on("mouseout", nodeOuted);
 
   const link = layerLinks
+    .style("pointer-events", "none")
     .attr("stroke", props.linkBaseColor)
     .attr("stroke-width", props.linkWidth)
     .attr("fill", "none")
@@ -238,37 +242,21 @@ function EdgeBundling(rawData, treeData, rawSimilarityDimensions) {
     .attr("class", "group-label")
     .attr("stroke", props.groupLinesColor)
     .attr("fill", "none")
+    .attr("opacity", props.groupLabelOpacity)
     .attr("d", (d) => {
       const radian = d.start + (d.end - d.start) / 2
       return drawLabelLines(radian, d.start, d.end, d.groupName)
     })
 
-
-  function drawLabelArc(g) {
-    const radNode = props.nodeFontSize / (radius + props.textEstimateL) / 2
-    const arc =
-      d3.arc()
-        .innerRadius(radius + props.textEstimateL)
-        .outerRadius(radius + props.textEstimateL + props.arcWidth)
-        .startAngle((d) => {
-          const start = d.end - d.start == 0 ? d.start - radNode : d.start
-          const end = d.end - d.start == 0 ? d.end + radNode : d.end
-          return start > Math.PI / 2 && start < Math.PI * 1.5 ? end : start;
-        })
-        .endAngle((d) => {
-          const start = d.end - d.start == 0 ? d.start - radNode : d.start
-          const end = d.end - d.start == 0 ? d.end + radNode : d.end
-          return start > Math.PI / 2 && start < Math.PI * 1.5 ? start : end;
-        });
-
-    g.attr("d", arc)
-  }
-
   const groupLabelArc = groupG
     .join("path")
-    .style("cursor", "pointer")
     .attr("id", (d) => ("arc" + d.groupName).replace(/\s/g, ""))
-    .attr("fill", props.groupLinesColor)
+    .attr("fill", (d, i) => {
+      return i === 0 ? linkColors(d.similarity_dimension) : props.groupLinesColor
+    })
+    .attr("opacity", (d, i) => {
+      return i === 0 ? 1 : props.groupLabelOpacity
+    })
     .call(drawLabelArc)
 
   const groupLabelBg = groupG
@@ -283,6 +271,7 @@ function EdgeBundling(rawData, treeData, rawSimilarityDimensions) {
   const groupText = groupG
     .join("text")
     // .style("pointer-events", "none")
+    .style("font-family", "Gotham")
     .attr("rotate", (d) =>
       (d.start + (d.end - d.start) / 2) > Math.PI ? "180" : "0")
 
@@ -302,6 +291,7 @@ function EdgeBundling(rawData, treeData, rawSimilarityDimensions) {
     .style("background-color", props.groupLinesColor)
     .style("color", props.bgColor)
 
+
   layerBg.call(
     d3
       .zoom()
@@ -312,7 +302,6 @@ function EdgeBundling(rawData, treeData, rawSimilarityDimensions) {
       .scaleExtent([0, 20])
       .on("zoom", zoomed)
   );
-
 
   layerChart.call(
     d3
@@ -336,21 +325,7 @@ function EdgeBundling(rawData, treeData, rawSimilarityDimensions) {
     const nodeRad = props.nodeFontSize / radius
     const rotationY = Math.abs(Math.floor(sourceEvent.wheelDeltaY / 120))
 
-
-    // let i = 0
-    // function rotationLoop() {
-    //   setTimeout(function () {
-    //     rotateWheel()
-    //     i++
-    //     if (i < rotationY) {
-    //       rotationLoop()
-    //     }
-    //   }, 200)
-    // }
-
-    // rotationLoop()
     rotateWheel()
-
 
     function rotateWheel() {
       const e = sourceEvent.type == "mousemove" ? sourceEvent.movementY :
@@ -394,7 +369,7 @@ function EdgeBundling(rawData, treeData, rawSimilarityDimensions) {
 
 
       // Fake click and hover event triggering tooltip on wheel
-      //
+
       const nodeFocus = root.leaves()
         .filter(d => {
           let radianFocus = (d.x + deltaRad) % (Math.PI * 2)
@@ -404,7 +379,7 @@ function EdgeBundling(rawData, treeData, rawSimilarityDimensions) {
         })[0]
 
       if (nodeFocus !== undefined) {
-        const fakeClickEvent = { pageX: sourceEvent.clientX + 500, pageY: controlBoxHeight + 30 }
+        const fakeClickEvent = { pageX: sourceEvent.clientX + props.textEstimateL * 2 + 100, pageY: controlBoxHeight + 30 }
         nodeClicked(fakeClickEvent, nodeFocus)
 
         $(".node-text").d3Mouseout()
@@ -416,8 +391,6 @@ function EdgeBundling(rawData, treeData, rawSimilarityDimensions) {
         }
 
       }
-
-
     }
 
     // Processing rotation value
@@ -452,12 +425,12 @@ function EdgeBundling(rawData, treeData, rawSimilarityDimensions) {
   function handleDarkMode() {
     const toggleDark = d3.select("#toggle-dark");
     const localStorage = window.localStorage;
-    darkMode =
-      localStorage.darkMode === undefined
-        ? toggleDark.node().checked
-        : localStorage.darkMode;
 
-    darkMode = darkMode === "true" ? true : false;
+    if (localStorage.darkMode === undefined) {
+      darkMode = darkMode
+    } else {
+      darkMode = darkMode === "true" ? true : false;
+    }
 
     toggleDark.node().checked = darkMode;
     setColorMode();
@@ -575,7 +548,6 @@ function EdgeBundling(rawData, treeData, rawSimilarityDimensions) {
            ${transform.y}) 
                   scale(${transform.k}) `
       );
-
   }
 
   function excerpt(text) {
@@ -602,6 +574,7 @@ function EdgeBundling(rawData, treeData, rawSimilarityDimensions) {
         ? k.similarity_dimension === "all"
         : k.similarity_dimension !== "all";
     });
+
 
     d3.selectAll(
       pairedNodes.map((k) => {
@@ -632,8 +605,31 @@ function EdgeBundling(rawData, treeData, rawSimilarityDimensions) {
       .attr("font-weight", "bold")
       .attr("fill", (k) => {
         const val = targetText.get(k.data.id).similarity_dimension;
-        return dimensions.includes(val) ? linkColors(val) : props.nodeColor;
+        return dimensions.includes(val) ? linkColors(val) : props.nodeColor();
       });
+
+
+    // const pairedGroups = pairedNodes.map(k => {
+    //   let g = ""
+    //   if (k[0].group !== d.group) {
+    //     g = k[0].group
+    //   } else if (k[1].group !== d.group) {
+    //     g = k[1].group
+    //   }
+    //   return {
+    //     group: g,
+    //     similarity_dimension: k.similarity_dimension
+    //   }
+    // })
+
+
+    // groupLabelArc.attr("fill", k => {
+    //   const targetIndex = pairedGroups.map(p => p.group).indexOf(k.groupName)
+    //   return targetIndex > -1 ?
+    //     linkColors(pairedGroups[targetIndex].similarity_dimension) : props.groupLinesColor()
+    // }).attr("opacity", k => {
+    //   return k.groupName === d.group ? 1 : props.groupLabelOpacity
+    // })
   }
 
   function nodeOuted(event, d) {
@@ -656,6 +652,7 @@ function EdgeBundling(rawData, treeData, rawSimilarityDimensions) {
     )
       .attr("fill", props.nodeColor)
       .attr("font-weight", null);
+
   }
 
   function nodeClicked(event, d) {
@@ -700,7 +697,7 @@ function EdgeBundling(rawData, treeData, rawSimilarityDimensions) {
           )};">
                       <p style="color:white;">${val.similarity}%</p>
                     </div>
-                    <p><span ><strong>${data.group}</strong></span><br>
+                    <p><span class="tooltip-element-title"><strong>${data.group}</strong></span><br>
                         <span class="tooltip-list-element-text">${data.text
               .split(" ")
               .slice(0, 5)
@@ -736,12 +733,13 @@ function EdgeBundling(rawData, treeData, rawSimilarityDimensions) {
   }
 
   function drawLabelLines(deg, start, end, groupName) {
-    const outer = radius + props.textEstimateL
+    const outer = radius + props.textEstimateL * 1.2 + props.arcWidth
     const assumedLeaves = root.leaves().length + root.children.length
     let factor = ((deg / (Math.PI * 2) * assumedLeaves) % (assumedLeaves / 2)) - (assumedLeaves / 4)
     factor = deg >= Math.PI ? factor : -factor
+    let groupToNodeRatio = (root.children.length / root.leaves().length) * 0.5
 
-    const y2 = -factor * props.nodeFontSize * 2
+    const y2 = -factor * props.nodeFontSize * (1.5 + groupToNodeRatio)
     let textLen =
       groupName.length * props.groupLabelSize * props.groupLabelRatio;
     textLen = deg >= Math.PI ? -textLen : textLen
@@ -760,7 +758,9 @@ function EdgeBundling(rawData, treeData, rawSimilarityDimensions) {
     let factor = ((deg / (Math.PI * 2) * assumedLeaves) % (assumedLeaves / 2)) - (assumedLeaves / 4)
     factor = deg > Math.PI ? factor : -factor
 
-    const y2 = -factor * props.nodeFontSize * 2
+    let groupToNodeRatio = (root.children.length / root.leaves().length) * 0.5
+
+    const y2 = -factor * props.nodeFontSize * (1.5 + groupToNodeRatio)
     let textLen =
       groupName.length * props.groupLabelSize * props.groupLabelRatio;
     textLen = deg > Math.PI ? -textLen : textLen
@@ -775,7 +775,28 @@ function EdgeBundling(rawData, treeData, rawSimilarityDimensions) {
     ])
   }
 
+  function drawLabelArc(g) {
+    const radNode = props.nodeFontSize / (radius + props.textEstimateL) / 2
+    const arc =
+      d3.arc()
+        .innerRadius(radius + props.textEstimateL * 1.2)
+        .outerRadius((d, i) => {
+          const extension = i === 0 ? 2 : 0
+          return radius + props.textEstimateL * 1.2 + props.arcWidth + extension
+        })
+        .startAngle((d) => {
+          const start = d.end - d.start == 0 ? d.start - radNode : d.start
+          const end = d.end - d.start == 0 ? d.end + radNode : d.end
+          return start > Math.PI / 2 && start < Math.PI * 1.5 ? end : start;
+        })
+        .endAngle((d) => {
+          const start = d.end - d.start == 0 ? d.start - radNode : d.start
+          const end = d.end - d.start == 0 ? d.end + radNode : d.end
+          return start > Math.PI / 2 && start < Math.PI * 1.5 ? start : end;
+        });
 
+    g.attr("d", arc)
+  }
 
   function tooltipPosition(event) {
     let ttid = "#tooltip";
