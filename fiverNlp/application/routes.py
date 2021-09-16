@@ -163,15 +163,15 @@ def startup():
     #     sentence.sentiment = sentiment
     #     sentence.polarity = polarity
 
-    # super_queries = SuperSearchQueryModel.query.all()
-    # for super_query in super_queries:
-    #     res = export_result(
-    #         {'export_type': 'search_query', 'where': str(super_query.id), 'filter': 'includes', 'search_parameter': '',
-    #          'format': 'flat_json', 'flag_link': True})
-    #     if res:
-    #         print(res)
-    #     else:
-    #         print('error')
+    super_queries = SuperSearchQueryModel.query.all()
+    for super_query in super_queries:
+        res = export_result(
+            {'export_type': 'search_query', 'where': str(super_query.id), 'filter': 'includes', 'search_parameter': '',
+             'format': 'flat_json', 'flag_link': True})
+        if res:
+            print(res)
+        else:
+            print('error')
 
     # reports = ReportModel.query.all()
     # for report in reports:
@@ -1133,10 +1133,10 @@ def export_result(temp_form=None):
         if flag_link:
             name = f'./static/jsons/searchquery{search_query.id}.json'
             with open(name, 'w') as f:
-                json.dump(data, f)
+                # f.write(jsonify(data))
+                json.dump(data, f, sort_keys=True)
             return {'id': search_query.id}
         return jsonify(data)
-
     elif export_type == 'document':
         documents = NewDocumentModel.query.all()
         data = get_doc_data(documents, field_checkbox, form, date_checkbox, start_date, end_date)
