@@ -5,7 +5,8 @@ let App = function (rawData) {
 
     this.dataRange = { start: null, end: null }
 
-    this.groupBy = [this.keys[0],]; // Set default hiearchy attribute
+    // this.groupBy = [this.keys[0],]; // Set default hiearchy attribute
+    this.groupBy = ["site_type", "polarity"]; // Set default hiearchy attribute
     this.extras = [];
 
     this.darkMode = true;
