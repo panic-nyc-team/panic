@@ -3,9 +3,9 @@
 
 <head>
   <link rel="stylesheet" href="../static/edge/style.css" />
-  <script type="text/javascript">
-          var report_name = "{{ report_name }}"
-  </script>
+    <script type="text/javascript">
+            var report_name = "{{ report_name }}"
+    </script>
 </head>
 
 <body>
@@ -29,9 +29,6 @@
       </div>
     </div>
     <div class="toggle-container">
-      <div class="toggle-sound-notice">
-        <span>Click anywhere to enable sound</span>
-      </div>
       <div id="toggle-dark-btn" class="toggle-btn">
         <input id="toggle-dark" type="checkbox" />
         <span></span>
@@ -43,7 +40,9 @@
       <audio id="audio-wheel" src="../static/edge/static/tick001.mp3"></audio>
       <button id="audio-wheel-button" style="display:none">Play</button>
     </div>
-
+    <div class="toggle-sound-notice">
+      <span>Click anywhere to enable sound</span>
+    </div>
     <div id="toggle-center" class="toggle-center">
       <button id="toggle-center-button" class="toggle-center-button">
         <img src="../static/edge/static/fullscreen_exit_black_24dp.svg" alt="reposition center">

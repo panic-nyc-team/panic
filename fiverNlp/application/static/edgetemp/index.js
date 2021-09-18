@@ -18,18 +18,15 @@ const App = function (rawData) {
   this.handleDarkMode()
 }
 
-App.prototype.update = function () {
-  this.edgeBundling.getDisplayedNode()
-  this.edgeBundling.updateNode()
-  this.edgeBundling.updateLink()
-  this.edgeBundling.addDocumentCounts()
-  this.edgeBundling.setColor()
+App.prototype.update = function (params) {
+  this.setDataTree()
+  this.edgeBundling.render()
 }
 
 App.prototype.setDataTree = function () {
   const _this = this
 
-  this.filteredRawData = this.rawData//.filter(d => d.similarity >= _this.dataRange.start && d.similarity <= _this.dataRange.end)
+  this.filteredRawData = this.rawData.filter(d => d.similarity >= _this.dataRange.start && d.similarity <= _this.dataRange.end)
   const prepared = prepareData(this.filteredRawData);
   this.treeData = prepared.tree
   this.similarityDimensions = prepared.similarityDimensions
@@ -40,11 +37,11 @@ App.prototype.addSVGs = function () {
     .append("svg")
     .attr("class", ".svg-bar")
     .style("position", "absolute")
-    .style("z-index", "0")
-    .style("bottom", 0)
+    .style("z-index", "-1")
+    .style("top", 0)
     .style("left", 0)
-    .attr("width", 500)
-    .attr("height", 190)
+    .style("width", 500)
+    .style("height", 230)
     .style("background-color", "none");
 
   this.svgEdgebundling = d3
@@ -98,7 +95,6 @@ App.prototype.handleDarkMode = function () {
 
 App.prototype.updateLayout = function (params) {
   this.edgeBundling.setColor()
-  this.barChart.setColor()
 }
 
 App.prototype.setLayout = function () {
@@ -107,7 +103,7 @@ App.prototype.setLayout = function () {
     linkBaseColor: "#aaa",
     linkWidth: 1,
     linkWidthHighlight: 3,
-    nodeColor: () => (_this.darkMode ? "#eee" : "#444"),
+    nodeColor: () => (_this.darkMode ? "#eee" : "#222"),
     nodeFontSize: 10,
     nodeFontSizeBold: 16,
     nodeMargin: 2,

@@ -20,7 +20,7 @@ EdgeBundling.prototype.setUp = function () {
             : d3.rgb(color).darker(2).toString();
     };
 
-    this.deltaRad = Math.PI / 4
+    this.deltaRad = Math.PI / 2
 
     this.prevWheeled = ""
 
@@ -70,20 +70,18 @@ EdgeBundling.prototype.init = function () {
     this.addTooltip()
     this.addAudio()
     this.addWheel()
+    this.addDocumentCounts()
     this.addController()
 
     this.addZoomEvent()
     this.addWheelEvent()
-
-    this.render()
-    this.getDisplayedNode()
-    this.updateNode()
-    this.updateLink()
 }
 
 EdgeBundling.prototype.getRadius = function () {
     const r = ((this.nodesNumber + this.app.treeData.children.length) * (this.app.props.nodeFontSize + this.app.props.nodeMargin)) / (2 * Math.PI);
     return r > 300 ? r : 300
+
+
 }
 
 EdgeBundling.prototype.render = function () {
@@ -116,6 +114,7 @@ EdgeBundling.prototype.render = function () {
     }
 
     this.addDocumentCounts()
+
 }
 
 EdgeBundling.prototype.addBg = function () {
@@ -126,11 +125,10 @@ EdgeBundling.prototype.addBg = function () {
         .attr("width", this.app.props.windowWidth)
         .attr("height", this.app.props.windowHeight)
         .attr("fill", this.app.props.bgColor)
-        .attr("id", "bg-rect")
         .on("click", clickBg);
 
     function clickBg(event, d) {
-        $(".node-canvas").d3Mouseout()
+        $(".node-text").d3Mouseout()
         d3.select("#tooltip").style("visibility", "hidden");
     }
 }
@@ -157,13 +155,8 @@ EdgeBundling.prototype.addWheel = function () {
         .attr("opacity", 0.1)
 }
 
-EdgeBundling.prototype.addDocumentCounts = function () {
-    const _this = this
-
-    const links = this.app.rawData
-        .filter(d => d.similarity >= _this.app.dataRange.start && d.similarity <= _this.app.dataRange.end)
-
-    const documentCounts = d3.select("#document-counts").html(links.length);
+EdgeBundling.prototype.addDocumentCounts = function (params) {
+    const documentCounts = d3.select("#document-counts").html(this.app.filteredRawData.length);
 }
 
 EdgeBundling.prototype.addController = function (params) {
@@ -212,76 +205,55 @@ EdgeBundling.prototype.inputsUpdate = function () {
     });
 }
 
+EdgeBundling.prototype.textCanvas = function (text) {
+    const textLength = text.length * this.app.props.nodeFontSize * 0.53
+    const w = textLength
+    const h = this.app.props.nodeFontSize
 
+    const foreignObject = this.layerEdgeBundling.append("g")
+        .append("foreignObject")
+        .attr("x", 0)
+        .attr("y", 0)
+        .attr("height", h * 2)
+        .attr("width", w);
 
-EdgeBundling.prototype.addLink = function () {
-    const _this = this
-    const data = this.root.leaves().flatMap((leaf) => leaf.outgoing)
-        .filter(d => d.similarity >= _this.app.dataRange.start && d.similarity <= _this.app.dataRange.end)
+    const canvas = foreignObject.append("xhtml:canvas")
+        .attr("x", 0)
+        .attr("y", 0)
+        .attr("height", h * 2)
+        .attr("width", w)
 
-    d3.selectAll(".link-path").remove()
-    this.link = this.layerLinks
-        .style("pointer-events", "none")
-        .attr("stroke", this.app.props.linkBaseColor)
-        .attr("stroke-width", this.app.props.linkWidth)
-        .attr("fill", "none")
-        .selectAll("path")
-        .data(data, d => d)
-        .join(
-            (enter) => enter.append("path")
-                .attr("class", "link-path")
-                .attr("d", ([i, o]) => {
-                    return _this.line(i.path(o));
-                })
-                .each(function (d) {
-                    this.similarity = d.similarity;
-                    this.similarity_dimension = d.similarity_dimension;
-                    d.path = this;
-                })
-                .attr("opacity", function (d) {
-                    return this.similarity / 100;
-                }),
-        )
-    this.layerLinks.attr("transform", `rotate(${_this.deltaRad / Math.PI * 180})`)
+    const ctx = canvas.node().getContext("2d")
+    ctx.clearRect(0, 0, textLength, this.app.props.nodeFontSize)
+    ctx.font = `${h}px Gotham`;
+    ctx.fillStyle = "black"
+    ctx.fillText(text, 0, h)
 }
 
-EdgeBundling.prototype.addNode = function () {
+EdgeBundling.prototype.getTextWidth = function (text) {
+    return text.length * this.app.props.nodeFontSize * 0.53
+}
+
+EdgeBundling.prototype.appendTextCanvas = function (that, g) {
     const _this = this
-    const data = this.root.leaves()
-
-    d3.selectAll(".node-g").remove()
-    d3.selectAll(".node-text").remove()
-
-    this.node = this.layerNodes
-        .attr("font-size", this.app.props.nodeFontSize)
-        .selectAll("g")
-        .data(data, d => d)
-        .join((enter) => enter
-            .append("g")
-            .attr("id", d => "g-node" + `${d.data.id}`)
-            .attr("class", "node-g")
-
-            .attr("opacity", 1)
-            .attr("transform", (d) => {
-                return `rotate(${d.x / Math.PI * 180 - 90}) translate(${d.y},0)`
-            }),
-        )
-        .append("text")
-        .attr("class", "node-text")
-        .attr("id", d => "node" + `${d.data.id}`)
-        .style("font-family", d => "Gotham")
-        .attr("stroke", this.app.props.nodeColor)
-        .style("cursor", "pointer")
-        .style("pointer-events", "click")
-        .attr("dy", "0.31em")
-        .attr("x", (d) => (Math.sin(d.x + _this.deltaRad) > Math.sin(Math.PI) ? 6 : -6))
-        .attr("text-anchor", (d) => (Math.sin(d.x + _this.deltaRad) > Math.sin(Math.PI) ? "start" : "end"))
+    const font = that.app.props.nodeFontSize
+    const foH = font * 1.2
+    const dpr = window.devicePixelRatio || 1;
+    that.nodeTextFo = g.append("foreignObject")
+        .attr("class", "node-foreignobject")
+        .attr("x", d => Math.sin(d.x + _this.deltaRad) > Math.sin(Math.PI) ? 0 : -that.getTextWidth(that.excerpt(d.data.text)))
+        .attr("y", -foH * 3 / 4)
+        .attr("height", 1)
+        .attr("overflow", "visible")
+        .attr("width", d => that.getTextWidth(that.excerpt(d.data.text)))
         .attr("transform", (d) => (Math.sin(d.x + _this.deltaRad) > Math.sin(Math.PI) ? "rotate(0)" : "rotate(180)"))
-        .text(function (d) { return _this.excerpt(d.data.text) })
-        .each(function (d) {
-            d.text = this;
-            d.group = d.data.group;
-        })
+
+    that.nodeTextCanvas = that.nodeTextFo
+        .append('xhtml:canvas')
+        .attr("class", "node-canvas")
+        .attr("height", foH * dpr)
+        .attr("width", d => that.getTextWidth(that.excerpt(d.data.text)) * dpr)
+        .each(drawCtx)
         .on("click", function (event, d) {
             _this.nodeClicked(this, event, d)
         })
@@ -292,24 +264,71 @@ EdgeBundling.prototype.addNode = function () {
         .on("mouseout", function (event, d) {
             _this.nodeOuted(this, event, d)
         })
+
+
+    function drawCtx(d) {
+        const ctx = this.getContext('2d')
+        ctx.scale(dpr, dpr)
+        ctx.font = `${font}px Gotham`
+        ctx.fillStyle = that.app.props.nodeColor()
+        ctx.fillText(d.data.text, 0, font)
+    }
+}
+
+
+EdgeBundling.prototype.addNode = function () {
+    const _this = this
+    const data = this.root.leaves()
+
+    d3.selectAll(".node-g").remove()
+    d3.selectAll(".node-text").remove()
+
+
+    this.node = this.layerNodes
+        // .attr("font-family", "sans-serif")
+        // .attr("font-size", this.app.props.nodeFontSize)
+        .selectAll("g")
+        .data(data, d => d)
+        .join((enter) => enter
+            .append("g")
+            .attr("id", d => "g-node" + `${d.data.id}`)
+            .attr("class", "node-g")
+            .attr("transform", (d) => {
+                return `rotate(${d.x / Math.PI * 180 - 90}) translate(${d.y},0)`
+            })
+        )
+        .call(function (g) {
+            _this.appendTextCanvas(_this, g)
+        })
+
+    // .append("text")
+    // .attr("class", "node-text")
+    // .attr("id", d => "node" + `${d.data.id}`)
+    // .style("font-family", d => "Gotham")
+    // .attr("stroke", this.app.props.nodeColor)
+    // .style("cursor", "pointer")
+    // .style("pointer-events", "click")
+    // .attr("dy", "0.31em")
+    // .attr("x", (d) => (Math.sin(d.x + _this.deltaRad) > Math.sin(Math.PI) ? 6 : -6))
+    // .attr("text-anchor", (d) => (Math.sin(d.x + _this.deltaRad) > Math.sin(Math.PI) ? "start" : "end"))
+    // .attr("transform", (d) => (Math.sin(d.x + _this.deltaRad) > Math.sin(Math.PI) ? "rotate(0)" : "rotate(180)"))
+    // .text(function (d) { return _this.excerpt(d.data.text) })
+    // .each(function (d) {
+    //     d.text = this;
+    //     d.group = d.data.group;
+    // })
+    // .on("click", function (event, d) {
+    //     _this.nodeClicked(this, event, d)
+    // })
+    // .on("mouseover",
+    //     function (event, d) {
+    //         _this.nodeOvered(this, event, d)
+    //     })
+    // .on("mouseout", function (event, d) {
+    //     _this.nodeOuted(this, event, d)
+    // })
+
     this.layerNodes.attr("transform", `rotate(${_this.deltaRad / Math.PI * 180})`)
-}
-
-EdgeBundling.prototype.getDisplayedNode = function () {
-    const _this = this
-
-    this.displayedNodes = this.root.leaves().filter(d => {
-        const links = d.outgoing.concat(d.incoming)
-        const values = links.map(o => o.similarity >= _this.app.dataRange.start && o.similarity <= _this.app.dataRange.end)
-            .reduce((a, b) => a || b)
-        return values
-    })
-}
-
-EdgeBundling.prototype.updateNode = function () {
-    const _this = this
-    const idsDisplayedNodes = this.displayedNodes.map(d => d.data.id)
-    this.node.attr("opacity", d => idsDisplayedNodes.includes(d.data.id) ? 1 : 0.3)
 }
 
 EdgeBundling.prototype.nodeOvered = function (that, event, d) {
@@ -388,7 +407,7 @@ EdgeBundling.prototype.nodeClicked = function (that, event, d) {
     const pairedNodes = d.outgoing.concat(d.incoming);
     const targetText = new Map();
 
-    let targets = pairedNodes.map((k) => {
+    const targets = pairedNodes.map((k) => {
         const [i, o] = k;
         const selected = i.data.id === d.data.id ? o.data : i.data;
         targetText.set(k.similarity_dimension + selected.id, {
@@ -411,10 +430,6 @@ EdgeBundling.prototype.nodeClicked = function (that, event, d) {
                 const la = targetText.get(a.group + a.node.data.id);
                 const lb = targetText.get(b.group + b.node.data.id);
                 return lb.similarity - la.similarity;
-            })
-            .filter(k => {
-                const val = targetText.get(k.group + k.node.data.id);
-                return val.similarity >= _this.app.dataRange.start && val.similarity <= _this.app.dataRange.end
             })
             .map((k) => {
                 const val = targetText.get(k.group + k.node.data.id);
@@ -446,6 +461,36 @@ EdgeBundling.prototype.nodeClicked = function (that, event, d) {
       `);
 
     this.tooltipPosition(event);
+}
+
+EdgeBundling.prototype.addLink = function () {
+    const _this = this
+    d3.selectAll(".link-path").remove()
+    this.link = this.layerLinks
+        .style("pointer-events", "none")
+        .attr("stroke", this.app.props.linkBaseColor)
+        .attr("stroke-width", this.app.props.linkWidth)
+        .attr("fill", "none")
+        .selectAll("path")
+        .data(this.root.leaves().flatMap((leaf) => leaf.outgoing), d => d)
+        .join(
+            (enter) => enter.append("path")
+                .attr("class", "link-path")
+                .attr("d", ([i, o]) => {
+                    return _this.line(i.path(o));
+                })
+                .each(function (d) {
+                    this.similarity = d.similarity;
+                    this.similarity_dimension = d.similarity_dimension;
+                    d.path = this;
+                })
+                .attr("opacity", function (d) {
+                    return this.similarity / 100;
+                })
+        )
+    this.layerLinks.attr("transform", `rotate(${_this.deltaRad / Math.PI * 180})`)
+
+
 }
 
 
@@ -557,8 +602,6 @@ EdgeBundling.prototype.addZoomEvent = function () {
     d3.select("#toggle-center-button").on('click', function () {
         zoomedElement.transition()
             .duration(750).call(zoom.transform, d3.zoomIdentity);
-
-        $(`#bg-rect`).d3Mouseclick()
     })
 
     function zoomed({ transform }) {
@@ -575,7 +618,7 @@ EdgeBundling.prototype.addZoomEvent = function () {
 
 EdgeBundling.prototype.addWheelEvent = function () {
     const _this = this
-    const throttled = _.throttle(wheeled, 50)
+    const throttled = _.throttle(wheeled, 10)
     this.layerChart.call(
         d3.zoom()
             .extent([
@@ -591,6 +634,8 @@ EdgeBundling.prototype.addWheelEvent = function () {
     }
 
     function wheeled({ transform, sourceEvent }) {
+        const nodeRad = _this.app.props.nodeFontSize / _this.radius
+        const rotationY = Math.abs(Math.floor(sourceEvent.wheelDeltaY / 120))
 
         rotateWheel()
 
@@ -606,9 +651,13 @@ EdgeBundling.prototype.addWheelEvent = function () {
 
             _this.layerNodes.attr("transform", (d) => `rotate(${((_this.deltaRad) / Math.PI) * 180}) `)
 
-            _this.node
-                .attr("x", (d) => (Math.sin(d.x + _this.deltaRad) > Math.sin(Math.PI) ? 6 : -6))
-                .attr("text-anchor", (d) => (Math.sin(d.x + _this.deltaRad) > Math.sin(Math.PI) ? "start" : "end"))
+            // _this.node
+            //     .attr("x", (d) => (Math.sin(d.x + _this.deltaRad) > Math.sin(Math.PI) ? 6 : -6))
+            //     .attr("text-anchor", (d) => (Math.sin(d.x + _this.deltaRad) > Math.sin(Math.PI) ? "start" : "end"))
+            //     .attr("transform", (d) => (Math.sin(d.x + _this.deltaRad) > Math.sin(Math.PI) ? "rotate(0)" : "rotate(180)"))
+
+            _this.nodeTextFo
+                .attr("x", d => Math.sin(d.x + _this.deltaRad) > Math.sin(Math.PI) ? 0 : -_this.getTextWidth(_this.excerpt(d.data.text)))
                 .attr("transform", (d) => (Math.sin(d.x + _this.deltaRad) > Math.sin(Math.PI) ? "rotate(0)" : "rotate(180)"))
 
             _this.groupLabelLines.attr("d", (d, i) => {
@@ -637,7 +686,7 @@ EdgeBundling.prototype.addWheelEvent = function () {
 
             // Fake click and hover event triggering tooltip on wheel
 
-            const nodeFocus = _this.displayedNodes
+            const nodeFocus = _this.root.leaves()
                 .filter(d => {
                     let radianFocus = (d.x + _this.deltaRad) % (Math.PI * 2)
                     radianFocus = radianFocus < 0 ? 2 * Math.PI + radianFocus : radianFocus
@@ -645,18 +694,19 @@ EdgeBundling.prototype.addWheelEvent = function () {
                         radianFocus < Math.PI / 2 + _this.app.props.nodeFontSize / _this.radius
                 })[0]
 
-            if (nodeFocus !== undefined) {
-                const fakeClickEvent = { pageX: sourceEvent.clientX + _this.app.props.textEstimateL * 2 + 100, pageY: _this.controlBoxHeight + 30 }
-                _this.nodeClicked(_this, fakeClickEvent, nodeFocus)
+            // if (nodeFocus !== undefined) {
+            //     const fakeClickEvent = { pageX: sourceEvent.clientX + _this.props.textEstimateL * 2 + 100, pageY: controlBoxHeight + 30 }
+            //     _this.nodeClicked(fakeClickEvent, nodeFocus)
 
-                $(".node-text").d3Mouseout()
-                $(`#node${nodeFocus.data.id}`).d3Mouseover()
+            //     $(".node-text").d3Mouseout()
+            //     $(`#node${nodeFocus.data.id}`).d3Mouseover()
 
-                if (_this.prevWheeled !== nodeFocus.data.id) {
-                    $(`#audio-wheel-button`).d3Mouseclick()
-                    _this.prevWheeled = nodeFocus.data.id
-                }
-            }
+            //     // if (prevWheeled !== nodeFocus.data.id) {
+            //     //     $(`#audio-wheel-button`).d3Mouseclick()
+            //     //     prevWheeled = nodeFocus.data.id
+            //     // }
+
+            // }
         }
     }
 }
@@ -678,12 +728,11 @@ EdgeBundling.prototype.addAudio = function () {
         _this.enableSoundNotice.style("display", "none")
     })
 
-    const audioElement = document.getElementById("audio-wheel")
+    const audioPromise = document.getElementById("audio-wheel")
 
     d3.select("#audio-wheel-button").on("click", () => {
-        audioElement.currentTime = 0
-        audioElement.volume = 0.3
-        audioElement.play()
+        audioPromise.currentTime = 0
+        audioPromise.play()
     })
 
 }
@@ -773,7 +822,8 @@ EdgeBundling.prototype.setColor = function () {
     const _this = this
 
     this.bg.attr("fill", this.app.props.bgColor);
-    d3.selectAll(".node-text").attr("stroke", this.app.props.nodeColor);
+    // d3.selectAll(".node-text").attr("stroke", this.app.props.nodeColor);
+    this.addNode()
     this.tooltip
         .style("background-color", this.app.props.tooltipBg)
         .style("color", this.app.props.tooltipBg);
@@ -819,13 +869,10 @@ EdgeBundling.prototype.updateLink = function () {
                 : _this.app.props.linkBaseColor;
         })
         .attr("opacity", function (d) {
-            let opc = _this.dimension === d.similarity_dimension
+            return _this.dimension === d.similarity_dimension
                 ? (d.similarity / 100).toFixed(2)
                 : 0;
-            opc = d.similarity >= _this.app.dataRange.start && d.similarity <= _this.app.dataRange.end ?
-                opc : 0
-            return opc
-        })
+        });
 }
 
 

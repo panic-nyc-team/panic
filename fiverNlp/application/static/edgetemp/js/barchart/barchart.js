@@ -9,8 +9,7 @@ const BarChart = function (app) {
 BarChart.prototype.draw = function () {
     let _this = this
 
-    this.app.svgBar.style("pointer-events", "none")
-    this.layerBarChart = this.app.svgBar.append("g").attr("id", "bar-chart")
+    this.layerBarChart = this.app.svgBar.append("g").attr("id", "bar-chart");
 
     // // this.transform()
     this.addBg()
@@ -56,7 +55,7 @@ BarChart.prototype.addXAxis = function () {
 
 
 BarChart.prototype.addY1Axis = function () {
-    this.y1Axis = d3.axisLeft(this.y1).ticks(5);
+    this.y1Axis = d3.axisLeft(this.y1);
     this.layerBarChart
         .append("g")
         .attr("id", "y1Axis")
@@ -110,8 +109,7 @@ BarChart.prototype.addBg = function () {
         .attr("y", 0)
         .attr("width", this.layout.width)
         .attr("height", this.layout.height)
-        .attr("fill", this.layout.bgColor)
-        .attr("opacity", 0.3)
+        .attr("fill", this.layout.bgColor);
 }
 
 BarChart.prototype.addChartTitle = function () {
@@ -126,7 +124,6 @@ BarChart.prototype.addChartTitle = function () {
         .style("font-size", 16)
         .append("xhtml:div")
         .attr("class", "bar-chart-title")
-        .style("text-align", "center")
         .append("span")
         .attr("class", "bar-chart-title-span")
         .style("color", this.layout.textColor)
@@ -219,6 +216,12 @@ BarChart.prototype.updateBrushTip = function () {
 
 }
 
+
+
+
+
+
+
 BarChart.prototype.transform = function () {
     this.app.svg2.attr(
         "transform",
@@ -226,7 +229,7 @@ BarChart.prototype.transform = function () {
     );
 }
 
-BarChart.prototype.setColor = function () {
+BarChart.prototype.updateDarkMode = function () {
     d3.selectAll("#bars").attr("fill", this.layout.barFill)
     d3.select("#xAxis").style("color", this.layout.textColor)
     d3.select("#y1Axis").style("color", this.layout.textColor)
@@ -239,7 +242,7 @@ BarChart.prototype.setColor = function () {
 BarChart.prototype.setLayout = function () {
     let _this = this
     this.layout = {
-        height: 150,
+        height: 200,
         width: 500,
         margin: {
             top: 50,
